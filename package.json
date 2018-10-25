@@ -1,9 +1,10 @@
 {
-  "name": "bitcore-lib",
+  "name": "bitcore-lib-ts",
   "version": "8.0.0",
-  "description": "A pure and powerful JavaScript Bitcoin library.",
-  "author": "BitPay <dev@bitpay.com>",
-  "main": "index.js",
+  "description": "A pure and powerful TypeScript Bitcoin library.",
+  "author": "Micah Riggan <micahriggan@bitpay.com>",
+  "main": "ts_build/index.js",
+  "types": "ts_build/index.d.ts",
   "scripts": {
     "lint": "gulp lint",
     "test": "gulp test",
