@@ -1,6 +1,4 @@
-'use strict';
-
-var _ = require('lodash');
+import * as _ from 'lodash';
 var BlockHeader = require('./blockheader');
 var BN = require('../crypto/bn');
 var BufferUtil = require('../util/buffer');
