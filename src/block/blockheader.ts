@@ -1,7 +1,7 @@
 'use strict';
 
 import * as lodash from 'lodash';
-var BN = require('../crypto/bn');
+import {BitcoreBN } from '../crypto/bn';
 var BufferUtil = require('../util/buffer');
 var BufferReader = require('../encoding/bufferreader');
 var BufferWriter = require('../encoding/bufferwriter');

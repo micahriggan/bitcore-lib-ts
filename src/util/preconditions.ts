@@ -1,33 +1,51 @@
-'use strict';
+import * as _ from 'lodash';
+import { BitcoreError } from '../errors';
 
-var errors = require('../errors');
-var _ = require('lodash');
-
-module.exports = {
-  checkState: function(condition, message) {
+export default {
+  checkState(condition, message) {
     if (!condition) {
-      throw new errors.InvalidState(message);
+      throw new BitcoreError('InvalidState', message);
     }
   },
-  checkArgument: function(condition, argumentName, message, docsPath) {
+  checkArgument(condition, argumentName, message, docsPath) {
     if (!condition) {
-      throw new errors.InvalidArgument(argumentName, message, docsPath);
+      throw new BitcoreError(
+        'InvalidArgument',
+        argumentName,
+        message,
+        docsPath
+      );
     }
   },
-  checkArgumentType: function(argument, type, argumentName) {
+  checkArgumentType(argument, type, argumentName) {
     argumentName = argumentName || '(unknown name)';
     if (_.isString(type)) {
       if (type === 'Buffer') {
-        var buffer = require('buffer'); // './buffer' fails on cordova & RN
+        const buffer = require('buffer'); // './buffer' fails on cordova & RN
         if (!buffer.Buffer.isBuffer(argument)) {
-          throw new errors.InvalidArgumentType(argument, type, argumentName);
+          throw new BitcoreError(
+            'InvalidArgumentType',
+            argument,
+            type,
+            argumentName
+          );
         }
       } else if (typeof argument !== type) {
-        throw new errors.InvalidArgumentType(argument, type, argumentName);
+        throw new BitcoreError(
+          'InvalidArgumentType',
+          argument,
+          type,
+          argumentName
+        );
       }
     } else {
       if (!(argument instanceof type)) {
-        throw new errors.InvalidArgumentType(argument, type.name, argumentName);
+        throw new BitcoreError(
+          'InvalidArgumentType',
+          argument,
+          type.name,
+          argumentName
+        );
       }
     }
   }

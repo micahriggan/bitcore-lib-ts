@@ -11,7 +11,7 @@ interface IBufferEncodingOptions {
   endian?: 'little' | 'big';
 }
 
-class BitcoreBN extends BN {
+export class BitcoreBN extends BN {
   public static Zero = new BN(0);
   public static One = new BN(1);
   public static Minus1 = new BN(-1);
@@ -71,10 +71,9 @@ class BitcoreBN extends BN {
   public toBitcoreBuffer(opts?: IBufferEncodingOptions) {
     let buf;
     let hex;
-    const LENGTH = 2;
     if (opts && opts.size) {
-      hex = this.toString(HEX_BASE, LENGTH);
-      const natlen = hex.length / LENGTH;
+      hex = this.toString(HEX_BASE, 2);
+      const natlen = hex.length / 2;
       buf = Buffer.from(hex, 'hex');
 
       if (natlen === opts.size) {
@@ -85,7 +84,7 @@ class BitcoreBN extends BN {
         buf = BitcoreBN.pad(buf, natlen, opts.size);
       }
     } else {
-      hex = this.toString(HEX_BASE, LENGTH);
+      hex = this.toString(HEX_BASE, 2);
       buf = Buffer.from(hex, 'hex');
     }
 

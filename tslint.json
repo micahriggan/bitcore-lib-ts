@@ -1,9 +1,11 @@
 {
   "extends": "tslint:recommended",
   "rules": {
-    "no-magic-numbers": true,
+    "no-magic-numbers": [true, -1, 0, 1, 2, 3],
     "curly": true,
     "no-bitwise": false,
+    "arrow-parens": false,
+    "object-literal-sort-keys": false,
     "indent": [true, "spaces"],
     "quotemark": [true, "single", "avoid-escape"],
     "ordered-imports": [false],

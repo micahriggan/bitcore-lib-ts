@@ -1,6 +1,5 @@
-'use strict';
-
-var _ = require('lodash');
+import * as _ from 'lodash';
+import { ERROR_TYPES } from './spec';
 
 function format(message, args) {
   return message
@@ -8,54 +7,15 @@ function format(message, args) {
     .replace('{1}', args[1])
     .replace('{2}', args[2]);
 }
-var traverseNode = function(parent, errorDefinition) {
-  var NodeError = function() {
-    if (_.isString(errorDefinition.message)) {
-      this.message = format(errorDefinition.message, arguments);
-    } else if (_.isFunction(errorDefinition.message)) {
-      this.message = errorDefinition.message.apply(null, arguments);
+export class BitcoreError {
+  constructor(errType: keyof typeof ERROR_TYPES, ...args) {
+  const message = ERROR_TYPES[errType].message;
+    let formattedMessage = '';
+    if (typeof message === 'function') {
+      formattedMessage = format(message(args), args);
     } else {
-      throw new Error('Invalid error definition for ' + errorDefinition.name);
+      formattedMessage = format(message, args);
     }
-    this.stack = this.message + '\n' + (new Error()).stack;
-  };
-  NodeError.prototype = Object.create(parent.prototype);
-  NodeError.prototype.name = parent.prototype.name + errorDefinition.name;
-  parent[errorDefinition.name] = NodeError;
-  if (errorDefinition.errors) {
-    childDefinitions(NodeError, errorDefinition.errors);
+    return Error(formattedMessage);
   }
-  return NodeError;
-};
-
-/* jshint latedef: false */
-var childDefinitions = function(parent, childDefinitions) {
-  _.each(childDefinitions, function(childDefinition) {
-    traverseNode(parent, childDefinition);
-  });
-};
-/* jshint latedef: true */
-
-var traverseRoot = function(parent, errorsDefinition) {
-  childDefinitions(parent, errorsDefinition);
-  return parent;
-};
-
-
-var bitcore = {};
-bitcore.Error = function() {
-  this.message = 'Internal error';
-  this.stack = this.message + '\n' + (new Error()).stack;
-};
-bitcore.Error.prototype = Object.create(Error.prototype);
-bitcore.Error.prototype.name = 'bitcore.Error';
-
-
-var data = require('./spec');
-traverseRoot(bitcore.Error, data);
-
-module.exports = bitcore.Error;
-
-module.exports.extend = function(spec) {
-  return traverseNode(bitcore.Error, spec);
-};
+}
