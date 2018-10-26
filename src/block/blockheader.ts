@@ -2,7 +2,7 @@
 
 import * as lodash from 'lodash';
 import {BitcoreBN } from '../crypto/bn';
-var BufferUtil = require('../util/buffer');
+import { BufferUtil } from '../util/buffer';
 var BufferReader = require('../encoding/bufferreader');
 var BufferWriter = require('../encoding/bufferwriter');
 var Hash = require('../crypto/hash');
