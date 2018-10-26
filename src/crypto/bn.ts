@@ -1,4 +1,4 @@
-import BN = require('bn.js');
+import BN from 'bn.js';
 import * as _ from 'lodash';
 const HEX_BASE = 16;
 const DECIMAL_BASE = 10;

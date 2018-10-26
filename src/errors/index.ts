@@ -9,7 +9,7 @@ function format(message, args) {
 }
 export class BitcoreError {
   constructor(errType: keyof typeof ERROR_TYPES, ...args) {
-  const message = ERROR_TYPES[errType].message;
+    const message = ERROR_TYPES[errType].message;
     let formattedMessage = '';
     if (typeof message === 'function') {
       formattedMessage = format(message(args), args);

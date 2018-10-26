@@ -7,7 +7,7 @@ export default {
       throw new BitcoreError('InvalidState', message);
     }
   },
-  checkArgument(condition, argumentName, message, docsPath) {
+  checkArgument(condition, argumentName, message?, docsPath?) {
     if (!condition) {
       throw new BitcoreError(
         'InvalidArgument',

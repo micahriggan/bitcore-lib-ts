@@ -1,7 +1,6 @@
 {
   "extends": "tslint:recommended",
   "rules": {
-    "no-magic-numbers": [true, -1, 0, 1, 2, 3],
     "curly": true,
     "no-bitwise": false,
     "arrow-parens": false,
