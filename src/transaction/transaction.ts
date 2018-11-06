@@ -1,31 +1,31 @@
 'use strict';
 
-var _ = require('lodash');
-var $ = require('../util/preconditions');
-var buffer = require('buffer');
+import * as _ from 'lodash';
+import * as $ from '../util/preconditions';
+import * as buffer from 'buffer';
 var compare = Buffer.compare || require('buffer-compare');
 
 var errors = require('../errors');
-var BufferUtil = require('../util/buffer');
-var JSUtil = require('../util/js');
-var BufferReader = require('../encoding/bufferreader');
-var BufferWriter = require('../encoding/bufferwriter');
-var Hash = require('../crypto/hash');
-var Signature = require('../crypto/signature');
-var Sighash = require('./sighash');
-var SighashWitness = require('./sighashwitness');
+import { BufferUtil } from '../util/buffer';
+import { JSUtil } from '../util/js';
+import { BufferReader } from '../encoding/bufferreader';
+import { BufferWriter } from '../encoding/bufferwriter';
+import { Hash } from '../crypto/hash';
+import { Signature } from '../crypto/signature';
+import { Sighash } from './sighash';
+import { SighashWitness } from './sighashwitness';
 
-var Address = require('../address');
-var UnspentOutput = require('./unspentoutput');
-var Input = require('./input');
+import { Address } from '../address';
+import { UnspentOutput } from './unspentoutput';
+import { Input } from './input';
 var PublicKeyHashInput = Input.PublicKeyHash;
 var PublicKeyInput = Input.PublicKey;
 var MultiSigScriptHashInput = Input.MultiSigScriptHash;
 var MultiSigInput = Input.MultiSig;
-var Output = require('./output');
-var Script = require('../script');
-var PrivateKey = require('../privatekey');
-var BN = require('../crypto/bn');
+import { Output } from './output';
+import { Script } from '../script';
+import { PrivateKey } from '../privatekey';
+import { BN } from '../crypto/bn';
 
 /**
  * Represents a transaction, a set of inputs and outputs to change ownership of tokens

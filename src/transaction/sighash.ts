@@ -1,17 +1,17 @@
 'use strict';
 
-var buffer = require('buffer');
+import { Buffer } from 'buffer';
 
-var Signature = require('../crypto/signature');
-var Script = require('../script');
-var Output = require('./output');
-var BufferReader = require('../encoding/bufferreader');
-var BufferWriter = require('../encoding/bufferwriter');
-var BN = require('../crypto/bn');
-var Hash = require('../crypto/hash');
-var ECDSA = require('../crypto/ecdsa');
-var $ = require('../util/preconditions');
-var _ = require('lodash');
+import { Signature } from '../crypto/signature';
+import { Script } from '../script';
+import { Output } from './output';
+import { BufferReader } from '../encoding/bufferreader';
+import { BufferWriter } from '../encoding/bufferwriter';
+import { BitcoreBN } from '../crypto/bn';
+import { Hash } from '../crypto/hash';
+import { ECDSA } from '../crypto/ecdsa';
+import $ from '../util/preconditions';
+import * as _ from 'lodash';
 
 var SIGHASH_SINGLE_BUG = '0000000000000000000000000000000000000000000000000000000000000001';
 var BITS_64_ON = 'ffffffffffffffff';

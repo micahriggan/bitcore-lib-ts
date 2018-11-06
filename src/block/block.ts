@@ -1,11 +1,11 @@
 import * as _ from 'lodash';
-var BlockHeader = require('./blockheader');
-var BN = require('../crypto/bn');
-var BufferUtil = require('../util/buffer');
-var BufferReader = require('../encoding/bufferreader');
-var BufferWriter = require('../encoding/bufferwriter');
-var Hash = require('../crypto/hash');
-var Transaction = require('../transaction');
+import { BlockHeader } from './blockheader';
+import { BitcoreBN } from '../crypto/bn';
+import { BufferUtil } from '../util/buffer';
+import { BufferReader } from '../encoding/bufferreader';
+import { BufferWriter } from '../encoding/bufferwriter';
+import { Hash } from '../crypto/hash';
+import { Transaction } from '../transaction';
 var $ = require('../util/preconditions');
 
 /**

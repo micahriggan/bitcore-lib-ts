@@ -1,8 +1,8 @@
 'use strict';
 import { Buffer } from 'buffer';
-import assert from 'assert';
 import { JSUtil } from './js';
 import $ from './preconditions';
+import assert from 'assert';
 
 const NULL_HASH_LENGTH = 32;
 const MAX_256 = 0xff;
@@ -18,7 +18,7 @@ export class BufferUtil {
    * @param {number} value
    * @return {Buffer}
    */
-  public static fill(buffer: Buffer, value: number) {
+  public static fill(buffer: Buffer, value: number): Buffer {
     $.checkArgumentType(buffer, 'Buffer', 'buffer');
     $.checkArgumentType(value, 'number', 'value');
     const length = buffer.length;
@@ -34,7 +34,7 @@ export class BufferUtil {
    * @param {Buffer} original
    * @return {Buffer}
    */
-  public static copy(original: Buffer) {
+  public static copy(original: Buffer): Buffer {
     const buffer = Buffer.alloc(original.length);
     original.copy(buffer);
     return buffer;
@@ -47,8 +47,8 @@ export class BufferUtil {
    * @param {*} arg
    * @return {boolean}
    */
-  public static isBuffer(arg) {
-    return buffer.Buffer.isBuffer(arg) || arg instanceof Uint8Array;
+  public static isBuffer(arg): boolean {
+    return Buffer.isBuffer(arg) || arg instanceof Uint8Array;
   }
 
   /**
@@ -57,16 +57,16 @@ export class BufferUtil {
    * @param {number} bytes
    * @return {Buffer}
    */
-  public static emptyBuffer(bytes: number) {
+  public static emptyBuffer(bytes: number): Buffer {
     $.checkArgumentType(bytes, 'number', 'bytes');
-    const result = new buffer.Buffer(bytes);
+    const result = new Buffer(bytes);
     for (let i = 0; i < bytes; i++) {
       result.write('\0', i);
     }
     return result;
   }
 
-  public static equal(a, b) {
+  public static equal(a, b): boolean {
     if (a.length !== b.length) {
       return false;
     }
@@ -86,9 +86,9 @@ export class BufferUtil {
    * @param {number} integer
    * @return {Buffer}
    */
-  public static integerAsSingleByteBuffer(integer: number) {
+  public static integerAsSingleByteBuffer(integer: number): Buffer {
     $.checkArgumentType(integer, 'number', 'integer');
-    return new buffer.Buffer([integer & MAX_256]);
+    return new Buffer([integer & MAX_256]);
   }
 
   /**
@@ -97,7 +97,7 @@ export class BufferUtil {
    * @param {number} integer
    * @return {Buffer}
    */
-  public static integerAsBuffer(integer: number) {
+  public static integerAsBuffer(integer: number): Buffer {
     $.checkArgumentType(integer, 'number', 'integer');
     const bytes = [];
     bytes.push((integer >> THREE_BYTES) & MAX_256);
@@ -113,7 +113,7 @@ export class BufferUtil {
    * @param {Buffer} buffer
    * @return {number}
    */
-  public static integerFromBuffer(buffer: Buffer) {
+  public static integerFromBuffer(buffer: Buffer): number {
     $.checkArgumentType(buffer, 'Buffer', 'buffer');
     return (
       (buffer[0] << THREE_BYTES) |
@@ -128,7 +128,7 @@ export class BufferUtil {
    * @param {Buffer} buffer
    * @return {number}
    */
-  public static integerFromSingleByteBuffer(buffer) {
+  public static integerFromSingleByteBuffer(buffer): number {
     $.checkArgumentType(buffer, 'Buffer', 'buffer');
     return buffer[0];
   }
@@ -141,7 +141,7 @@ export class BufferUtil {
    * @param {Buffer} buffer
    * @return {string}
    */
-  public static bufferToHex(buffer) {
+  public static bufferToHex(buffer): string {
     $.checkArgumentType(buffer, 'Buffer', 'buffer');
     return buffer.toString('hex');
   }
@@ -151,8 +151,8 @@ export class BufferUtil {
    * @param {Buffer} param
    * @return {Buffer}
    */
-  public static reverse(param) {
-    const ret = new buffer.Buffer(param.length);
+  public static reverse(param): Buffer {
+    const ret = new Buffer(param.length);
     for (let i = 0; i < param.length; i++) {
       ret[i] = param[param.length - i - 1];
     }
@@ -167,9 +167,9 @@ export class BufferUtil {
    * @param {string} string
    * @return {Buffer}
    */
-  public static hexToBuffer(str: string) {
+  public static hexToBuffer(str: string): Buffer {
     assert(JSUtil.isHexa(str));
-    return new buffer.Buffer(str, 'hex');
+    return new Buffer(str, 'hex');
   }
 
   public static NULL_HASH = BufferUtil.fill(Buffer.alloc(NULL_HASH_LENGTH), 0);
@@ -177,7 +177,7 @@ export class BufferUtil {
   /**
    * Concatenates a buffer
    *
-   * Shortcut for <tt>buffer.Buffer.concat</tt>
+   * Shortcut for <tt>Buffer.concat</tt>
    */
   public static concat = Buffer.concat;
 }

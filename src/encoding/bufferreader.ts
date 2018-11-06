@@ -199,7 +199,7 @@ export class BufferReader {
     return this;
   }
 
-  public readReverse(len) {
+  public readReverse(len?: number) {
     if (_.isUndefined(len)) {
       len = this.buf.length;
     }
