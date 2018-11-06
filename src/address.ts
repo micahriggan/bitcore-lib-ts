@@ -1,13 +1,13 @@
 'use strict';
 
-var _ = require('lodash');
-var $ = require('./util/preconditions');
-var errors = require('./errors');
-var Base58Check = require('./encoding/base58check');
-var Networks = require('./networks');
-var Hash = require('./crypto/hash');
-var JSUtil = require('./util/js');
-var PublicKey = require('./publickey');
+import * as _ from 'lodash';
+import $ from './util/preconditions';
+import { BitcoreError } from './errors';
+import { Base58Check } from './encoding/base58check';
+import { Networks } from './networks';
+import { Hash } from './crypto/hash';
+import { JSUtil } from './util/js';
+import { PublicKey } from './publickey';
 
 /**
  * Instantiate an address from an address String or Buffer, a public key or script hash Buffer,

@@ -48,6 +48,7 @@
   "devDependencies": {
     "@types/assert": "^1.4.0",
     "@types/bn.js": "^4.11.2",
+    "@types/elliptic": "^6.4.0",
     "@types/node": "^10.12.0",
     "bitcore-build": "https://github.com/bitpay/bitcore-build.git#d4e8b2b2f1e2c065c3a807dcb6a6250f61d67ab3",
     "brfs": "^1.2.0",

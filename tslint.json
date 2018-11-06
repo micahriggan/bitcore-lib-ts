@@ -22,6 +22,8 @@
     ],
     "max-classes-per-file": [true, 5],
     "no-var-requires": false,
+    "interface-name": false, "always-prefix"],
+    "no-namespace": false,
     "array-type": [true, "generic"],
     "member-ordering": [false],
     "align": [false]

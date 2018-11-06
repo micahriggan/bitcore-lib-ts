@@ -1,70 +1,74 @@
 'use strict';
 
-var _ = require('lodash');
-var bs58 = require('bs58');
-var buffer = require('buffer');
+import * as _ from 'lodash';
+import { bs58 } from 'bs58';
+import { Buffer } from 'buffer';
 
-var ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'.split('');
+const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'.split(
+  ''
+);
 
-var Base58 = function Base58(obj) {
-  /* jshint maxcomplexity: 8 */
-  if (!(this instanceof Base58)) {
-    return new Base58(obj);
+export class Base58 {
+  public buf: Buffer;
+
+  constructor(obj) {
+    /* jshint maxcomplexity: 8 */
+    if (!(this instanceof Base58)) {
+      return new Base58(obj);
+    }
+    if (Buffer.isBuffer(obj)) {
+      const buf = obj;
+      this.fromBuffer(buf);
+    } else if (typeof obj === 'string') {
+      const str = obj;
+      this.fromString(str);
+    } else if (obj) {
+      this.set(obj);
+    }
   }
-  if (Buffer.isBuffer(obj)) {
-    var buf = obj;
-    this.fromBuffer(buf);
-  } else if (typeof obj === 'string') {
-    var str = obj;
-    this.fromString(str);
-  } else if (obj) {
-    this.set(obj);
+
+  public static validCharacters(chars) {
+    if (buffer.Buffer.isBuffer(chars)) {
+      chars = chars.toString();
+    }
+    return _.every(_.map(chars, char => _.includes(ALPHABET, char)));
   }
-};
 
-Base58.validCharacters = function validCharacters(chars) {
-  if (buffer.Buffer.isBuffer(chars)) {
-    chars = chars.toString();
+  public set(obj) {
+    this.buf = obj.buf || this.buf || undefined;
+    return this;
   }
-  return _.every(_.map(chars, function(char) { return _.includes(ALPHABET, char); }));
-};
 
-Base58.prototype.set = function(obj) {
-  this.buf = obj.buf || this.buf || undefined;
-  return this;
-};
-
-Base58.encode = function(buf) {
-  if (!buffer.Buffer.isBuffer(buf)) {
-    throw new Error('Input should be a buffer');
+  public static encode(buf) {
+    if (!buffer.Buffer.isBuffer(buf)) {
+      throw new Error('Input should be a buffer');
+    }
+    return bs58.encode(buf);
   }
-  return bs58.encode(buf);
-};
 
-Base58.decode = function(str) {
-  if (typeof str !== 'string') {
-    throw new Error('Input should be a string');
+  public static decode(str) {
+    if (typeof str !== 'string') {
+      throw new Error('Input should be a string');
+    }
+    return Buffer.from(bs58.decode(str));
   }
-  return Buffer.from(bs58.decode(str));
-};
 
-Base58.prototype.fromBuffer = function(buf) {
-  this.buf = buf;
-  return this;
-};
+  public fromBuffer(buf) {
+    this.buf = buf;
+    return this;
+  }
 
-Base58.prototype.fromString = function(str) {
-  var buf = Base58.decode(str);
-  this.buf = buf;
-  return this;
-};
+  public fromString(str) {
+    const buf = Base58.decode(str);
+    this.buf = buf;
+    return this;
+  }
 
-Base58.prototype.toBuffer = function() {
-  return this.buf;
-};
+  public toBuffer() {
+    return this.buf;
+  }
 
-Base58.prototype.toString = function() {
-  return Base58.encode(this.buf);
-};
-
-module.exports = Base58;
+  public toString() {
+    return Base58.encode(this.buf);
+  }
+}
