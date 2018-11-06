@@ -4,7 +4,7 @@ import { BitcoreBN } from './crypto/bn';
 import { Point } from './crypto/point';
 import { Hash } from './crypto/hash';
 import { JSUtil } from './util/js';
-import { Networks } from './networks';
+import { Network } from './networks';
 import * as _ from 'lodash';
 import $ from './util/preconditions';
 import { Address } from './address';

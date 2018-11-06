@@ -25,7 +25,7 @@ export interface INetworkObject {
  * (a.k.a. "mainnet") and "testnet".
  * @constructor
  */
-export class Networks implements INetworkObject {
+export class Network implements INetworkObject {
   public name: string;
   public alias: string;
   public pubkeyhash: number;
@@ -36,6 +36,7 @@ export class Networks implements INetworkObject {
   public networkMagic: Buffer;
   public port: number;
   public dnsSeeds: Array<string>;
+  public static defaultNetwork: Network;
 
   constructor(obj?: INetworkObject) {
     const {
@@ -76,13 +77,13 @@ export class Networks implements INetworkObject {
    * @param {string|Array} keys - if set, only check if the magic number associated with this name matches
    * @return Network
    */
-  public static get(arg, keys) {
+  public static get(arg, keys?: Array<string> | string) {
     if (~networks.indexOf(arg)) {
       return arg;
     }
     if (keys) {
       if (!_.isArray(keys)) {
-        keys = [keys];
+        keys = [<string>keys];
       }
       for (const index in networks) {
         if (_.some(keys, (key) => networks[index][key] === arg)) {
@@ -157,56 +158,58 @@ export class Networks implements INetworkObject {
     }
   }
 }
-  Network.addNetwork({
-    name: 'livenet',
-    alias: 'mainnet',
-    pubkeyhash: 0x00,
-    privatekey: 0x80,
-    scripthash: 0x05,
-    xpubkey: 0x0488b21e,
-    xprivkey: 0x0488ade4,
-    networkMagic: 0xf9beb4d9,
-    port: 8333,
-    dnsSeeds: [
-      'seed.bitcoin.sipa.be',
-      'dnsseed.bluematt.me',
-      'dnsseed.bitcoin.dashjr.org',
-      'seed.bitcoinstats.com',
-      'seed.bitnodes.io',
-      'bitseed.xf2.org'
-    ]
-  });
+Network.addNetwork({
+  name: 'livenet',
+  alias: 'mainnet',
+  pubkeyhash: 0x00,
+  privatekey: 0x80,
+  scripthash: 0x05,
+  xpubkey: 0x0488b21e,
+  xprivkey: 0x0488ade4,
+  networkMagic: 0xf9beb4d9,
+  port: 8333,
+  dnsSeeds: [
+    'seed.bitcoin.sipa.be',
+    'dnsseed.bluematt.me',
+    'dnsseed.bitcoin.dashjr.org',
+    'seed.bitcoinstats.com',
+    'seed.bitnodes.io',
+    'bitseed.xf2.org'
+  ]
+});
 
-  Networks.addNetwork({
-    name: 'testnet',
-    alias: 'testnet',
-    pubkeyhash: 0x6f,
-    privatekey: 0xef,
-    scripthash: 0xc4,
-    xpubkey: 0x043587cf,
-    xprivkey: 0x04358394,
-    port: 18333,
-    networkMagic: BufferUtil.integerAsBuffer(0x0b110907),
-    dnsSeeds: [
-      'testnet-seed.bitcoin.petertodd.org',
-      'testnet-seed.bluematt.me',
-      'testnet-seed.alexykot.me',
-      'testnet-seed.bitcoin.schildbach.de'
-    ]
-  });
+Network.addNetwork({
+  name: 'testnet',
+  alias: 'testnet',
+  pubkeyhash: 0x6f,
+  privatekey: 0xef,
+  scripthash: 0xc4,
+  xpubkey: 0x043587cf,
+  xprivkey: 0x04358394,
+  port: 18333,
+  networkMagic: BufferUtil.integerAsBuffer(0x0b110907),
+  dnsSeeds: [
+    'testnet-seed.bitcoin.petertodd.org',
+    'testnet-seed.bluematt.me',
+    'testnet-seed.alexykot.me',
+    'testnet-seed.bitcoin.schildbach.de'
+  ]
+});
 
-  Networks.addNetwork({
-    name: 'testnet',
-    alias: 'testnet',
-    pubkeyhash: 0x6f,
-    privatekey: 0xef,
-    scripthash: 0xc4,
-    xpubkey: 0x043587cf,
-    xprivkey: 0x04358394,
-    port: 18444,
-    networkMagic: BufferUtil.integerAsBuffer(0xfabfb5da),
-    dnsSeeds: []
-  });
+Network.addNetwork({
+  name: 'testnet',
+  alias: 'testnet',
+  pubkeyhash: 0x6f,
+  privatekey: 0xef,
+  scripthash: 0xc4,
+  xpubkey: 0x043587cf,
+  xprivkey: 0x04358394,
+  port: 18444,
+  networkMagic: BufferUtil.integerAsBuffer(0xfabfb5da),
+  dnsSeeds: []
+});
+
+Network.defaultNetwork = Network.get('livenet');
 
 /**
  * @namespace Networks
