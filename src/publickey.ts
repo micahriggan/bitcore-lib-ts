@@ -34,8 +34,19 @@ import { PrivateKey } from './privatekey';
  * @returns {PublicKey} A new valid instance of an PublicKey
  * @constructor
  */
+export namespace PublicKey {
+  export type PubKeyObj = {
+    point: Point;
+    compressed: boolean;
+    network: Network;
+  };
+}
 export class PublicKey {
-  constructor(data, extra) {
+  point: Point;
+  compressed: boolean;
+  network: Network;
+
+  constructor(data, extra?: { network?: Network; compressed?: boolean }) {
     if (!(this instanceof PublicKey)) {
       return new PublicKey(data, extra);
     }
@@ -73,7 +84,7 @@ export class PublicKey {
     /* jshint maxcomplexity: 10 */
     let info = {
       compressed: _.isUndefined(extra.compressed) || extra.compressed
-    };
+    } as PublicKey.PubKeyObj;
 
     // detect type of data
     if (data instanceof Point) {
@@ -131,7 +142,7 @@ export class PublicKey {
       PublicKey._isPrivateKey(privkey),
       'Must be an instance of PrivateKey'
     );
-    const info = {};
+    const info = {} as PublicKey.PubKeyObj;
     info.point = Point.getG().mul(privkey.bn);
     info.compressed = privkey.compressed;
     info.network = privkey.network;
@@ -146,14 +157,14 @@ export class PublicKey {
    * @returns {Object} An object with keys: point and compressed
    * @private
    */
-  public static _transformDER(buf, strict) {
+  public static _transformDER(buf, strict = true) {
     /* jshint maxstatements: 30 */
     /* jshint maxcomplexity: 12 */
     $.checkArgument(
       PublicKey._isBuffer(buf),
       'Must be a hex buffer of DER encoded public key'
     );
-    let info = {};
+    let info = {} as PublicKey.PubKeyObj;
 
     strict = _.isUndefined(strict) ? true : strict;
 
@@ -201,8 +212,7 @@ export class PublicKey {
       typeof odd === 'boolean',
       'Must specify whether y is odd or not (true or false)'
     );
-    const info = {};
-    info.point = Point.fromX(odd, x);
+    const info = { point: Point.fromX(odd, x) } as PublicKey.PubKeyObj;
     return info;
   }
 
@@ -256,6 +266,8 @@ export class PublicKey {
       compressed: info.compressed
     });
   }
+
+  public static fromBuffer = PublicKey.fromDER;
 
   /**
    * Instantiate a PublicKey from a Point
@@ -371,6 +383,8 @@ export class PublicKey {
     }
   }
 
+  public toDER = this.toBuffer;
+
   /**
    * Will return a sha256 + ripemd160 hash of the serialized public key
    * @see https://github.com/bitcoin/bitcoin/blob/master/src/pubkey.h#L141
@@ -386,7 +400,7 @@ export class PublicKey {
    * @param {String|Network=} network - Which network should the address be for
    * @returns {Address} An address generated from the public key
    */
-  public toAddress(network) {
+  public toAddress(network?: Network) {
     return Address.fromPublicKey(this, network || this.network);
   }
 

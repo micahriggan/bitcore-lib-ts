@@ -53,7 +53,7 @@ export class Address {
   public network: Network;
   public hashBuffer: Buffer;
 
-  constructor(data, network, type) {
+  constructor(data: Uint8Array, network, type) {
     /* jshint maxcomplexity: 12 */
     /* jshint maxstatements: 20 */
 

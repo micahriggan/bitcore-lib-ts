@@ -36,7 +36,7 @@ declare class Curve {
  */
 export class Point extends curveInstance.point {
   public point: any;
-  constructor(x, y, isRed) {
+  constructor(x, y, isRed = false) {
     super(x, y, isRed);
     try {
       super.validate();
