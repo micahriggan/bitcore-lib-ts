@@ -339,8 +339,8 @@ export class Interpreter {
     this.pc = typeof obj.pc !== 'undefined' ? obj.pc : this.pc;
     this.pbegincodehash =
       typeof obj.pbegincodehash !== 'undefined'
-        ? obj.pbegincodehash
-        : this.pbegincodehash;
+      ? obj.pbegincodehash
+      : this.pbegincodehash;
     this.sigversion =
       typeof obj.sigversion !== 'undefined' ? obj.sigversion : this.sigversion;
     this.satoshis =
@@ -435,7 +435,7 @@ export class Interpreter {
         (Interpreter.SCRIPT_VERIFY_DERSIG |
           Interpreter.SCRIPT_VERIFY_LOW_S |
           Interpreter.SCRIPT_VERIFY_STRICTENC)) !==
-        0 &&
+      0 &&
       !Signature.isTxDER(buf)
     ) {
       this.errstr = 'SCRIPT_ERR_SIG_DER_INVALID_FORMAT';
@@ -640,7 +640,7 @@ export class Interpreter {
       (OP_CODES.OP_IF <= opcodenum && opcodenum <= OP_CODES.OP_ENDIF)
     ) {
       switch (opcodenum) {
-        // Push value
+          // Push value
         case OP_CODES.OP_1NEGATE:
         case OP_CODES.OP_1:
         case OP_CODES.OP_2:
@@ -669,9 +669,9 @@ export class Interpreter {
           }
           break;
 
-        //
-        // Control
-        //
+          //
+          // Control
+          //
         case OP_CODES.OP_NOP:
           break;
 
@@ -816,9 +816,9 @@ export class Interpreter {
           }
           break;
 
-        //
-        // Stack ops
-        //
+          //
+          // Stack ops
+          //
         case OP_CODES.OP_TOALTSTACK:
           {
             if (this.stack.length < 1) {
@@ -1072,9 +1072,9 @@ export class Interpreter {
           }
           break;
 
-        //
-        // Bitwise logic
-        //
+          //
+          // Bitwise logic
+          //
         case OP_CODES.OP_EQUAL:
         case OP_CODES.OP_EQUALVERIFY:
           //case OP_CODES.OP_NOTEQUAL: // use OP_CODES.OP_NUMNOTEQUAL
@@ -1101,9 +1101,9 @@ export class Interpreter {
           }
           break;
 
-        //
-        // Numeric
-        //
+          //
+          // Numeric
+          //
         case OP_CODES.OP_1ADD:
         case OP_CODES.OP_1SUB:
         case OP_CODES.OP_NEGATE:
@@ -1134,12 +1134,16 @@ export class Interpreter {
                 }
                 break;
               case OP_CODES.OP_NOT:
-                bn = new BN(Interpreter.booleanToNumber(bn.cmp(BN.Zero) === 0) + 0);
+                bn = new BN(
+                  Interpreter.booleanToNumber(bn.cmp(BN.Zero) === 0) + 0
+                );
                 break;
               case OP_CODES.OP_0NOTEQUAL:
-                bn = new BN(Interpreter.booleanToNumber(bn.cmp(BN.Zero) !== 0) + 0);
+                bn = new BN(
+                  Interpreter.booleanToNumber(bn.cmp(BN.Zero) !== 0) + 0
+                );
                 break;
-              //default:      assert(!'invalid opcode'); break; // TODO: does this ever occur?
+                //default:      assert(!'invalid opcode'); break; // TODO: does this ever occur?
             }
             this.stack.pop();
             this.stack.push(bn.toScriptNumBuffer());
@@ -1184,43 +1188,53 @@ export class Interpreter {
                 bn = bn1.sub(bn2);
                 break;
 
-              // case OP_CODES.OP_BOOLAND:       bn = (bn1 != bnZero && bn2 != bnZero); break;
+                // case OP_CODES.OP_BOOLAND:       bn = (bn1 != bnZero && bn2 != bnZero); break;
               case OP_CODES.OP_BOOLAND:
                 bn = new BN(
-                  Interpreter.booleanToNumber(bn1.cmp(BN.Zero) !== 0 && bn2.cmp(BN.Zero) !== 0) + 0
+                  Interpreter.booleanToNumber(
+                    bn1.cmp(BN.Zero) !== 0 && bn2.cmp(BN.Zero) !== 0
+                  ) + 0
                 );
                 break;
-              // case OP_CODES.OP_BOOLOR:        bn = (bn1 != bnZero || bn2 != bnZero); break;
+                // case OP_CODES.OP_BOOLOR:        bn = (bn1 != bnZero || bn2 != bnZero); break;
               case OP_CODES.OP_BOOLOR:
                 bn = new BN(
-                  Interpreter.booleanToNumber(bn1.cmp(BN.Zero) !== 0 || bn2.cmp(BN.Zero) !== 0) + 0
+                  Interpreter.booleanToNumber(
+                    bn1.cmp(BN.Zero) !== 0 || bn2.cmp(BN.Zero) !== 0
+                  ) + 0
                 );
                 break;
-              // case OP_CODES.OP_NUMEQUAL:      bn = (bn1 == bn2); break;
+                // case OP_CODES.OP_NUMEQUAL:      bn = (bn1 == bn2); break;
               case OP_CODES.OP_NUMEQUAL:
-                bn = new BN(Interpreter.booleanToNumber(bn1.cmp(bn2) === 0) + 0);
+                bn = new BN(
+                  Interpreter.booleanToNumber(bn1.cmp(bn2) === 0) + 0
+                );
                 break;
-              // case OP_CODES.OP_NUMEQUALVERIFY:    bn = (bn1 == bn2); break;
+                // case OP_CODES.OP_NUMEQUALVERIFY:    bn = (bn1 == bn2); break;
               case OP_CODES.OP_NUMEQUALVERIFY:
-                bn = new BN(Interpreter.booleanToNumber(bn1.cmp(bn2) === 0) + 0);
+                bn = new BN(
+                  Interpreter.booleanToNumber(bn1.cmp(bn2) === 0) + 0
+                );
                 break;
-              // case OP_CODES.OP_NUMNOTEQUAL:     bn = (bn1 != bn2); break;
+                // case OP_CODES.OP_NUMNOTEQUAL:     bn = (bn1 != bn2); break;
               case OP_CODES.OP_NUMNOTEQUAL:
-                bn = new BN(Interpreter.booleanToNumber(bn1.cmp(bn2) !== 0) + 0);
+                bn = new BN(
+                  Interpreter.booleanToNumber(bn1.cmp(bn2) !== 0) + 0
+                );
                 break;
-              // case OP_CODES.OP_LESSTHAN:      bn = (bn1 < bn2); break;
+                // case OP_CODES.OP_LESSTHAN:      bn = (bn1 < bn2); break;
               case OP_CODES.OP_LESSTHAN:
                 bn = new BN(Interpreter.booleanToNumber(bn1.cmp(bn2) < 0) + 0);
                 break;
-              // case OP_CODES.OP_GREATERTHAN:     bn = (bn1 > bn2); break;
+                // case OP_CODES.OP_GREATERTHAN:     bn = (bn1 > bn2); break;
               case OP_CODES.OP_GREATERTHAN:
                 bn = new BN(Interpreter.booleanToNumber(bn1.cmp(bn2) > 0) + 0);
                 break;
-              // case OP_CODES.OP_LESSTHANOREQUAL:   bn = (bn1 <= bn2); break;
+                // case OP_CODES.OP_LESSTHANOREQUAL:   bn = (bn1 <= bn2); break;
               case OP_CODES.OP_LESSTHANOREQUAL:
                 bn = new BN(Interpreter.booleanToNumber(bn1.cmp(bn2) <= 0) + 0);
                 break;
-              // case OP_CODES.OP_GREATERTHANOREQUAL:  bn = (bn1 >= bn2); break;
+                // case OP_CODES.OP_GREATERTHANOREQUAL:  bn = (bn1 >= bn2); break;
               case OP_CODES.OP_GREATERTHANOREQUAL:
                 bn = new BN(Interpreter.booleanToNumber(bn1.cmp(bn2) >= 0) + 0);
                 break;
@@ -1230,7 +1244,7 @@ export class Interpreter {
               case OP_CODES.OP_MAX:
                 bn = bn1.cmp(bn2) > 0 ? bn1 : bn2;
                 break;
-              // default:           assert(!'invalid opcode'); break; //TODO: does this ever occur?
+                // default:           assert(!'invalid opcode'); break; //TODO: does this ever occur?
             }
             this.stack.pop();
             this.stack.pop();
@@ -1276,9 +1290,9 @@ export class Interpreter {
           }
           break;
 
-        //
-        // Crypto
-        //
+          //
+          // Crypto
+          //
         case OP_CODES.OP_RIPEMD160:
         case OP_CODES.OP_SHA1:
         case OP_CODES.OP_SHA256:

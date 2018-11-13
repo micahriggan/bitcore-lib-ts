@@ -1,13 +1,11 @@
-'use strict';
-
-import  $ from '../util/preconditions';
+import $ from '../util/preconditions';
 import * as _ from 'lodash';
 import { Network } from '../networks';
 import { Address } from '../address';
 import { BufferReader } from '../encoding/bufferreader';
 import { BufferWriter } from '../encoding/bufferwriter';
 import { Hash } from '../crypto/hash';
-import { Opcode } from '../opcode';
+import { Opcode, OP_CODES } from '../opcode';
 import { PublicKey } from '../publickey';
 import { Signature } from '../crypto/signature';
 import { BitcoreError } from '../errors';
@@ -73,14 +71,14 @@ export class Script {
         var opcodenum = br.readUInt8();
 
         var len, buf;
-        if (opcodenum > 0 && opcodenum < Opcode.OP_PUSHDATA1) {
+        if (opcodenum > 0 && opcodenum < OP_CODES.OP_PUSHDATA1) {
           len = opcodenum;
           script.chunks.push({
             buf: br.read(len),
             len: len,
             opcodenum: opcodenum
           });
-        } else if (opcodenum === Opcode.OP_PUSHDATA1) {
+        } else if (opcodenum === OP_CODES.OP_PUSHDATA1) {
           len = br.readUInt8();
           buf = br.read(len);
           script.chunks.push({
@@ -88,7 +86,7 @@ export class Script {
             len: len,
             opcodenum: opcodenum
           });
-        } else if (opcodenum === Opcode.OP_PUSHDATA2) {
+        } else if (opcodenum === OP_CODES.OP_PUSHDATA2) {
           len = br.readUInt16LE();
           buf = br.read(len);
           script.chunks.push({
@@ -96,7 +94,7 @@ export class Script {
             len: len,
             opcodenum: opcodenum
           });
-        } else if (opcodenum === Opcode.OP_PUSHDATA4) {
+        } else if (opcodenum === OP_CODES.OP_PUSHDATA4) {
           len = br.readUInt32LE();
           buf = br.read(len);
           script.chunks.push({
@@ -128,15 +126,15 @@ export class Script {
       var opcodenum = chunk.opcodenum;
       bw.writeUInt8(chunk.opcodenum);
       if (chunk.buf) {
-        if (opcodenum < Opcode.OP_PUSHDATA1) {
+        if (opcodenum < OP_CODES.OP_PUSHDATA1) {
           bw.write(chunk.buf);
-        } else if (opcodenum === Opcode.OP_PUSHDATA1) {
+        } else if (opcodenum === OP_CODES.OP_PUSHDATA1) {
           bw.writeUInt8(chunk.len);
           bw.write(chunk.buf);
-        } else if (opcodenum === Opcode.OP_PUSHDATA2) {
+        } else if (opcodenum === OP_CODES.OP_PUSHDATA2) {
           bw.writeUInt16LE(chunk.len);
           bw.write(chunk.buf);
-        } else if (opcodenum === Opcode.OP_PUSHDATA4) {
+        } else if (opcodenum === OP_CODES.OP_PUSHDATA4) {
           bw.writeUInt32LE(chunk.len);
           bw.write(chunk.buf);
         }
@@ -154,7 +152,7 @@ export class Script {
     var i = 0;
     while (i < tokens.length) {
       var token = tokens[i];
-      var opcode = Opcode(token);
+      var opcode = new Opcode(token);
       var opcodenum = opcode.toNumber();
 
       if (_.isUndefined(opcodenum)) {
@@ -166,9 +164,9 @@ export class Script {
         });
         i = i + 1;
       } else if (
-        opcodenum === Opcode.OP_PUSHDATA1 ||
-        opcodenum === Opcode.OP_PUSHDATA2 ||
-        opcodenum === Opcode.OP_PUSHDATA4
+        opcodenum === OP_CODES.OP_PUSHDATA1 ||
+        opcodenum === OP_CODES.OP_PUSHDATA2 ||
+        opcodenum === OP_CODES.OP_PUSHDATA4
       ) {
         script.chunks.push({
           buf: Buffer.from(tokens[i + 2], 'hex'),
@@ -201,12 +199,12 @@ export class Script {
     var i = 0;
     while (i < tokens.length) {
       var token = tokens[i];
-      var opcode = Opcode(token);
+      var opcode = new Opcode(token);
       var opcodenum = opcode.toNumber();
 
       if (_.isUndefined(opcodenum)) {
         opcodenum = parseInt(token);
-        if (opcodenum > 0 && opcodenum < Opcode.OP_PUSHDATA1) {
+        if (opcodenum > 0 && opcodenum < OP_CODES.OP_PUSHDATA1) {
           script.chunks.push({
             buf: Buffer.from(tokens[i + 1].slice(2), 'hex'),
             len: opcodenum,
@@ -217,9 +215,9 @@ export class Script {
           throw new Error('Invalid script: ' + JSON.stringify(str));
         }
       } else if (
-        opcodenum === Opcode.OP_PUSHDATA1 ||
-        opcodenum === Opcode.OP_PUSHDATA2 ||
-        opcodenum === Opcode.OP_PUSHDATA4
+        opcodenum === OP_CODES.OP_PUSHDATA1 ||
+        opcodenum === OP_CODES.OP_PUSHDATA2 ||
+        opcodenum === OP_CODES.OP_PUSHDATA4
       ) {
         if (tokens[i + 2].slice(0, 2) !== '0x') {
           throw new Error('Pushdata data must start with 0x');
@@ -257,10 +255,10 @@ export class Script {
             // OP_1NEGATE -> 1
             str = str + ' -1';
           } else {
-            str = str + ' ' + Opcode(opcodenum).toString();
+            str = str + ' ' + new Opcode(opcodenum).toString();
           }
         } else {
-          str = str + ' ' + Opcode(opcodenum).toString();
+          str = str + ' ' + new Opcode(opcodenum).toString();
         }
       } else {
         var numstr = opcodenum.toString(16);
@@ -276,11 +274,11 @@ export class Script {
     } else {
       // data chunk
       if (
-        (!asm && opcodenum === Opcode.OP_PUSHDATA1) ||
-        opcodenum === Opcode.OP_PUSHDATA2 ||
-        opcodenum === Opcode.OP_PUSHDATA4
+        (!asm && opcodenum === OP_CODES.OP_PUSHDATA1) ||
+        opcodenum === OP_CODES.OP_PUSHDATA2 ||
+        opcodenum === OP_CODES.OP_PUSHDATA4
       ) {
-        str = str + ' ' + Opcode(opcodenum).toString();
+        str = str + ' ' + new Opcode(opcodenum).toString();
       }
       if (chunk.len > 0) {
         if (asm) {
@@ -329,12 +327,12 @@ export class Script {
   public isPublicKeyHashOut() {
     return !!(
       this.chunks.length === 5 &&
-      this.chunks[0].opcodenum === Opcode.OP_DUP &&
-      this.chunks[1].opcodenum === Opcode.OP_HASH160 &&
+      this.chunks[0].opcodenum === OP_CODES.OP_DUP &&
+      this.chunks[1].opcodenum === OP_CODES.OP_HASH160 &&
       this.chunks[2].buf &&
       this.chunks[2].buf.length === 20 &&
-      this.chunks[3].opcodenum === Opcode.OP_EQUALVERIFY &&
-      this.chunks[4].opcodenum === Opcode.OP_CHECKSIG
+      this.chunks[3].opcodenum === OP_CODES.OP_EQUALVERIFY &&
+      this.chunks[4].opcodenum === OP_CODES.OP_CHECKSIG
     );
   }
 
@@ -393,7 +391,7 @@ export class Script {
       this.chunks.length === 2 &&
       this.chunks[0].buf &&
       this.chunks[0].buf.length &&
-      this.chunks[1].opcodenum === Opcode.OP_CHECKSIG
+      this.chunks[1].opcodenum === OP_CODES.OP_CHECKSIG
     ) {
       var pubkeyBuf = this.chunks[0].buf;
       var version = pubkeyBuf[0];
@@ -436,9 +434,9 @@ export class Script {
     var buf = this.toBuffer();
     return (
       buf.length === 23 &&
-      buf[0] === Opcode.OP_HASH160 &&
+      buf[0] === OP_CODES.OP_HASH160 &&
       buf[1] === 0x14 &&
-      buf[buf.length - 1] === Opcode.OP_EQUAL
+      buf[buf.length - 1] === OP_CODES.OP_EQUAL
     );
   }
 
@@ -473,8 +471,8 @@ export class Script {
       return false;
     }
     if (
-      buf[0] !== Opcode.OP_0 &&
-      !(buf[0] >= Opcode.OP_1 && buf[0] <= Opcode.OP_16)
+      buf[0] !== OP_CODES.OP_0 &&
+      !(buf[0] >= OP_CODES.OP_1 && buf[0] <= OP_CODES.OP_16)
     ) {
       return false;
     }
@@ -526,7 +524,8 @@ export class Script {
         return obj.buf && BufferUtil.isBuffer(obj.buf);
       }) &&
       Opcode.isSmallIntOp(this.chunks[this.chunks.length - 2].opcodenum) &&
-      this.chunks[this.chunks.length - 1].opcodenum === Opcode.OP_CHECKMULTISIG
+      this.chunks[this.chunks.length - 1].opcodenum ===
+        OP_CODES.OP_CHECKMULTISIG
     );
   }
 
@@ -551,7 +550,7 @@ export class Script {
   public isDataOut() {
     return (
       this.chunks.length >= 1 &&
-      this.chunks[0].opcodenum === Opcode.OP_RETURN &&
+      this.chunks[0].opcodenum === OP_CODES.OP_RETURN &&
       (this.chunks.length === 1 ||
         (this.chunks.length === 2 &&
           this.chunks[1].buf &&
@@ -586,7 +585,7 @@ export class Script {
    */
   public isPushOnly() {
     return _.every(this.chunks, function(chunk) {
-      return chunk.opcodenum <= Opcode.OP_16;
+      return chunk.opcodenum <= OP_CODES.OP_16;
     });
   }
 
@@ -755,7 +754,7 @@ export class Script {
     } else if (opcode instanceof Opcode) {
       op = opcode.toNumber();
     } else {
-      op = Opcode(opcode).toNumber();
+      op = new Opcode(opcode).toNumber();
     }
     this._insertAtPosition(
       {
@@ -769,14 +768,14 @@ export class Script {
   public _addBuffer(buf, prepend) {
     var opcodenum;
     var len = buf.length;
-    if (len >= 0 && len < Opcode.OP_PUSHDATA1) {
+    if (len >= 0 && len < OP_CODES.OP_PUSHDATA1) {
       opcodenum = len;
     } else if (len < Math.pow(2, 8)) {
-      opcodenum = Opcode.OP_PUSHDATA1;
+      opcodenum = OP_CODES.OP_PUSHDATA1;
     } else if (len < Math.pow(2, 16)) {
-      opcodenum = Opcode.OP_PUSHDATA2;
+      opcodenum = OP_CODES.OP_PUSHDATA2;
     } else if (len < Math.pow(2, 32)) {
-      opcodenum = Opcode.OP_PUSHDATA4;
+      opcodenum = OP_CODES.OP_PUSHDATA4;
     } else {
       throw new Error("You can't push that much data");
     }
@@ -793,7 +792,7 @@ export class Script {
 
   public hasCodeseparators() {
     for (var i = 0; i < this.chunks.length; i++) {
-      if (this.chunks[i].opcodenum === Opcode.OP_CODESEPARATOR) {
+      if (this.chunks[i].opcodenum === OP_CODES.OP_CODESEPARATOR) {
         return true;
       }
     }
@@ -803,7 +802,7 @@ export class Script {
   public removeCodeseparators() {
     var chunks = [];
     for (var i = 0; i < this.chunks.length; i++) {
-      if (this.chunks[i].opcodenum !== Opcode.OP_CODESEPARATOR) {
+      if (this.chunks[i].opcodenum !== OP_CODES.OP_CODESEPARATOR) {
         chunks.push(this.chunks[i]);
       }
     }
@@ -822,7 +821,11 @@ export class Script {
    *        - noSorting: defaults to false, if true, don't sort the given
    *                      public keys before creating the script
    */
-  public static buildMultisigOut(publicKeys, threshold, opts) {
+  public static buildMultisigOut(
+    publicKeys: PublicKey[],
+    threshold: number,
+    opts?: { noSorting?: boolean }
+  ) {
     $.checkArgument(
       threshold <= publicKeys.length,
       'Number of required signatures must be less than or equal to the number of public keys'
@@ -842,14 +845,14 @@ export class Script {
       script.add(publicKey.toBuffer());
     }
     script.add(Opcode.smallInt(publicKeys.length));
-    script.add(Opcode.OP_CHECKMULTISIG);
+    script.add(OP_CODES.OP_CHECKMULTISIG);
     return script;
   }
 
   public static buildWitnessMultisigOutFromScript = function(script) {
     if (script instanceof Script) {
       var s = new Script();
-      s.add(Opcode.OP_0);
+      s.add(OP_CODES.OP_0);
       s.add(Hash.sha256(script.toBuffer()));
       return s;
     } else {
@@ -880,7 +883,7 @@ export class Script {
     $.checkArgument(_.isArray(signatures));
     opts = opts || {};
     var s = new Script();
-    s.add(Opcode.OP_0);
+    s.add(OP_CODES.OP_0);
     _.each(signatures, function(signature) {
       $.checkArgument(
         BufferUtil.isBuffer(signature),
@@ -915,7 +918,7 @@ export class Script {
     $.checkArgument(_.isArray(signatures));
     opts = opts || {};
     var s = new Script();
-    s.add(Opcode.OP_0);
+    s.add(OP_CODES.OP_0);
     _.each(signatures, function(signature) {
       $.checkArgument(
         BufferUtil.isBuffer(signature),
@@ -948,11 +951,11 @@ export class Script {
       to = new Address(to);
     }
     var s = new Script();
-    s.add(Opcode.OP_DUP)
-      .add(Opcode.OP_HASH160)
+    s.add(OP_CODES.OP_DUP)
+      .add(OP_CODES.OP_HASH160)
       .add(to.hashBuffer)
-      .add(Opcode.OP_EQUALVERIFY)
-      .add(Opcode.OP_CHECKSIG);
+      .add(OP_CODES.OP_EQUALVERIFY)
+      .add(OP_CODES.OP_CHECKSIG);
     s._network = to.network;
     return s;
   }
@@ -964,7 +967,7 @@ export class Script {
   public static buildPublicKeyOut = function(pubkey) {
     $.checkArgument(pubkey instanceof PublicKey);
     var s = new Script();
-    s.add(pubkey.toBuffer()).add(Opcode.OP_CHECKSIG);
+    s.add(pubkey.toBuffer()).add(OP_CODES.OP_CHECKSIG);
     return s;
   };
 
@@ -981,7 +984,7 @@ export class Script {
       data = Buffer.from(data, encoding);
     }
     var s = new Script();
-    s.add(Opcode.OP_RETURN);
+    s.add(OP_CODES.OP_RETURN);
     if (!_.isUndefined(data)) {
       s.add(data);
     }
@@ -999,13 +1002,13 @@ export class Script {
         (script instanceof Address && script.isPayToScriptHash())
     );
     var s = new Script();
-    s.add(Opcode.OP_HASH160)
+    s.add(OP_CODES.OP_HASH160)
       .add(
         script instanceof Address
           ? script.hashBuffer
           : Hash.sha256ripemd160(script.toBuffer())
       )
-      .add(Opcode.OP_EQUAL);
+      .add(OP_CODES.OP_EQUAL);
 
     s._network = script._network || script.network;
     return s;
@@ -1080,7 +1083,7 @@ export class Script {
    * @return {Script} an output script built from the address
    */
   public static fromAddress = function(address) {
-    address = Address(address);
+    address = new Address(address);
     if (address.isPayToScriptHash()) {
       return Script.buildScriptHashOut(address);
     } else if (address.isPayToPublicKeyHash()) {
@@ -1113,7 +1116,7 @@ export class Script {
    * @private
    */
   public _getOutputAddressInfo() {
-    var info = {} as InfoType;
+    var info = {} as Address.AddressObj;
     if (this.isScriptHashOut()) {
       info.hashBuffer = this.getData();
       info.type = Address.PayToScriptHash;
@@ -1132,7 +1135,7 @@ export class Script {
    * @private
    */
   public _getInputAddressInfo() {
-    var info = {} as InfoType;
+    var info = {} as Address.AddressObj;
     if (this.isPublicKeyHashIn()) {
       // hash the publickey found in the scriptSig
       info.hashBuffer = Hash.sha256ripemd160(this.chunks[1].buf);
@@ -1159,7 +1162,7 @@ export class Script {
       return false;
     }
     info.network =
-      Networks.get(network) || this._network || Networks.defaultNetwork;
+      Network.get(network) || this._network || Network.defaultNetwork;
     return new Address(info);
   }
 
@@ -1200,22 +1203,22 @@ export class Script {
     }
     if (buf.length === 0) {
       // Could have used OP_0.
-      return opcodenum === Opcode.OP_0;
+      return opcodenum === OP_CODES.OP_0;
     } else if (buf.length === 1 && buf[0] >= 1 && buf[0] <= 16) {
       // Could have used OP_1 .. OP_16.
-      return opcodenum === Opcode.OP_1 + (buf[0] - 1);
+      return opcodenum === OP_CODES.OP_1 + (buf[0] - 1);
     } else if (buf.length === 1 && buf[0] === 0x81) {
       // Could have used OP_1NEGATE
-      return opcodenum === Opcode.OP_1NEGATE;
+      return opcodenum === OP_CODES.OP_1NEGATE;
     } else if (buf.length <= 75) {
       // Could have used a direct push (opcode indicating number of bytes pushed + those bytes).
       return opcodenum === buf.length;
     } else if (buf.length <= 255) {
       // Could have used OP_PUSHDATA.
-      return opcodenum === Opcode.OP_PUSHDATA1;
+      return opcodenum === OP_CODES.OP_PUSHDATA1;
     } else if (buf.length <= 65535) {
       // Could have used OP_PUSHDATA2.
-      return opcodenum === Opcode.OP_PUSHDATA2;
+      return opcodenum === OP_CODES.OP_PUSHDATA2;
     }
     return true;
   }
@@ -1226,10 +1229,10 @@ export class Script {
    * @returns {number} numeric value in range of 0 to 16
    */
   public _decodeOP_N(opcode) {
-    if (opcode === Opcode.OP_0) {
+    if (opcode === OP_CODES.OP_0) {
       return 0;
-    } else if (opcode >= Opcode.OP_1 && opcode <= Opcode.OP_16) {
-      return opcode - (Opcode.OP_1 - 1);
+    } else if (opcode >= OP_CODES.OP_1 && opcode <= OP_CODES.OP_16) {
+      return opcode - (OP_CODES.OP_1 - 1);
     } else {
       throw new Error('Invalid opcode: ' + JSON.stringify(opcode));
     }
@@ -1244,19 +1247,22 @@ export class Script {
     accurate = _.isUndefined(accurate) ? true : accurate;
     var self = this;
     var n = 0;
-    var lastOpcode = Opcode.OP_INVALIDOPCODE;
+    var lastOpcode = OP_CODES.OP_INVALIDOPCODE;
     _.each(self.chunks, function getChunk(chunk) {
       var opcode = chunk.opcodenum;
-      if (opcode == Opcode.OP_CHECKSIG || opcode == Opcode.OP_CHECKSIGVERIFY) {
+      if (
+        opcode == OP_CODES.OP_CHECKSIG ||
+        opcode == OP_CODES.OP_CHECKSIGVERIFY
+      ) {
         n++;
       } else if (
-        opcode == Opcode.OP_CHECKMULTISIG ||
-        opcode == Opcode.OP_CHECKMULTISIGVERIFY
+        opcode == OP_CODES.OP_CHECKMULTISIG ||
+        opcode == OP_CODES.OP_CHECKMULTISIGVERIFY
       ) {
         if (
           accurate &&
-          lastOpcode >= Opcode.OP_1 &&
-          lastOpcode <= Opcode.OP_16
+          lastOpcode >= OP_CODES.OP_1 &&
+          lastOpcode <= OP_CODES.OP_16
         ) {
           n += self._decodeOP_N(lastOpcode);
         } else {

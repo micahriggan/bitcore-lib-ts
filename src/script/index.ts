@@ -1,3 +1,2 @@
-module.exports = require('./script');
-
-module.exports.Interpreter = require('./interpreter');
+export * from './script';
+export * from './interpreter';

@@ -10,6 +10,20 @@ import { JSUtil } from './util/js';
 import { PublicKey } from './publickey';
 import { Script } from './script';
 
+export declare namespace Address {
+  export type AddressData =
+    | Buffer
+    | Uint8Array
+    | PublicKey
+    | Script
+    | 'string'
+    | AddressObj;
+  export type AddressObj = {
+    hashBuffer: Buffer;
+    network: Network;
+    type: string;
+  };
+}
 /**
  * Instantiate an address from an address String or Buffer, a public key or script hash Buffer,
  * or an instance of {@link PublicKey} or {@link Script}.
@@ -53,7 +67,11 @@ export class Address {
   public network: Network;
   public hashBuffer: Buffer;
 
-  constructor(data: Uint8Array, network, type) {
+  constructor(
+    data: Address.AddressData,
+    network?: Network | number,
+    type?: string
+  ) {
     /* jshint maxcomplexity: 12 */
     /* jshint maxstatements: 20 */
 
@@ -61,7 +79,7 @@ export class Address {
       return new Address(data, network, type);
     }
 
-    if (_.isArray(data) && _.isNumber(network)) {
+    if (typeof network === 'number' && _.isArray(data) && _.isNumber(network)) {
       return Address.createMultisig(data, network, type);
     }
 
@@ -70,20 +88,30 @@ export class Address {
       return data;
     }
 
-    $.checkArgument(data, 'First argument is required, please include address data.', 'guide/address.html');
+    $.checkArgument(
+      data,
+      'First argument is required, please include address data.',
+      'guide/address.html'
+    );
 
     if (network && !Network.get(network)) {
       throw new TypeError('Second argument must be "livenet" or "testnet".');
     }
 
-    if (type && (type !== Address.PayToPublicKeyHash && type !== Address.PayToScriptHash)) {
-      throw new TypeError('Third argument must be "pubkeyhash" or "scripthash".');
+    if (
+      type &&
+      (type !== Address.PayToPublicKeyHash && type !== Address.PayToScriptHash)
+    ) {
+      throw new TypeError(
+        'Third argument must be "pubkeyhash" or "scripthash".'
+      );
     }
 
     var info = this._classifyArguments(data, network, type);
 
     // set defaults if not set
-    info.network = info.network || Network.get(network) || Network.defaultNetwork;
+    info.network =
+      info.network || Network.get(network) || Network.defaultNetwork;
     info.type = info.type || type || Address.PayToPublicKeyHash;
 
     JSUtil.defineImmutable(this, {
@@ -104,23 +132,28 @@ export class Address {
   public _classifyArguments(data, network, type) {
     /* jshint maxcomplexity: 10 */
     // transform and validate input data
-    if ((data instanceof Buffer || data instanceof Uint8Array) && data.length === 20) {
+    if (
+      (data instanceof Buffer || data instanceof Uint8Array) &&
+      data.length === 20
+    ) {
       return Address._transformHash(data);
-    } else if ((data instanceof Buffer || data instanceof Uint8Array) && data.length === 21) {
+    } else if (
+      (data instanceof Buffer || data instanceof Uint8Array) &&
+      data.length === 21
+    ) {
       return Address._transformBuffer(data, network, type);
     } else if (data instanceof PublicKey) {
       return Address._transformPublicKey(data);
     } else if (data instanceof Script) {
       return Address._transformScript(data, network);
-    } else if (typeof(data) === 'string') {
+    } else if (typeof data === 'string') {
       return Address._transformString(data, network, type);
     } else if (_.isObject(data)) {
       return Address._transformObject(data);
     } else {
       throw new TypeError('First argument is an unrecognized data format.');
     }
-  };
-
+  }
 
   /**
    * @param {Buffer} hash - An instance of a hash Buffer
@@ -135,7 +168,7 @@ export class Address {
     if (hash.length !== 20) {
       throw new TypeError('Address hashbuffers must be exactly 20 bytes.');
     }
-    return {hashBuffer : hash};
+    return { hashBuffer: hash };
   };
 
   /**
@@ -147,14 +180,17 @@ export class Address {
    * @return {Address}
    */
   public static _transformObject(data) {
-    $.checkArgument(data.hash || data.hashBuffer, 'Must provide a `hash` or `hashBuffer` property');
+    $.checkArgument(
+      data.hash || data.hashBuffer,
+      'Must provide a `hash` or `hashBuffer` property'
+    );
     $.checkArgument(data.type, 'Must provide a `type` property');
     return {
       hashBuffer: data.hash ? Buffer.from(data.hash, 'hex') : data.hashBuffer,
       network: Network.get(data.network) || Network.defaultNetwork,
       type: data.type
     };
-  };
+  }
 
   /**
    * Internal function to discover the network and type based on the first data byte
@@ -164,24 +200,23 @@ export class Address {
    * @private
    */
   public static _classifyFromVersion(buffer) {
-
     var pubkeyhashNetwork = Network.get(buffer[0], 'pubkeyhash');
     var scripthashNetwork = Network.get(buffer[0], 'scripthash');
 
     if (pubkeyhashNetwork) {
       return {
-        network : pubkeyhashNetwork,
-        type : Address.PayToPublicKeyHash
-      }
+        network: pubkeyhashNetwork,
+        type: Address.PayToPublicKeyHash
+      };
     } else if (scripthashNetwork) {
-      return {   
-        network : scripthashNetwork,
-        type : Address.PayToScriptHash
-      }
+      return {
+        network: scripthashNetwork,
+        type: Address.PayToScriptHash
+      };
     } else {
       return {};
     }
-  };
+  }
 
   /**
    * Internal function to transform a bitcoin address buffer
@@ -208,7 +243,10 @@ export class Address {
       throw new TypeError('Unknown network');
     }
 
-    if (!bufferVersion.network || (networkObj && networkObj !== bufferVersion.network)) {
+    if (
+      !bufferVersion.network ||
+      (networkObj && networkObj !== bufferVersion.network)
+    ) {
       throw new TypeError('Address has mismatched network type.');
     }
 
@@ -217,12 +255,12 @@ export class Address {
     }
 
     var info = {
-      hashBuffer : buffer.slice(1),
-      network : bufferVersion.network,
-      type : bufferVersion.type,
+      hashBuffer: buffer.slice(1),
+      network: bufferVersion.network,
+      type: bufferVersion.type
     };
     return info;
-  };
+  }
 
   /**
    * Internal function to transform a {@link PublicKey}
@@ -236,11 +274,11 @@ export class Address {
       throw new TypeError('Address must be an instance of PublicKey.');
     }
     var info = {
-      hashBuffer : Hash.sha256ripemd160(pubkey.toBuffer()),
-      type : Address.PayToPublicKeyHash
+      hashBuffer: Hash.sha256ripemd160(pubkey.toBuffer()),
+      type: Address.PayToPublicKeyHash
     };
     return info;
-  };
+  }
 
   /**
    * Internal function to transform a {@link Script} into a `info` object.
@@ -250,13 +288,16 @@ export class Address {
    * @private
    */
   public static _transformScript(script, network) {
-    $.checkArgument(script instanceof Script, 'script must be a Script instance');
+    $.checkArgument(
+      script instanceof Script,
+      'script must be a Script instance'
+    );
     var info = script.getAddressInfo(network);
     if (!info) {
       throw new errors.Script.CantDeriveAddress(script);
     }
     return info;
-  };
+  }
 
   /**
    * Creates a P2SH address from a set of public keys and a threshold.
@@ -271,14 +312,22 @@ export class Address {
    * @param {boolean=} nestedWitness - if the address uses a nested p2sh witness
    * @return {Address}
    */
-  public static createMultisig(publicKeys, threshold: number, network: string | Network, nestedWitness = false) {
+  public static createMultisig(
+    publicKeys,
+    threshold: number,
+    network: string | Network,
+    nestedWitness = false
+  ) {
     network = network || publicKeys[0].network || Network.defaultNetwork;
     var redeemScript = Script.buildMultisigOut(publicKeys, threshold);
     if (nestedWitness) {
-      return Address.payingTo(Script.buildWitnessMultisigOutFromScript(redeemScript), network);
+      return Address.payingTo(
+        Script.buildWitnessMultisigOutFromScript(redeemScript),
+        network
+      );
     }
     return Address.payingTo(redeemScript, network);
-  };
+  }
 
   /**
    * Internal function to transform a bitcoin address string
@@ -290,14 +339,14 @@ export class Address {
    * @private
    */
   public static _transformString(data, network, type) {
-    if (typeof(data) !== 'string') {
+    if (typeof data !== 'string') {
       throw new TypeError('data parameter supplied is not a string.');
     }
     data = data.trim();
     var addressBuffer = Base58Check.decode(data);
     var info = Address._transformBuffer(addressBuffer, network, type);
     return info;
-  };
+  }
 
   /**
    * Instantiate an address from a PublicKey instance
@@ -310,7 +359,7 @@ export class Address {
     var info = Address._transformPublicKey(data);
     network = network || Network.defaultNetwork;
     return new Address(info.hashBuffer, network, info.type);
-  };
+  }
 
   /**
    * Instantiate an address from a ripemd160 public key hash
@@ -322,7 +371,7 @@ export class Address {
   public static fromPublicKeyHash(hash, network) {
     var info = Address._transformHash(hash);
     return new Address(info.hashBuffer, network, Address.PayToPublicKeyHash);
-  };
+  }
 
   /**
    * Instantiate an address from a ripemd160 script hash
@@ -335,7 +384,7 @@ export class Address {
     $.checkArgument(hash, 'hash parameter is required');
     var info = Address._transformHash(hash);
     return new Address(info.hashBuffer, network, Address.PayToScriptHash);
-  };
+  }
 
   /**
    * Builds a p2sh address paying to script. This will hash the script and
@@ -349,9 +398,15 @@ export class Address {
    */
   public static payingTo(script, network) {
     $.checkArgument(script, 'script is required');
-    $.checkArgument(script instanceof Script, 'script must be instance of Script');
-    return Address.fromScriptHash(Hash.sha256ripemd160(script.toBuffer()), network);
-  };
+    $.checkArgument(
+      script instanceof Script,
+      'script must be instance of Script'
+    );
+    return Address.fromScriptHash(
+      Hash.sha256ripemd160(script.toBuffer()),
+      network
+    );
+  }
 
   /**
    * Extract address from a Script. The script must be of one
@@ -366,10 +421,13 @@ export class Address {
    * @returns {Address} A new valid and frozen instance of an Address
    */
   public static fromScript(script, network) {
-    $.checkArgument(script instanceof Script, 'script must be a Script instance');
+    $.checkArgument(
+      script instanceof Script,
+      'script must be a Script instance'
+    );
     var info = Address._transformScript(script, network);
     return new Address(info.hashBuffer, network, info.type);
-  };
+  }
 
   /**
    * Instantiate an address from a buffer of the address
@@ -382,7 +440,7 @@ export class Address {
   public static fromBuffer(buffer, network, type) {
     var info = Address._transformBuffer(buffer, network, type);
     return new Address(info.hashBuffer, info.network, info.type);
-  };
+  }
 
   /**
    * Instantiate an address from an address string
@@ -395,7 +453,7 @@ export class Address {
   public static fromString(str, network, type) {
     var info = Address._transformString(str, network, type);
     return new Address(info.hashBuffer, info.network, info.type);
-  };
+  }
 
   /**
    * Instantiate an address from an Object
@@ -410,7 +468,7 @@ export class Address {
     );
     var hashBuffer = Buffer.from(obj.hash, 'hex');
     return new Address(hashBuffer, obj.network, obj.type);
-  };
+  }
 
   /**
    * Will return a validation error if exists
@@ -435,7 +493,7 @@ export class Address {
       error = e;
     }
     return error;
-  };
+  }
 
   /**
    * Will return a boolean if an address is valid
@@ -452,7 +510,7 @@ export class Address {
    */
   public static isValid(data, network, type) {
     return !Address.getValidationError(data, network, type);
-  };
+  }
 
   /**
    * Returns true if an address is of pay to public key hash type
@@ -460,7 +518,7 @@ export class Address {
    */
   public isPayToPublicKeyHash() {
     return this.type === Address.PayToPublicKeyHash;
-  };
+  }
 
   /**
    * Returns true if an address is of pay to script hash type
@@ -468,7 +526,7 @@ export class Address {
    */
   public isPayToScriptHash() {
     return this.type === Address.PayToScriptHash;
-  };
+  }
 
   /**
    * Will return a buffer representation of the address
@@ -478,7 +536,7 @@ export class Address {
   public toBuffer() {
     var version = Buffer.from([this.network[this.type]]);
     return Buffer.concat([version, this.hashBuffer]);
-  };
+  }
 
   /**
    * @returns {Object} A plain object with the address information
@@ -489,7 +547,7 @@ export class Address {
       type: this.type,
       network: this.network.toString()
     };
-  };
+  }
 
   /**
    * Will return a the string representation of the address
@@ -498,7 +556,7 @@ export class Address {
    */
   public toString() {
     return Base58Check.encode(this.toBuffer());
-  };
+  }
 
   /**
    * Will return a string formatted for the console
@@ -506,12 +564,16 @@ export class Address {
    * @returns {string} Bitcoin address
    */
   public inspect() {
-    return '<Address: ' + this.toString() + ', type: ' + this.type + ', network: ' + this.network + '>';
+    return (
+      '<Address: ' +
+      this.toString() +
+      ', type: ' +
+      this.type +
+      ', network: ' +
+      this.network +
+      '>'
+    );
   }
-
 }
 
-;
-
 module.exports = Address;
-
