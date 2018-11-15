@@ -4,13 +4,22 @@ import $ from '../util/preconditions';
 import { BufferUtil } from '../util/buffer';
 import { JSUtil } from '../util/js';
 
+export namespace Signature {
+  export interface SignatureObj {
+    r?: BitcoreBN;
+    s?: BitcoreBN;
+    i?: number;
+    compressed?: boolean;
+    nhashtype?: number;
+  }
+}
 export class Signature {
   public r: BitcoreBN;
   public s: BitcoreBN;
   public i: number;
   public compressed: boolean;
   public nhashtype: number;
-  constructor(r?: BitcoreBN, s?: BitcoreBN) {
+  constructor(r?: BitcoreBN | Signature.SignatureObj, s?: BitcoreBN) {
     if (!(this instanceof Signature)) {
       return new Signature(r, s);
     }
@@ -25,7 +34,7 @@ export class Signature {
     }
   }
   /* jshint maxcomplexity: 7 */
-  public set(obj) {
+  public set(obj: Signature.SignatureObj) {
     this.r = obj.r || this.r || undefined;
     this.s = obj.s || this.s || undefined;
 
@@ -65,8 +74,8 @@ export class Signature {
 
     sig.compressed = compressed;
     sig.i = i;
-    sig.r = BN.fromBuffer(b2);
-    sig.s = BN.fromBuffer(b3);
+    sig.r = BitcoreBN.fromBuffer(b2);
+    sig.s = BitcoreBN.fromBuffer(b3);
 
     return sig;
   }
@@ -129,7 +138,7 @@ export class Signature {
 
     const rlength = buf[2 + 1];
     const rbuf = buf.slice(2 + 2, 2 + 2 + rlength);
-    const r = BN.fromBuffer(rbuf);
+    const r = BitcoreBN.fromBuffer(rbuf);
     const rneg = buf[2 + 1 + 1] === 0x00 ? true : false;
     $.checkArgument(
       rlength === rbuf.length,
@@ -144,7 +153,7 @@ export class Signature {
 
     const slength = buf[2 + 2 + rlength + 1];
     const sbuf = buf.slice(2 + 2 + rlength + 2, 2 + 2 + rlength + 2 + slength);
-    const s = BN.fromBuffer(sbuf);
+    const s = BitcoreBN.fromBuffer(sbuf);
     const sneg = buf[2 + 2 + rlength + 2 + 2] === 0x00 ? true : false;
     $.checkArgument(
       slength === sbuf.length,
@@ -314,9 +323,9 @@ export class Signature {
    */
   public hasLowS() {
     if (
-      this.s.lt(new BN(1)) ||
+      this.s.lt(new BitcoreBN(1)) ||
       this.s.gt(
-        new BN(
+        new BitcoreBN(
           '7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0',
           'hex'
         )

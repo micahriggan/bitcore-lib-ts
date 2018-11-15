@@ -8,7 +8,7 @@ const ecPointFromX = curveInstance.pointFromX.bind(secp256k1.curve);
 declare class EcPoint {
   public validate(): void;
   public isInfinity(): boolean;
-  public mul(num: number): EcPoint;
+  public mul(num: BitcoreBN): EcPoint;
   public pointFromX(x: number, isOdd: boolean): EcPoint;
   public y: number;
 }
@@ -84,7 +84,7 @@ export class Point extends curveInstance.point {
    * @returns {BN} A BN instance of the number of points on the curve
    */
   public static getN = function getN() {
-    return new BN(secp256k1.curve.n.toArray());
+    return new BitcoreBN(secp256k1.curve.n.toArray());
   };
 
   public _getX = this.getX;
@@ -96,7 +96,7 @@ export class Point extends curveInstance.point {
    * @returns {BN} A BN instance of the X coordinate
    */
   public getX() {
-    return new BN(this._getX().toArray());
+    return new BitcoreBN(this._getX().toArray());
   }
 
   public _getY = this.getY;
@@ -108,7 +108,7 @@ export class Point extends curveInstance.point {
    * @returns {BN} A BN instance of the Y coordinate
    */
   public getY() {
-    return new BN(this._getY().toArray());
+    return new BitcoreBN(this._getY().toArray());
   }
 
   /**
@@ -148,13 +148,8 @@ export class Point extends curveInstance.point {
     const xbuf = point.getX().toBuffer({ size: 32 });
     const ybuf = point.getY().toBuffer({ size: 32 });
 
-    let prefix;
     const odd = ybuf[ybuf.length - 1] % 2;
-    if (odd) {
-      prefix = Buffer.from([0x03]);
-    } else {
-      prefix = Buffer.from([0x02]);
-    }
+    const prefix = odd ? Buffer.from([0x03]) : Buffer.from([0x02]);
     return BufferUtil.concat([prefix, xbuf]);
   }
 }

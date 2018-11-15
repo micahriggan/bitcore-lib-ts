@@ -1,18 +1,16 @@
-'use strict';
-
-var _ = require('lodash');
-
-var errors = require('./errors');
-var $ = require('./util/preconditions');
+import * as _ from 'lodash';
+import { BitcoreError } from './errors';
+import $ from './util/preconditions';
+import { ERROR_TYPES } from './errors/spec';
 
 var UNITS = {
-  'BTC'      : [1e8, 8],
-  'mBTC'     : [1e5, 5],
-  'uBTC'     : [1e2, 2],
-  'bits'     : [1e2, 2],
-  'satoshis' : [1, 0]
+  BTC: [1e8, 8],
+  mBTC: [1e5, 5],
+  uBTC: [1e2, 2],
+  bits: [1e2, 2],
+  satoshis: [1, 0]
 };
-
+const UNIT_ERRORS = ERROR_TYPES.Unit.errors;
 /**
  * Utility for handling and converting bitcoins units. The supported units are
  * BTC, mBTC, bits (also named uBTC) and satoshis. A unit instance can be created with an
@@ -37,202 +35,226 @@ var UNITS = {
  * @returns {Unit} A new instance of an Unit
  * @constructor
  */
-function Unit(amount, code) {
-  if (!(this instanceof Unit)) {
-    return new Unit(amount, code);
+export class Unit {
+  public get BTC() {
+    return this.to([1e8, 8]);
   }
 
-  // convert fiat to BTC
-  if (_.isNumber(code)) {
-    if (code <= 0) {
-      throw new errors.Unit.InvalidRate(code);
+  public get mBTC() {
+    return this.to([1e5, 5]);
+  }
+
+  public get uBTC() {
+    return this.to([1e2, 2]);
+  }
+
+  public get bits() {
+    return this.to([1e2, 2]);
+  }
+
+  public get satoshis() {
+    return this.to([1, 0]);
+  }
+
+  _value: number;
+  constructor(amount, code) {
+    if (!(this instanceof Unit)) {
+      return new Unit(amount, code);
     }
-    amount = amount / code;
-    code = Unit.BTC;
+
+    // convert fiat to BTC
+    if (_.isNumber(code)) {
+      if (code <= 0) {
+        throw new BitcoreError(UNIT_ERRORS.InvalidRate, code);
+      }
+      amount = amount / code;
+      code = this.BTC;
+    }
+
+    this._value = this._from(amount, code);
+
+    var self = this;
+    var defineAccesor = function(key) {
+      Object.defineProperty(self, key, {
+        get: function() {
+          return this.to(key);
+        },
+        enumerable: true
+      });
+    };
+
+    Object.keys(UNITS).forEach(defineAccesor);
   }
 
-  this._value = this._from(amount, code);
+  /**
+   * Returns a Unit instance created from JSON string or object
+   *
+   * @param {String|Object} json - JSON with keys: amount and code
+   * @returns {Unit} A Unit instance
+   */
+  public static fromObject(data) {
+    $.checkArgument(_.isObject(data), 'Argument is expected to be an object');
+    return new Unit(data.amount, data.code);
+  }
 
-  var self = this;
-  var defineAccesor = function(key) {
-    Object.defineProperty(self, key, {
-      get: function() { return self.to(key); },
-      enumerable: true,
-    });
-  };
+  /**
+   * Returns a Unit instance created from an amount in BTC
+   *
+   * @param {Number} amount - The amount in BTC
+   * @returns {Unit} A Unit instance
+   */
+  public static fromBTC(amount) {
+    return new Unit(amount, UNITS.BTC);
+  }
 
-  Object.keys(UNITS).forEach(defineAccesor);
+  /**
+   * Returns a Unit instance created from an amount in mBTC
+   *
+   * @param {Number} amount - The amount in mBTC
+   * @returns {Unit} A Unit instance
+   */
+  public static fromMilis(amount) {
+    return new Unit(amount, UNITS.mBTC);
+  }
+
+  /**
+   * Returns a Unit instance created from an amount in bits
+   *
+   * @param {Number} amount - The amount in bits
+   * @returns {Unit} A Unit instance
+   */
+  public static fromMicros(amount) {
+    return new Unit(amount, UNITS.bits);
+  }
+
+  public static fromBits = Unit.fromMicros;
+
+  /**
+   * Returns a Unit instance created from an amount in satoshis
+   *
+   * @param {Number} amount - The amount in satoshis
+   * @returns {Unit} A Unit instance
+   */
+  public static fromSatoshis(amount) {
+    return new Unit(amount, UNITS.satoshis);
+  }
+
+  /**
+   * Returns a Unit instance created from a fiat amount and exchange rate.
+   *
+   * @param {Number} amount - The amount in fiat
+   * @param {Number} rate - The exchange rate BTC/fiat
+   * @returns {Unit} A Unit instance
+   */
+  public static fromFiat(amount, rate) {
+    return new Unit(amount, rate);
+  }
+
+  public _from(amount, code) {
+    if (!UNITS[code]) {
+      throw new BitcoreError(UNIT_ERRORS.UnknownCode, code);
+    }
+    return parseInt((amount * UNITS[code][0]).toFixed());
+  }
+
+  /**
+   * Returns the value represented in the specified unit
+   *
+   * @param {String|Number} code - The unit code or exchange rate
+   * @returns {Number} The converted value
+   */
+  public to(code) {
+    if (_.isNumber(code)) {
+      if (code <= 0) {
+        throw new BitcoreError(UNIT_ERRORS.InvalidRate, code);
+      }
+      return parseFloat((this.BTC * code).toFixed(2));
+    }
+
+    if (!UNITS[code]) {
+      throw new BitcoreError(UNIT_ERRORS.UnknownCode, code);
+    }
+
+    var value = this._value / UNITS[code][0];
+    return parseFloat(value.toFixed(UNITS[code][1]));
+  }
+
+  /**
+   * Returns the value represented in BTC
+   *
+   * @returns {Number} The value converted to BTC
+   */
+  public toBTC() {
+    return this.to(this.BTC);
+  }
+
+  /**
+   * Returns the value represented in mBTC
+   *
+   * @returns {Number} The value converted to mBTC
+   */
+  public toMillis() {
+    return this.to(this.mBTC);
+  }
+
+  public toMilis = this.toMillis;
+  /**
+   * Returns the value represented in bits
+   *
+   * @returns {Number} The value converted to bits
+   */
+  public toMicros() {
+    return this.to(this.bits);
+  }
+  public toBits = this.toMicros;
+  /**
+   * Returns the value represented in satoshis
+   *
+   * @returns {Number} The value converted to satoshis
+   */
+  public toSatoshis() {
+    return this.to(this.satoshis);
+  }
+
+  /**
+   * Returns the value represented in fiat
+   *
+   * @param {string} rate - The exchange rate between BTC/currency
+   * @returns {Number} The value converted to satoshis
+   */
+  public atRate(rate) {
+    return this.to(rate);
+  }
+
+  /**
+   * Returns a the string representation of the value in satoshis
+   *
+   * @returns {string} the value in satoshis
+   */
+  public toString() {
+    return this.satoshis + ' satoshis';
+  }
+
+  /**
+   * Returns a plain object representation of the Unit
+   *
+   * @returns {Object} An object with the keys: amount and code
+   */
+  public toObject() {
+    return {
+      amount: this.BTC,
+      code: this.BTC
+    };
+  }
+
+  public toJSON = this.toObject;
+
+  /**
+   * Returns a string formatted for the console
+   *
+   * @returns {string} the value in satoshis
+   */
+  public inspect() {
+    return '<Unit: ' + this.toString() + '>';
+  }
 }
-
-Object.keys(UNITS).forEach(function(key) {
-  Unit[key] = key;
-});
-
-/**
- * Returns a Unit instance created from JSON string or object
- *
- * @param {String|Object} json - JSON with keys: amount and code
- * @returns {Unit} A Unit instance
- */
-Unit.fromObject = function fromObject(data){
-  $.checkArgument(_.isObject(data), 'Argument is expected to be an object');
-  return new Unit(data.amount, data.code);
-};
-
-/**
- * Returns a Unit instance created from an amount in BTC
- *
- * @param {Number} amount - The amount in BTC
- * @returns {Unit} A Unit instance
- */
-Unit.fromBTC = function(amount) {
-  return new Unit(amount, Unit.BTC);
-};
-
-/**
- * Returns a Unit instance created from an amount in mBTC
- *
- * @param {Number} amount - The amount in mBTC
- * @returns {Unit} A Unit instance
- */
-Unit.fromMillis = Unit.fromMilis = function(amount) {
-  return new Unit(amount, Unit.mBTC);
-};
-
-/**
- * Returns a Unit instance created from an amount in bits
- *
- * @param {Number} amount - The amount in bits
- * @returns {Unit} A Unit instance
- */
-Unit.fromMicros = Unit.fromBits = function(amount) {
-  return new Unit(amount, Unit.bits);
-};
-
-/**
- * Returns a Unit instance created from an amount in satoshis
- *
- * @param {Number} amount - The amount in satoshis
- * @returns {Unit} A Unit instance
- */
-Unit.fromSatoshis = function(amount) {
-  return new Unit(amount, Unit.satoshis);
-};
-
-/**
- * Returns a Unit instance created from a fiat amount and exchange rate.
- *
- * @param {Number} amount - The amount in fiat
- * @param {Number} rate - The exchange rate BTC/fiat
- * @returns {Unit} A Unit instance
- */
-Unit.fromFiat = function(amount, rate) {
-  return new Unit(amount, rate);
-};
-
-Unit.prototype._from = function(amount, code) {
-  if (!UNITS[code]) {
-    throw new errors.Unit.UnknownCode(code);
-  }
-  return parseInt((amount * UNITS[code][0]).toFixed());
-};
-
-/**
- * Returns the value represented in the specified unit
- *
- * @param {String|Number} code - The unit code or exchange rate
- * @returns {Number} The converted value
- */
-Unit.prototype.to = function(code) {
-  if (_.isNumber(code)) {
-    if (code <= 0) {
-      throw new errors.Unit.InvalidRate(code);
-    }
-    return parseFloat((this.BTC * code).toFixed(2));
-  }
-
-  if (!UNITS[code]) {
-    throw new errors.Unit.UnknownCode(code);
-  }
-
-  var value = this._value / UNITS[code][0];
-  return parseFloat(value.toFixed(UNITS[code][1]));
-};
-
-/**
- * Returns the value represented in BTC
- *
- * @returns {Number} The value converted to BTC
- */
-Unit.prototype.toBTC = function() {
-  return this.to(Unit.BTC);
-};
-
-/**
- * Returns the value represented in mBTC
- *
- * @returns {Number} The value converted to mBTC
- */
-Unit.prototype.toMillis = Unit.prototype.toMilis = function() {
-  return this.to(Unit.mBTC);
-};
-
-/**
- * Returns the value represented in bits
- *
- * @returns {Number} The value converted to bits
- */
-Unit.prototype.toMicros = Unit.prototype.toBits = function() {
-  return this.to(Unit.bits);
-};
-
-/**
- * Returns the value represented in satoshis
- *
- * @returns {Number} The value converted to satoshis
- */
-Unit.prototype.toSatoshis = function() {
-  return this.to(Unit.satoshis);
-};
-
-/**
- * Returns the value represented in fiat
- *
- * @param {string} rate - The exchange rate between BTC/currency
- * @returns {Number} The value converted to satoshis
- */
-Unit.prototype.atRate = function(rate) {
-  return this.to(rate);
-};
-
-/**
- * Returns a the string representation of the value in satoshis
- *
- * @returns {string} the value in satoshis
- */
-Unit.prototype.toString = function() {
-  return this.satoshis + ' satoshis';
-};
-
-/**
- * Returns a plain object representation of the Unit
- *
- * @returns {Object} An object with the keys: amount and code
- */
-Unit.prototype.toObject = Unit.prototype.toJSON = function toObject() {
-  return {
-    amount: this.BTC,
-    code: Unit.BTC
-  };
-};
-
-/**
- * Returns a string formatted for the console
- *
- * @returns {string} the value in satoshis
- */
-Unit.prototype.inspect = function() {
-  return '<Unit: ' + this.toString() + '>';
-};
-
-module.exports = Unit;

@@ -1,18 +1,17 @@
-'use strict';
 import * as _ from 'lodash';
-
 import { Script } from './script';
 import { OP_CODES } from '../opcode';
 import { BitcoreBN } from '../crypto/bn';
 import { Hash } from '../crypto/hash';
 import { Signature } from '../crypto/signature';
 import { PublicKey } from '../publickey';
+import { Transaction } from '../transaction/transaction';
 
 declare namespace Interpreter {
-  export type WitnessValue = {
+  export interface WitnessValue {
     version: number;
     program: number;
-  };
+  }
 }
 /**
  * Bitcoin transactions contain scripts. Each input has a script called the
@@ -25,19 +24,19 @@ declare namespace Interpreter {
  * e.g., Interpreter().verify( ... );
  */
 export class Interpreter {
-  stack: Array<Buffer>;
-  altstack: Array<Buffer>;
-  pc: number;
-  satoshis: number;
-  sigversion: number;
-  pbegincodehash: number;
-  nOpCount: number;
-  vfExec: Array<boolean>;
-  errstr: string;
-  flags: number;
-  script: Script;
-  tx: Transaction;
-  nin: number;
+  public stack: Array<Buffer>;
+  public altstack: Array<Buffer>;
+  public pc: number;
+  public satoshis: number;
+  public sigversion: number;
+  public pbegincodehash: number;
+  public nOpCount: number;
+  public vfExec: Array<boolean>;
+  public errstr: string;
+  public flags: number;
+  public script: Script;
+  public tx: Transaction;
+  public nin: number;
 
   constructor(obj) {
     if (!(this instanceof Interpreter)) {
@@ -52,8 +51,8 @@ export class Interpreter {
   }
 
   public verifyWitnessProgram(version, program, witness, satoshis, flags) {
-    var scriptPubKey = new Script();
-    var stack = [];
+    let scriptPubKey = new Script();
+    let stack = [];
 
     if (version === 0) {
       if (program.length === 32) {
@@ -62,9 +61,9 @@ export class Interpreter {
           return false;
         }
 
-        var scriptPubKeyBuffer = witness[witness.length - 1];
+        const scriptPubKeyBuffer = witness[witness.length - 1];
         scriptPubKey = new Script(scriptPubKeyBuffer);
-        var hash = Hash.sha256(scriptPubKeyBuffer);
+        const hash = Hash.sha256(scriptPubKeyBuffer);
         if (hash.toString('hex') !== program.toString('hex')) {
           this.errstr = 'SCRIPT_ERR_WITNESS_PROGRAM_MISMATCH';
           return false;
@@ -101,9 +100,9 @@ export class Interpreter {
 
     this.set({
       script: scriptPubKey,
-      stack: stack,
+      stack,
       sigversion: 1,
-      satoshis: satoshis
+      satoshis
     });
 
     if (!this.evaluate()) {
@@ -115,7 +114,7 @@ export class Interpreter {
       return false;
     }
 
-    var buf = this.stack[this.stack.length - 1];
+    const buf = this.stack[this.stack.length - 1];
     if (!Interpreter.castToBool(buf)) {
       this.errstr = 'SCRIPT_ERR_EVAL_FALSE_IN_STACK';
       return false;
@@ -140,7 +139,6 @@ export class Interpreter {
    * Translated from bitcoind's VerifyScript
    */
   public verify(scriptSig, scriptPubkey, tx, nin, flags, witness, satoshis) {
-    var Transaction = require('../transaction');
     if (_.isUndefined(tx)) {
       tx = new Transaction();
     }
@@ -159,13 +157,13 @@ export class Interpreter {
 
     this.set({
       script: scriptSig,
-      tx: tx,
-      nin: nin,
+      tx,
+      nin,
       sigversion: 0,
       satoshis: 0,
-      flags: flags
+      flags
     });
-    var stackCopy;
+    let stackCopy;
 
     if (
       (flags & Interpreter.SCRIPT_VERIFY_SIGPUSHONLY) !== 0 &&
@@ -184,14 +182,14 @@ export class Interpreter {
       stackCopy = this.stack.slice();
     }
 
-    var stack = this.stack;
+    let stack = this.stack;
     this.initialize();
     this.set({
       script: scriptPubkey,
-      stack: stack,
-      tx: tx,
-      nin: nin,
-      flags: flags
+      stack,
+      tx,
+      nin,
+      flags
     });
 
     // evaluate scriptPubkey
@@ -204,16 +202,16 @@ export class Interpreter {
       return false;
     }
 
-    var buf = this.stack[this.stack.length - 1];
+    const buf = this.stack[this.stack.length - 1];
     if (!Interpreter.castToBool(buf)) {
       this.errstr = 'SCRIPT_ERR_EVAL_FALSE_IN_STACK';
       return false;
     }
 
-    var hadWitness = false;
+    let hadWitness = false;
 
     if (flags & Interpreter.SCRIPT_VERIFY_WITNESS) {
-      var witnessValues = {} as Interpreter.WitnessValue;
+      const witnessValues: Partial<Interpreter.WitnessValue> = {};
       if (scriptPubkey.isWitnessProgram(witnessValues)) {
         hadWitness = true;
         if (scriptSig.toBuffer().length !== 0) {
@@ -252,17 +250,17 @@ export class Interpreter {
         throw new Error('internal error - stack copy empty');
       }
 
-      var redeemScriptSerialized = stackCopy[stackCopy.length - 1];
-      var redeemScript = Script.fromBuffer(redeemScriptSerialized);
+      const redeemScriptSerialized = stackCopy[stackCopy.length - 1];
+      const redeemScript = Script.fromBuffer(redeemScriptSerialized);
       stackCopy.pop();
 
       this.initialize();
       this.set({
         script: redeemScript,
         stack: stackCopy,
-        tx: tx,
-        nin: nin,
-        flags: flags
+        tx,
+        nin,
+        flags
       });
 
       // evaluate redeemScript
@@ -280,10 +278,10 @@ export class Interpreter {
         return false;
       }
       if (flags & Interpreter.SCRIPT_VERIFY_WITNESS) {
-        var p2shWitnessValues = {} as Interpreter.WitnessValue;
+        const p2shWitnessValues: Partial<Interpreter.WitnessValue> = {};
         if (redeemScript.isWitnessProgram(p2shWitnessValues)) {
           hadWitness = true;
-          var redeemScriptPush = new Script();
+          const redeemScriptPush = new Script();
           redeemScriptPush.add(redeemScript.toBuffer());
           if (scriptSig.toHex() !== redeemScriptPush.toHex()) {
             this.errstr = 'SCRIPT_ERR_WITNESS_MALLEATED_P2SH';
@@ -339,8 +337,8 @@ export class Interpreter {
     this.pc = typeof obj.pc !== 'undefined' ? obj.pc : this.pc;
     this.pbegincodehash =
       typeof obj.pbegincodehash !== 'undefined'
-      ? obj.pbegincodehash
-      : this.pbegincodehash;
+        ? obj.pbegincodehash
+        : this.pbegincodehash;
     this.sigversion =
       typeof obj.sigversion !== 'undefined' ? obj.sigversion : this.sigversion;
     this.satoshis =
@@ -358,7 +356,9 @@ export class Interpreter {
   public static MAX_SCRIPT_ELEMENT_SIZE = 520;
 
   public static LOCKTIME_THRESHOLD = 500000000;
-  public static LOCKTIME_THRESHOLD_BN = new BN(Interpreter.LOCKTIME_THRESHOLD);
+  public static LOCKTIME_THRESHOLD_BN = new BitcoreBN(
+    Interpreter.LOCKTIME_THRESHOLD
+  );
 
   // flags taken from bitcoind
   // bitcoind commit: b5d1b1092998bc95313856d535c632ea5a8f9104
@@ -412,8 +412,8 @@ export class Interpreter {
   public static SCRIPT_VERIFY_WITNESS = 1 << 10;
   public static SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS = 1 << 11;
 
-  public static castToBool = function(buf) {
-    for (var i = 0; i < buf.length; i++) {
+  public static castToBool(buf) {
+    for (let i = 0; i < buf.length; i++) {
       if (buf[i] !== 0) {
         // can be negative zero
         if (i === buf.length - 1 && buf[i] === 0x80) {
@@ -423,19 +423,19 @@ export class Interpreter {
       }
     }
     return false;
-  };
+  }
 
   /**
    * Translated from bitcoind's CheckSignatureEncoding
    */
   public checkSignatureEncoding(buf) {
-    var sig;
+    let sig;
     if (
       (this.flags &
         (Interpreter.SCRIPT_VERIFY_DERSIG |
           Interpreter.SCRIPT_VERIFY_LOW_S |
           Interpreter.SCRIPT_VERIFY_STRICTENC)) !==
-      0 &&
+        0 &&
       !Signature.isTxDER(buf)
     ) {
       this.errstr = 'SCRIPT_ERR_SIG_DER_INVALID_FORMAT';
@@ -483,7 +483,7 @@ export class Interpreter {
 
     try {
       while (this.pc < this.script.chunks.length) {
-        var fSuccess = this.step();
+        const fSuccess = this.step();
         if (!fSuccess) {
           return false;
         }
@@ -536,7 +536,7 @@ export class Interpreter {
 
     // Now that we know we're comparing apples-to-apples, the
     // comparison is a simple numeric one.
-    if (nLockTime.gt(new BN(this.tx.nLockTime))) {
+    if (nLockTime.gt(new BitcoreBN(this.tx.nLockTime))) {
       return false;
     }
 
@@ -562,31 +562,33 @@ export class Interpreter {
    * bitcoind commit: b5d1b1092998bc95313856d535c632ea5a8f9104
    */
   public step() {
-    var fRequireMinimal =
+    const fRequireMinimal =
       (this.flags & Interpreter.SCRIPT_VERIFY_MINIMALDATA) !== 0;
 
-    //bool fExec = !count(vfExec.begin(), vfExec.end(), false);
-    var fExec = this.vfExec.indexOf(false) === -1;
-    var buf,
-      buf1,
-      buf2,
-      spliced,
-      n,
-      x1,
-      x2,
-      bn,
-      bn1,
-      bn2,
-      bufSig,
-      bufPubkey,
-      subscript;
-    var sig, pubkey;
-    var fValue, fSuccess;
+    // bool fExec = !count(vfExec.begin(), vfExec.end(), false);
+    const fExec = this.vfExec.indexOf(false) === -1;
+    let buf;
+    let buf1;
+    let buf2;
+    let spliced;
+    let n;
+    let x1;
+    let x2;
+    let bn;
+    let bn1;
+    let bn2;
+    let bufSig;
+    let bufPubkey;
+    let subscript;
+    let sig;
+    let pubkey;
+    let fValue;
+    let fSuccess;
 
     // Read instruction
-    var chunk = this.script.chunks[this.pc];
+    const chunk = this.script.chunks[this.pc];
     this.pc++;
-    var opcodenum = chunk.opcodenum;
+    const opcodenum = chunk.opcodenum;
     if (_.isUndefined(opcodenum)) {
       this.errstr = 'SCRIPT_ERR_UNDEFINED_OPCODE';
       return false;
@@ -640,7 +642,7 @@ export class Interpreter {
       (OP_CODES.OP_IF <= opcodenum && opcodenum <= OP_CODES.OP_ENDIF)
     ) {
       switch (opcodenum) {
-          // Push value
+        // Push value
         case OP_CODES.OP_1NEGATE:
         case OP_CODES.OP_1:
         case OP_CODES.OP_2:
@@ -662,16 +664,16 @@ export class Interpreter {
             // ( -- value)
             // ScriptNum bn((int)opcode - (int)(OP_CODES.OP_1 - 1));
             n = opcodenum - (OP_CODES.OP_1 - 1);
-            buf = new BN(n).toScriptNumBuffer();
+            buf = new BitcoreBN(n).toScriptNumBuffer();
             this.stack.push(buf);
             // The result of these opcodes should always be the minimal way to push the data
             // they push, so no need for a CheckMinimalPush here.
           }
           break;
 
-          //
-          // Control
-          //
+        //
+        // Control
+        //
         case OP_CODES.OP_NOP:
           break;
 
@@ -707,7 +709,7 @@ export class Interpreter {
           // Thus as a special case we tell CScriptNum to accept up
           // to 5-byte bignums, which are good until 2**39-1, well
           // beyond the 2**32-1 limit of the nLockTime field itself.
-          var nLockTime = BN.fromScriptNumBuffer(
+          const nLockTime = BitcoreBN.fromScriptNumBuffer(
             this.stack[this.stack.length - 1],
             fRequireMinimal,
             5
@@ -716,7 +718,7 @@ export class Interpreter {
           // In the rare event that the argument may be < 0 due to
           // some arithmetic being done first, you can always use
           // 0 MAX CHECKLOCKTIMEVERIFY.
-          if (nLockTime.lt(new BN(0))) {
+          if (nLockTime.lt(new BitcoreBN(0))) {
             this.errstr = 'SCRIPT_ERR_NEGATIVE_LOCKTIME';
             return false;
           }
@@ -816,9 +818,9 @@ export class Interpreter {
           }
           break;
 
-          //
-          // Stack ops
-          //
+        //
+        // Stack ops
+        //
         case OP_CODES.OP_TOALTSTACK:
           {
             if (this.stack.length < 1) {
@@ -874,7 +876,7 @@ export class Interpreter {
             }
             buf1 = this.stack[this.stack.length - 3];
             buf2 = this.stack[this.stack.length - 2];
-            var buf3 = this.stack[this.stack.length - 1];
+            const buf3 = this.stack[this.stack.length - 1];
             this.stack.push(buf1);
             this.stack.push(buf2);
             this.stack.push(buf3);
@@ -939,7 +941,7 @@ export class Interpreter {
         case OP_CODES.OP_DEPTH:
           {
             // -- stacksize
-            buf = new BN(this.stack.length).toScriptNumBuffer();
+            buf = new BitcoreBN(this.stack.length).toScriptNumBuffer();
             this.stack.push(buf);
           }
           break;
@@ -998,7 +1000,7 @@ export class Interpreter {
               return false;
             }
             buf = this.stack[this.stack.length - 1];
-            bn = BN.fromScriptNumBuffer(buf, fRequireMinimal);
+            bn = BitcoreBN.fromScriptNumBuffer(buf, fRequireMinimal);
             n = bn.toNumber();
             this.stack.pop();
             if (n < 0 || n >= this.stack.length) {
@@ -1024,7 +1026,7 @@ export class Interpreter {
             }
             x1 = this.stack[this.stack.length - 3];
             x2 = this.stack[this.stack.length - 2];
-            var x3 = this.stack[this.stack.length - 1];
+            const x3 = this.stack[this.stack.length - 1];
             this.stack[this.stack.length - 3] = x2;
             this.stack[this.stack.length - 2] = x3;
             this.stack[this.stack.length - 1] = x1;
@@ -1067,17 +1069,17 @@ export class Interpreter {
               this.errstr = 'SCRIPT_ERR_INVALID_STACK_OPERATION';
               return false;
             }
-            bn = new BN(this.stack[this.stack.length - 1].length);
+            bn = new BitcoreBN(this.stack[this.stack.length - 1].length);
             this.stack.push(bn.toScriptNumBuffer());
           }
           break;
 
-          //
-          // Bitwise logic
-          //
+        //
+        // Bitwise logic
+        //
         case OP_CODES.OP_EQUAL:
         case OP_CODES.OP_EQUALVERIFY:
-          //case OP_CODES.OP_NOTEQUAL: // use OP_CODES.OP_NUMNOTEQUAL
+          // case OP_CODES.OP_NOTEQUAL: // use OP_CODES.OP_NUMNOTEQUAL
           {
             // (x1 x2 - bool)
             if (this.stack.length < 2) {
@@ -1086,7 +1088,7 @@ export class Interpreter {
             }
             buf1 = this.stack[this.stack.length - 2];
             buf2 = this.stack[this.stack.length - 1];
-            var fEqual = buf1.toString('hex') === buf2.toString('hex');
+            const fEqual = buf1.toString('hex') === buf2.toString('hex');
             this.stack.pop();
             this.stack.pop();
             this.stack.push(fEqual ? Interpreter.true : Interpreter.false);
@@ -1101,9 +1103,9 @@ export class Interpreter {
           }
           break;
 
-          //
-          // Numeric
-          //
+        //
+        // Numeric
+        //
         case OP_CODES.OP_1ADD:
         case OP_CODES.OP_1SUB:
         case OP_CODES.OP_NEGATE:
@@ -1117,33 +1119,33 @@ export class Interpreter {
               return false;
             }
             buf = this.stack[this.stack.length - 1];
-            bn = BN.fromScriptNumBuffer(buf, fRequireMinimal);
+            bn = BitcoreBN.fromScriptNumBuffer(buf, fRequireMinimal);
             switch (opcodenum) {
               case OP_CODES.OP_1ADD:
-                bn = bn.add(BN.One);
+                bn = bn.add(BitcoreBN.One);
                 break;
               case OP_CODES.OP_1SUB:
-                bn = bn.sub(BN.One);
+                bn = bn.sub(BitcoreBN.One);
                 break;
               case OP_CODES.OP_NEGATE:
                 bn = bn.neg();
                 break;
               case OP_CODES.OP_ABS:
-                if (bn.cmp(BN.Zero) < 0) {
+                if (bn.cmp(BitcoreBN.Zero) < 0) {
                   bn = bn.neg();
                 }
                 break;
               case OP_CODES.OP_NOT:
-                bn = new BN(
-                  Interpreter.booleanToNumber(bn.cmp(BN.Zero) === 0) + 0
+                bn = new BitcoreBN(
+                  Interpreter.booleanToNumber(bn.cmp(BitcoreBN.Zero) === 0) + 0
                 );
                 break;
               case OP_CODES.OP_0NOTEQUAL:
-                bn = new BN(
-                  Interpreter.booleanToNumber(bn.cmp(BN.Zero) !== 0) + 0
+                bn = new BitcoreBN(
+                  Interpreter.booleanToNumber(bn.cmp(BitcoreBN.Zero) !== 0) + 0
                 );
                 break;
-                //default:      assert(!'invalid opcode'); break; // TODO: does this ever occur?
+              // default:      assert(!'invalid opcode'); break; // TODO: does this ever occur?
             }
             this.stack.pop();
             this.stack.push(bn.toScriptNumBuffer());
@@ -1169,15 +1171,15 @@ export class Interpreter {
               this.errstr = 'SCRIPT_ERR_INVALID_STACK_OPERATION';
               return false;
             }
-            bn1 = BN.fromScriptNumBuffer(
+            bn1 = BitcoreBN.fromScriptNumBuffer(
               this.stack[this.stack.length - 2],
               fRequireMinimal
             );
-            bn2 = BN.fromScriptNumBuffer(
+            bn2 = BitcoreBN.fromScriptNumBuffer(
               this.stack[this.stack.length - 1],
               fRequireMinimal
             );
-            bn = new BN(0);
+            bn = new BitcoreBN(0);
 
             switch (opcodenum) {
               case OP_CODES.OP_ADD:
@@ -1188,55 +1190,65 @@ export class Interpreter {
                 bn = bn1.sub(bn2);
                 break;
 
-                // case OP_CODES.OP_BOOLAND:       bn = (bn1 != bnZero && bn2 != bnZero); break;
+              // case OP_CODES.OP_BOOLAND:       bn = (bn1 != bnZero && bn2 != bnZero); break;
               case OP_CODES.OP_BOOLAND:
-                bn = new BN(
+                bn = new BitcoreBN(
                   Interpreter.booleanToNumber(
-                    bn1.cmp(BN.Zero) !== 0 && bn2.cmp(BN.Zero) !== 0
+                    bn1.cmp(BitcoreBN.Zero) !== 0 &&
+                      bn2.cmp(BitcoreBN.Zero) !== 0
                   ) + 0
                 );
                 break;
-                // case OP_CODES.OP_BOOLOR:        bn = (bn1 != bnZero || bn2 != bnZero); break;
+              // case OP_CODES.OP_BOOLOR:        bn = (bn1 != bnZero || bn2 != bnZero); break;
               case OP_CODES.OP_BOOLOR:
-                bn = new BN(
+                bn = new BitcoreBN(
                   Interpreter.booleanToNumber(
-                    bn1.cmp(BN.Zero) !== 0 || bn2.cmp(BN.Zero) !== 0
+                    bn1.cmp(BitcoreBN.Zero) !== 0 ||
+                      bn2.cmp(BitcoreBN.Zero) !== 0
                   ) + 0
                 );
                 break;
-                // case OP_CODES.OP_NUMEQUAL:      bn = (bn1 == bn2); break;
+              // case OP_CODES.OP_NUMEQUAL:      bn = (bn1 == bn2); break;
               case OP_CODES.OP_NUMEQUAL:
-                bn = new BN(
+                bn = new BitcoreBN(
                   Interpreter.booleanToNumber(bn1.cmp(bn2) === 0) + 0
                 );
                 break;
-                // case OP_CODES.OP_NUMEQUALVERIFY:    bn = (bn1 == bn2); break;
+              // case OP_CODES.OP_NUMEQUALVERIFY:    bn = (bn1 == bn2); break;
               case OP_CODES.OP_NUMEQUALVERIFY:
-                bn = new BN(
+                bn = new BitcoreBN(
                   Interpreter.booleanToNumber(bn1.cmp(bn2) === 0) + 0
                 );
                 break;
-                // case OP_CODES.OP_NUMNOTEQUAL:     bn = (bn1 != bn2); break;
+              // case OP_CODES.OP_NUMNOTEQUAL:     bn = (bn1 != bn2); break;
               case OP_CODES.OP_NUMNOTEQUAL:
-                bn = new BN(
+                bn = new BitcoreBN(
                   Interpreter.booleanToNumber(bn1.cmp(bn2) !== 0) + 0
                 );
                 break;
-                // case OP_CODES.OP_LESSTHAN:      bn = (bn1 < bn2); break;
+              // case OP_CODES.OP_LESSTHAN:      bn = (bn1 < bn2); break;
               case OP_CODES.OP_LESSTHAN:
-                bn = new BN(Interpreter.booleanToNumber(bn1.cmp(bn2) < 0) + 0);
+                bn = new BitcoreBN(
+                  Interpreter.booleanToNumber(bn1.cmp(bn2) < 0) + 0
+                );
                 break;
-                // case OP_CODES.OP_GREATERTHAN:     bn = (bn1 > bn2); break;
+              // case OP_CODES.OP_GREATERTHAN:     bn = (bn1 > bn2); break;
               case OP_CODES.OP_GREATERTHAN:
-                bn = new BN(Interpreter.booleanToNumber(bn1.cmp(bn2) > 0) + 0);
+                bn = new BitcoreBN(
+                  Interpreter.booleanToNumber(bn1.cmp(bn2) > 0) + 0
+                );
                 break;
-                // case OP_CODES.OP_LESSTHANOREQUAL:   bn = (bn1 <= bn2); break;
+              // case OP_CODES.OP_LESSTHANOREQUAL:   bn = (bn1 <= bn2); break;
               case OP_CODES.OP_LESSTHANOREQUAL:
-                bn = new BN(Interpreter.booleanToNumber(bn1.cmp(bn2) <= 0) + 0);
+                bn = new BitcoreBN(
+                  Interpreter.booleanToNumber(bn1.cmp(bn2) <= 0) + 0
+                );
                 break;
-                // case OP_CODES.OP_GREATERTHANOREQUAL:  bn = (bn1 >= bn2); break;
+              // case OP_CODES.OP_GREATERTHANOREQUAL:  bn = (bn1 >= bn2); break;
               case OP_CODES.OP_GREATERTHANOREQUAL:
-                bn = new BN(Interpreter.booleanToNumber(bn1.cmp(bn2) >= 0) + 0);
+                bn = new BitcoreBN(
+                  Interpreter.booleanToNumber(bn1.cmp(bn2) >= 0) + 0
+                );
                 break;
               case OP_CODES.OP_MIN:
                 bn = bn1.cmp(bn2) < 0 ? bn1 : bn2;
@@ -1244,7 +1256,7 @@ export class Interpreter {
               case OP_CODES.OP_MAX:
                 bn = bn1.cmp(bn2) > 0 ? bn1 : bn2;
                 break;
-                // default:           assert(!'invalid opcode'); break; //TODO: does this ever occur?
+              // default:           assert(!'invalid opcode'); break; //TODO: does this ever occur?
             }
             this.stack.pop();
             this.stack.pop();
@@ -1269,19 +1281,19 @@ export class Interpreter {
               this.errstr = 'SCRIPT_ERR_INVALID_STACK_OPERATION';
               return false;
             }
-            bn1 = BN.fromScriptNumBuffer(
+            bn1 = BitcoreBN.fromScriptNumBuffer(
               this.stack[this.stack.length - 3],
               fRequireMinimal
             );
-            bn2 = BN.fromScriptNumBuffer(
+            bn2 = BitcoreBN.fromScriptNumBuffer(
               this.stack[this.stack.length - 2],
               fRequireMinimal
             );
-            var bn3 = BN.fromScriptNumBuffer(
+            const bn3 = BitcoreBN.fromScriptNumBuffer(
               this.stack[this.stack.length - 1],
               fRequireMinimal
             );
-            //bool fValue = (bn2 <= bn1 && bn1 < bn3);
+            // bool fValue = (bn2 <= bn1 && bn1 < bn3);
             fValue = bn2.cmp(bn1) <= 0 && bn1.cmp(bn3) < 0;
             this.stack.pop();
             this.stack.pop();
@@ -1290,9 +1302,9 @@ export class Interpreter {
           }
           break;
 
-          //
-          // Crypto
-          //
+        //
+        // Crypto
+        //
         case OP_CODES.OP_RIPEMD160:
         case OP_CODES.OP_SHA1:
         case OP_CODES.OP_SHA256:
@@ -1305,9 +1317,9 @@ export class Interpreter {
               return false;
             }
             buf = this.stack[this.stack.length - 1];
-            //valtype vchHash((opcode == OP_CODES.OP_RIPEMD160 ||
+            // valtype vchHash((opcode == OP_CODES.OP_RIPEMD160 ||
             //                 opcode == OP_CODES.OP_SHA1 || opcode == OP_CODES.OP_HASH160) ? 20 : 32);
-            var bufHash;
+            let bufHash;
             if (opcodenum === OP_CODES.OP_RIPEMD160) {
               bufHash = Hash.ripemd160(buf);
             } else if (opcodenum === OP_CODES.OP_SHA1) {
@@ -1350,7 +1362,7 @@ export class Interpreter {
             });
 
             // Drop the signature, since there's no way for a signature to sign itself
-            var tmpScript = new Script().add(bufSig);
+            const tmpScript = new Script().add(bufSig);
             subscript.findAndDelete(tmpScript);
 
             if (
@@ -1372,7 +1384,7 @@ export class Interpreter {
                 this.satoshis
               );
             } catch (e) {
-              //invalid sig or pubkey
+              // invalid sig or pubkey
               fSuccess = false;
             }
 
@@ -1396,13 +1408,13 @@ export class Interpreter {
           {
             // ([sig ...] num_of_signatures [pubkey ...] num_of_pubkeys -- bool)
 
-            var i = 1;
+            let i = 1;
             if (this.stack.length < i) {
               this.errstr = 'SCRIPT_ERR_INVALID_STACK_OPERATION';
               return false;
             }
 
-            var nKeysCount = BN.fromScriptNumBuffer(
+            let nKeysCount = BitcoreBN.fromScriptNumBuffer(
               this.stack[this.stack.length - i],
               fRequireMinimal
             ).toNumber();
@@ -1416,14 +1428,14 @@ export class Interpreter {
               return false;
             }
             // int ikey = ++i;
-            var ikey = ++i;
+            let ikey = ++i;
             i += nKeysCount;
             if (this.stack.length < i) {
               this.errstr = 'SCRIPT_ERR_INVALID_STACK_OPERATION';
               return false;
             }
 
-            var nSigsCount = BN.fromScriptNumBuffer(
+            let nSigsCount = BitcoreBN.fromScriptNumBuffer(
               this.stack[this.stack.length - i],
               fRequireMinimal
             ).toNumber();
@@ -1432,7 +1444,7 @@ export class Interpreter {
               return false;
             }
             // int isig = ++i;
-            var isig = ++i;
+            let isig = ++i;
             i += nSigsCount;
             if (this.stack.length < i) {
               this.errstr = 'SCRIPT_ERR_INVALID_STACK_OPERATION';
@@ -1445,7 +1457,7 @@ export class Interpreter {
             });
 
             // Drop the signatures, since there's no way for a signature to sign itself
-            for (var k = 0; k < nSigsCount; k++) {
+            for (let k = 0; k < nSigsCount; k++) {
               bufSig = this.stack[this.stack.length - isig - k];
               subscript.findAndDelete(new Script().add(bufSig));
             }
@@ -1464,7 +1476,7 @@ export class Interpreter {
                 return false;
               }
 
-              var fOk;
+              let fOk;
               try {
                 sig = Signature.fromTxFormat(bufSig);
                 pubkey = PublicKey.fromBuffer(bufPubkey, false);
@@ -1477,7 +1489,7 @@ export class Interpreter {
                   this.satoshis
                 );
               } catch (e) {
-                //invalid sig or pubkey
+                // invalid sig or pubkey
                 fOk = false;
               }
 

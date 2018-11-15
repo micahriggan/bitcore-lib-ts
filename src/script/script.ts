@@ -12,6 +12,7 @@ import { BitcoreError } from '../errors';
 import { Buffer } from 'buffer';
 import { BufferUtil } from '../util/buffer';
 import { JSUtil } from '../util/js';
+import { ERROR_TYPES } from '../errors/spec';
 
 /**
  * A bitcoin transaction script. Each transaction's inputs and outputs
@@ -22,19 +23,23 @@ import { JSUtil } from '../util/js';
  * @constructor
  * @param {Object|string|Buffer=} from optional data to populate script
  */
-export type InfoType = { hashBuffer: Buffer; type: string; network: Network };
+export interface InfoType {
+  hashBuffer: Buffer;
+  type: string;
+  network: Network;
+}
 export declare namespace Script {
-  export type Chunk = {
+  export interface Chunk {
     buf?: Buffer;
     len?: number;
     opcodenum: number;
-  };
+  }
 }
 export class Script {
-  chunks: Array<Script.Chunk>;
-  _isInput = false;
-  _isOutput = false;
-  _network: Network;
+  public chunks: Array<Script.Chunk>;
+  public _isInput = false;
+  public _isOutput = false;
+  public _network: Network;
 
   constructor(from?) {
     if (!(this instanceof Script)) {
@@ -62,54 +67,57 @@ export class Script {
   }
 
   public static fromBuffer(buffer) {
-    var script = new Script();
+    const script = new Script();
     script.chunks = [];
 
-    var br = new BufferReader(buffer);
+    const br = new BufferReader(buffer);
     while (!br.finished()) {
       try {
-        var opcodenum = br.readUInt8();
+        const opcodenum = br.readUInt8();
 
-        var len, buf;
+        let len, buf;
         if (opcodenum > 0 && opcodenum < OP_CODES.OP_PUSHDATA1) {
           len = opcodenum;
           script.chunks.push({
             buf: br.read(len),
-            len: len,
-            opcodenum: opcodenum
+            len,
+            opcodenum
           });
         } else if (opcodenum === OP_CODES.OP_PUSHDATA1) {
           len = br.readUInt8();
           buf = br.read(len);
           script.chunks.push({
-            buf: buf,
-            len: len,
-            opcodenum: opcodenum
+            buf,
+            len,
+            opcodenum
           });
         } else if (opcodenum === OP_CODES.OP_PUSHDATA2) {
           len = br.readUInt16LE();
           buf = br.read(len);
           script.chunks.push({
-            buf: buf,
-            len: len,
-            opcodenum: opcodenum
+            buf,
+            len,
+            opcodenum
           });
         } else if (opcodenum === OP_CODES.OP_PUSHDATA4) {
           len = br.readUInt32LE();
           buf = br.read(len);
           script.chunks.push({
-            buf: buf,
-            len: len,
-            opcodenum: opcodenum
+            buf,
+            len,
+            opcodenum
           });
         } else {
           script.chunks.push({
-            opcodenum: opcodenum
+            opcodenum
           });
         }
       } catch (e) {
         if (e instanceof RangeError) {
-          throw new errors.Script.InvalidBuffer(buffer.toString('hex'));
+          throw new BitcoreError(
+            ERROR_TYPES.Script.errors.InvalidBuffer,
+            buffer.toString('hex')
+          );
         }
         throw e;
       }
@@ -119,11 +127,11 @@ export class Script {
   }
 
   public toBuffer() {
-    var bw = new BufferWriter();
+    const bw = new BufferWriter();
 
-    for (var i = 0; i < this.chunks.length; i++) {
-      var chunk = this.chunks[i];
-      var opcodenum = chunk.opcodenum;
+    for (let i = 0; i < this.chunks.length; i++) {
+      const chunk = this.chunks[i];
+      const opcodenum = chunk.opcodenum;
       bw.writeUInt8(chunk.opcodenum);
       if (chunk.buf) {
         if (opcodenum < OP_CODES.OP_PUSHDATA1) {
@@ -145,20 +153,20 @@ export class Script {
   }
 
   public static fromASM(str) {
-    var script = new Script();
+    const script = new Script();
     script.chunks = [];
 
-    var tokens = str.split(' ');
-    var i = 0;
+    const tokens = str.split(' ');
+    let i = 0;
     while (i < tokens.length) {
-      var token = tokens[i];
-      var opcode = new Opcode(token);
-      var opcodenum = opcode.toNumber();
+      const token = tokens[i];
+      const opcode = new Opcode(token);
+      const opcodenum = opcode.toNumber();
 
       if (_.isUndefined(opcodenum)) {
-        var buf = Buffer.from(tokens[i], 'hex');
+        const buf = Buffer.from(tokens[i], 'hex');
         script.chunks.push({
-          buf: buf,
+          buf,
           len: buf.length,
           opcodenum: buf.length
         });
@@ -171,12 +179,12 @@ export class Script {
         script.chunks.push({
           buf: Buffer.from(tokens[i + 2], 'hex'),
           len: parseInt(tokens[i + 1]),
-          opcodenum: opcodenum
+          opcodenum
         });
         i = i + 3;
       } else {
         script.chunks.push({
-          opcodenum: opcodenum
+          opcodenum
         });
         i = i + 1;
       }
@@ -185,22 +193,22 @@ export class Script {
   }
 
   public static fromHex(str) {
-    return new Script(new buffer.Buffer(str, 'hex'));
+    return new Script(new Buffer(str, 'hex'));
   }
 
   public static fromString(str) {
     if (JSUtil.isHexa(str) || str.length === 0) {
-      return new Script(new buffer.Buffer(str, 'hex'));
+      return new Script(new Buffer(str, 'hex'));
     }
-    var script = new Script();
+    const script = new Script();
     script.chunks = [];
 
-    var tokens = str.split(' ');
-    var i = 0;
+    const tokens = str.split(' ');
+    let i = 0;
     while (i < tokens.length) {
-      var token = tokens[i];
-      var opcode = new Opcode(token);
-      var opcodenum = opcode.toNumber();
+      const token = tokens[i];
+      const opcode = new Opcode(token);
+      let opcodenum = opcode.toNumber();
 
       if (_.isUndefined(opcodenum)) {
         opcodenum = parseInt(token);
@@ -208,7 +216,7 @@ export class Script {
           script.chunks.push({
             buf: Buffer.from(tokens[i + 1].slice(2), 'hex'),
             len: opcodenum,
-            opcodenum: opcodenum
+            opcodenum
           });
           i = i + 2;
         } else {
@@ -225,12 +233,12 @@ export class Script {
         script.chunks.push({
           buf: Buffer.from(tokens[i + 2].slice(2), 'hex'),
           len: parseInt(tokens[i + 1]),
-          opcodenum: opcodenum
+          opcodenum
         });
         i = i + 3;
       } else {
         script.chunks.push({
-          opcodenum: opcodenum
+          opcodenum
         });
         i = i + 1;
       }
@@ -239,9 +247,9 @@ export class Script {
   }
 
   public _chunkToString(chunk: Script.Chunk, type?: string) {
-    var opcodenum = chunk.opcodenum;
-    var asm = type === 'asm';
-    var str = '';
+    const opcodenum = chunk.opcodenum;
+    const asm = type === 'asm';
+    let str = '';
     if (!chunk.buf) {
       // no data chunk
       if (typeof Opcode.reverseMap[opcodenum] !== 'undefined') {
@@ -261,7 +269,7 @@ export class Script {
           str = str + ' ' + new Opcode(opcodenum).toString();
         }
       } else {
-        var numstr = opcodenum.toString(16);
+        let numstr = opcodenum.toString(16);
         if (numstr.length % 2 !== 0) {
           numstr = '0' + numstr;
         }
@@ -292,9 +300,9 @@ export class Script {
   }
 
   public toASM() {
-    var str = '';
-    for (var i = 0; i < this.chunks.length; i++) {
-      var chunk = this.chunks[i];
+    let str = '';
+    for (let i = 0; i < this.chunks.length; i++) {
+      const chunk = this.chunks[i];
       str += this._chunkToString(chunk, 'asm');
     }
 
@@ -302,9 +310,9 @@ export class Script {
   }
 
   public toString() {
-    var str = '';
-    for (var i = 0; i < this.chunks.length; i++) {
-      var chunk = this.chunks[i];
+    let str = '';
+    for (let i = 0; i < this.chunks.length; i++) {
+      const chunk = this.chunks[i];
       str += this._chunkToString(chunk);
     }
 
@@ -341,8 +349,8 @@ export class Script {
    */
   public isPublicKeyHashIn() {
     if (this.chunks.length === 2) {
-      var signatureBuf = this.chunks[0].buf;
-      var pubkeyBuf = this.chunks[1].buf;
+      const signatureBuf = this.chunks[0].buf;
+      const pubkeyBuf = this.chunks[1].buf;
       if (
         signatureBuf &&
         signatureBuf.length &&
@@ -350,7 +358,7 @@ export class Script {
         pubkeyBuf &&
         pubkeyBuf.length
       ) {
-        var version = pubkeyBuf[0];
+        const version = pubkeyBuf[0];
         if (
           (version === 0x04 || version === 0x06 || version === 0x07) &&
           pubkeyBuf.length === 65
@@ -393,9 +401,9 @@ export class Script {
       this.chunks[0].buf.length &&
       this.chunks[1].opcodenum === OP_CODES.OP_CHECKSIG
     ) {
-      var pubkeyBuf = this.chunks[0].buf;
-      var version = pubkeyBuf[0];
-      var isVersion = false;
+      const pubkeyBuf = this.chunks[0].buf;
+      const version = pubkeyBuf[0];
+      let isVersion = false;
       if (
         (version === 0x04 || version === 0x06 || version === 0x07) &&
         pubkeyBuf.length === 65
@@ -419,7 +427,7 @@ export class Script {
    */
   public isPublicKeyIn() {
     if (this.chunks.length === 1) {
-      var signatureBuf = this.chunks[0].buf;
+      const signatureBuf = this.chunks[0].buf;
       if (signatureBuf && signatureBuf.length && signatureBuf[0] === 0x30) {
         return true;
       }
@@ -431,7 +439,7 @@ export class Script {
    * @returns {boolean} if this is a p2sh output script
    */
   public isScriptHashOut() {
-    var buf = this.toBuffer();
+    const buf = this.toBuffer();
     return (
       buf.length === 23 &&
       buf[0] === OP_CODES.OP_HASH160 &&
@@ -444,7 +452,7 @@ export class Script {
    * @returns {boolean} if this is a p2wsh output script
    */
   public isWitnessScriptHashOut() {
-    var buf = this.toBuffer();
+    const buf = this.toBuffer();
     return buf.length === 34 && buf[0] === 0 && buf[1] === 32;
   }
 
@@ -452,7 +460,7 @@ export class Script {
    * @returns {boolean} if this is a p2wpkh output script
    */
   public isWitnessPublicKeyHashOut() {
-    var buf = this.toBuffer();
+    const buf = this.toBuffer();
     return buf.length === 22 && buf[0] === 0 && buf[1] === 20;
   }
 
@@ -466,7 +474,7 @@ export class Script {
     if (!values) {
       values = {};
     }
-    var buf = this.toBuffer();
+    const buf = this.toBuffer();
     if (buf.length < 4 || buf.length > 42) {
       return false;
     }
@@ -494,22 +502,22 @@ export class Script {
     if (this.chunks.length <= 1) {
       return false;
     }
-    var redeemChunk = this.chunks[this.chunks.length - 1];
-    var redeemBuf = redeemChunk.buf;
+    const redeemChunk = this.chunks[this.chunks.length - 1];
+    const redeemBuf = redeemChunk.buf;
     if (!redeemBuf) {
       return false;
     }
 
-    var redeemScript;
+    let redeemScript;
     try {
       redeemScript = Script.fromBuffer(redeemBuf);
     } catch (e) {
-      if (e instanceof errors.Script.InvalidBuffer) {
+      if (e instanceof BitcoreError) {
         return false;
       }
       throw e;
     }
-    var type = redeemScript.classify();
+    const type = redeemScript.classify();
     return type !== Script.types.UNKNOWN;
   }
 
@@ -613,7 +621,7 @@ export class Script {
     } else if (this._isOutput) {
       return this.classifyOutput();
     } else {
-      var outputType = this.classifyOutput();
+      const outputType = this.classifyOutput();
       return outputType != Script.types.UNKNOWN
         ? outputType
         : this.classifyInput();
@@ -633,7 +641,7 @@ export class Script {
    * or Script.UNKNOWN if it isn't
    */
   public classifyOutput() {
-    for (var type in this.outputIdentifiers) {
+    for (const type in this.outputIdentifiers) {
       if (this.outputIdentifiers[type].bind(this)()) {
         return Script.types[type];
       }
@@ -653,7 +661,7 @@ export class Script {
    * or Script.UNKNOWN if it isn't
    */
   public classifyInput() {
-    for (var type in this.inputIdentifiers) {
+    for (const type in this.inputIdentifiers) {
       if (this.inputIdentifiers[type].bind(this)()) {
         return Script.types[type];
       }
@@ -689,7 +697,7 @@ export class Script {
     if (this.chunks.length !== script.chunks.length) {
       return false;
     }
-    var i;
+    let i;
     for (i = 0; i < this.chunks.length; i++) {
       if (
         BufferUtil.isBuffer(this.chunks[i].buf) &&
@@ -748,7 +756,7 @@ export class Script {
   }
 
   public _addOpcode(opcode, prepend) {
-    var op;
+    let op;
     if (typeof opcode === 'number') {
       op = opcode;
     } else if (opcode instanceof Opcode) {
@@ -766,8 +774,8 @@ export class Script {
   }
 
   public _addBuffer(buf, prepend) {
-    var opcodenum;
-    var len = buf.length;
+    let opcodenum;
+    const len = buf.length;
     if (len >= 0 && len < OP_CODES.OP_PUSHDATA1) {
       opcodenum = len;
     } else if (len < Math.pow(2, 8)) {
@@ -781,9 +789,9 @@ export class Script {
     }
     this._insertAtPosition(
       {
-        buf: buf,
-        len: len,
-        opcodenum: opcodenum
+        buf,
+        len,
+        opcodenum
       },
       prepend
     );
@@ -791,7 +799,7 @@ export class Script {
   }
 
   public hasCodeseparators() {
-    for (var i = 0; i < this.chunks.length; i++) {
+    for (let i = 0; i < this.chunks.length; i++) {
       if (this.chunks[i].opcodenum === OP_CODES.OP_CODESEPARATOR) {
         return true;
       }
@@ -800,8 +808,8 @@ export class Script {
   }
 
   public removeCodeseparators() {
-    var chunks = [];
-    for (var i = 0; i < this.chunks.length; i++) {
+    const chunks = [];
+    for (let i = 0; i < this.chunks.length; i++) {
       if (this.chunks[i].opcodenum !== OP_CODES.OP_CODESEPARATOR) {
         chunks.push(this.chunks[i]);
       }
@@ -822,7 +830,7 @@ export class Script {
    *                      public keys before creating the script
    */
   public static buildMultisigOut(
-    publicKeys: PublicKey[],
+    publicKeys: Array<PublicKey>,
     threshold: number,
     opts?: { noSorting?: boolean }
   ) {
@@ -831,17 +839,17 @@ export class Script {
       'Number of required signatures must be less than or equal to the number of public keys'
     );
     opts = opts || {};
-    var script = new Script();
+    const script = new Script();
     script.add(Opcode.smallInt(threshold));
-    publicKeys = _.map(publicKeys, PublicKey);
-    var sorted = publicKeys;
+    publicKeys = _.map(publicKeys, key => new PublicKey(key));
+    let sorted = publicKeys;
     if (!opts.noSorting) {
       sorted = _.sortBy(publicKeys, function(publicKey) {
-        return publicKey.toString('hex');
+        return publicKey.toString();
       });
     }
-    for (var i = 0; i < sorted.length; i++) {
-      var publicKey = sorted[i];
+    for (let i = 0; i < sorted.length; i++) {
+      const publicKey = sorted[i];
       script.add(publicKey.toBuffer());
     }
     script.add(Opcode.smallInt(publicKeys.length));
@@ -849,16 +857,16 @@ export class Script {
     return script;
   }
 
-  public static buildWitnessMultisigOutFromScript = function(script) {
+  public static buildWitnessMultisigOutFromScript(script) {
     if (script instanceof Script) {
-      var s = new Script();
+      const s = new Script();
       s.add(OP_CODES.OP_0);
       s.add(Hash.sha256(script.toBuffer()));
       return s;
     } else {
       throw new TypeError('First argument is expected to be a p2sh script');
     }
-  };
+  }
 
   /**
    * A new Multisig input script for the given public keys, requiring m of those public keys to spend
@@ -872,17 +880,17 @@ export class Script {
    *
    * @returns {Script}
    */
-  public static buildMultisigIn = function(
-    pubkeys,
-    threshold,
-    signatures,
-    opts
+  public static buildMultisigIn(
+    pubkeys: Array<PublicKey>,
+    threshold: number,
+    signatures: Array<Buffer>,
+    opts?: any
   ) {
     $.checkArgument(_.isArray(pubkeys));
     $.checkArgument(_.isNumber(threshold));
     $.checkArgument(_.isArray(signatures));
     opts = opts || {};
-    var s = new Script();
+    const s = new Script();
     s.add(OP_CODES.OP_0);
     _.each(signatures, function(signature) {
       $.checkArgument(
@@ -893,7 +901,7 @@ export class Script {
       s.add(signature);
     });
     return s;
-  };
+  }
 
   /**
    * A new P2SH Multisig input script for the given public keys, requiring m of those public keys to spend
@@ -907,17 +915,12 @@ export class Script {
    *
    * @returns {Script}
    */
-  public static buildP2SHMultisigIn = function(
-    pubkeys,
-    threshold,
-    signatures,
-    opts
-  ) {
+  public static buildP2SHMultisigIn(pubkeys, threshold, signatures, opts) {
     $.checkArgument(_.isArray(pubkeys));
     $.checkArgument(_.isNumber(threshold));
     $.checkArgument(_.isArray(signatures));
     opts = opts || {};
-    var s = new Script();
+    const s = new Script();
     s.add(OP_CODES.OP_0);
     _.each(signatures, function(signature) {
       $.checkArgument(
@@ -933,7 +936,7 @@ export class Script {
       ).toBuffer()
     );
     return s;
-  };
+  }
 
   /**
    * @returns {Script} a new pay to public key hash output for the given
@@ -948,9 +951,9 @@ export class Script {
     if (to instanceof PublicKey) {
       to = to.toAddress();
     } else if (_.isString(to)) {
-      to = new Address(to);
+      to = new Address(to as Address.AddressData);
     }
-    var s = new Script();
+    const s = new Script();
     s.add(OP_CODES.OP_DUP)
       .add(OP_CODES.OP_HASH160)
       .add(to.hashBuffer)
@@ -964,44 +967,44 @@ export class Script {
    * @returns {Script} a new pay to public key output for the given
    *  public key
    */
-  public static buildPublicKeyOut = function(pubkey) {
+  public static buildPublicKeyOut(pubkey) {
     $.checkArgument(pubkey instanceof PublicKey);
-    var s = new Script();
+    const s = new Script();
     s.add(pubkey.toBuffer()).add(OP_CODES.OP_CHECKSIG);
     return s;
-  };
+  }
 
   /**
    * @returns {Script} a new OP_RETURN script with data
    * @param {(string|Buffer)} data - the data to embed in the output
    * @param {(string)} encoding - the type of encoding of the string
    */
-  public static buildDataOut = function(data, encoding) {
+  public static buildDataOut(data: string | Buffer, encoding?: string) {
     $.checkArgument(
       _.isUndefined(data) || _.isString(data) || BufferUtil.isBuffer(data)
     );
-    if (_.isString(data)) {
+    if (typeof data === 'string') {
       data = Buffer.from(data, encoding);
     }
-    var s = new Script();
+    const s = new Script();
     s.add(OP_CODES.OP_RETURN);
     if (!_.isUndefined(data)) {
       s.add(data);
     }
     return s;
-  };
+  }
 
   /**
    * @param {Script|Address} script - the redeemScript for the new p2sh output.
    *    It can also be a p2sh address
    * @returns {Script} new pay to script hash script for given script
    */
-  public static buildScriptHashOut = function(script) {
+  public static buildScriptHashOut(script) {
     $.checkArgument(
       script instanceof Script ||
         (script instanceof Address && script.isPayToScriptHash())
     );
-    var s = new Script();
+    const s = new Script();
     s.add(OP_CODES.OP_HASH160)
       .add(
         script instanceof Address
@@ -1012,7 +1015,7 @@ export class Script {
 
     s._network = script._network || script.network;
     return s;
-  };
+  }
 
   /**
    * Builds a scriptSig (a script for an input) that signs a public key output script.
@@ -1020,7 +1023,7 @@ export class Script {
    * @param {Signature|Buffer} signature - a Signature object, or the signature in DER canonical encoding
    * @param {number=} sigtype - the type of the signature (defaults to SIGHASH_ALL)
    */
-  public static buildPublicKeyIn = function(signature, sigtype) {
+  public static buildPublicKeyIn(signature, sigtype) {
     $.checkArgument(
       signature instanceof Signature || BufferUtil.isBuffer(signature)
     );
@@ -1028,7 +1031,7 @@ export class Script {
     if (signature instanceof Signature) {
       signature = signature.toBuffer();
     }
-    var script = new Script();
+    const script = new Script();
     script.add(
       BufferUtil.concat([
         signature,
@@ -1036,7 +1039,7 @@ export class Script {
       ])
     );
     return script;
-  };
+  }
 
   /**
    * Builds a scriptSig (a script for an input) that signs a public key hash
@@ -1046,7 +1049,7 @@ export class Script {
    * @param {Signature|Buffer} signature - a Signature object, or the signature in DER canonical encoding
    * @param {number=} sigtype - the type of the signature (defaults to SIGHASH_ALL)
    */
-  public static buildPublicKeyHashIn = function(publicKey, signature, sigtype) {
+  public static buildPublicKeyHashIn(publicKey, signature, sigtype) {
     $.checkArgument(
       signature instanceof Signature || BufferUtil.isBuffer(signature)
     );
@@ -1054,7 +1057,7 @@ export class Script {
     if (signature instanceof Signature) {
       signature = signature.toBuffer();
     }
-    var script = new Script()
+    const script = new Script()
       .add(
         BufferUtil.concat([
           signature,
@@ -1063,14 +1066,14 @@ export class Script {
       )
       .add(new PublicKey(publicKey).toBuffer());
     return script;
-  };
+  }
 
   /**
    * @returns {Script} an empty script
    */
-  public static empty = function() {
+  public static empty() {
     return new Script();
-  };
+  }
 
   /**
    * @returns {Script} a new pay to script hash script that pays to this script
@@ -1082,15 +1085,18 @@ export class Script {
   /**
    * @return {Script} an output script built from the address
    */
-  public static fromAddress = function(address) {
+  public static fromAddress(address) {
     address = new Address(address);
     if (address.isPayToScriptHash()) {
       return Script.buildScriptHashOut(address);
     } else if (address.isPayToPublicKeyHash()) {
       return Script.buildPublicKeyHashOut(address);
     }
-    throw new errors.Script.UnrecognizedAddress(address);
-  };
+    throw new BitcoreError(
+      ERROR_TYPES.Script.errors.UnrecognizedAddress,
+      address
+    );
+  }
 
   /**
    * Will return the associated address information object
@@ -1102,7 +1108,7 @@ export class Script {
     } else if (this._isOutput) {
       return this._getOutputAddressInfo();
     } else {
-      var info = this._getOutputAddressInfo();
+      const info = this._getOutputAddressInfo();
       if (!info) {
         return this._getInputAddressInfo();
       }
@@ -1116,7 +1122,7 @@ export class Script {
    * @private
    */
   public _getOutputAddressInfo() {
-    var info = {} as Address.AddressObj;
+    const info = {} as Address.AddressObj;
     if (this.isScriptHashOut()) {
       info.hashBuffer = this.getData();
       info.type = Address.PayToScriptHash;
@@ -1135,7 +1141,7 @@ export class Script {
    * @private
    */
   public _getInputAddressInfo() {
-    var info = {} as Address.AddressObj;
+    const info = {} as Address.AddressObj;
     if (this.isPublicKeyHashIn()) {
       // hash the publickey found in the scriptSig
       info.hashBuffer = Hash.sha256ripemd160(this.chunks[1].buf);
@@ -1157,7 +1163,7 @@ export class Script {
    * @return {Address|boolean} the associated address for this script if possible, or false
    */
   public toAddress(network) {
-    var info = this.getAddressInfo();
+    const info = this.getAddressInfo();
     if (!info) {
       return false;
     }
@@ -1175,14 +1181,14 @@ export class Script {
    * be removed, because they do not use the same pushdata op.
    */
   public findAndDelete(script) {
-    var buf = script.toBuffer();
-    var hex = buf.toString('hex');
-    for (var i = 0; i < this.chunks.length; i++) {
-      var script2 = new Script({
+    const buf = script.toBuffer();
+    const hex = buf.toString('hex');
+    for (let i = 0; i < this.chunks.length; i++) {
+      const script2 = new Script({
         chunks: [this.chunks[i]]
       });
-      var buf2 = script2.toBuffer();
-      var hex2 = buf2.toString('hex');
+      const buf2 = script2.toBuffer();
+      const hex2 = buf2.toString('hex');
       if (hex === hex2) {
         this.chunks.splice(i, 1);
       }
@@ -1195,9 +1201,9 @@ export class Script {
    * @returns {boolean} if the chunk {i} is the smallest way to push that particular data.
    */
   public checkMinimalPush(i) {
-    var chunk = this.chunks[i];
-    var buf = chunk.buf;
-    var opcodenum = chunk.opcodenum;
+    const chunk = this.chunks[i];
+    const buf = chunk.buf;
+    const opcodenum = chunk.opcodenum;
     if (!buf) {
       return true;
     }
@@ -1245,11 +1251,11 @@ export class Script {
    */
   public getSignatureOperationsCount(accurate) {
     accurate = _.isUndefined(accurate) ? true : accurate;
-    var self = this;
-    var n = 0;
-    var lastOpcode = OP_CODES.OP_INVALIDOPCODE;
+    const self = this;
+    let n = 0;
+    let lastOpcode = OP_CODES.OP_INVALIDOPCODE;
     _.each(self.chunks, function getChunk(chunk) {
-      var opcode = chunk.opcodenum;
+      const opcode = chunk.opcodenum;
       if (
         opcode == OP_CODES.OP_CHECKSIG ||
         opcode == OP_CODES.OP_CHECKSIGVERIFY
@@ -1274,5 +1280,3 @@ export class Script {
     return n;
   }
 }
-
-module.exports = Script;

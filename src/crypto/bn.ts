@@ -12,18 +12,18 @@ interface IBufferEncodingOptions {
 }
 
 export class BitcoreBN extends BN {
-  public static Zero = new BN(0);
-  public static One = new BN(1);
-  public static Minus1 = new BN(-1);
+  public static Zero = new BitcoreBN(0);
+  public static One = new BitcoreBN(1);
+  public static Minus1 = new BitcoreBN(-1);
 
   public static fromNumber(n: number) {
     $.checkArgument(_.isNumber(n));
-    return new BN(n);
+    return new BitcoreBN(n);
   }
 
   public static fromString(str: string, base: number) {
     $.checkArgument(_.isString(str));
-    return new BN(str, base);
+    return new BitcoreBN(str, base);
   }
 
   public static fromBuffer(buf: Buffer, opts?: IBufferEncodingOptions) {
@@ -31,7 +31,7 @@ export class BitcoreBN extends BN {
       buf = reversebuf(buf);
     }
     const hex = buf.toString('hex');
-    const bn = new BN(hex, HEX_BASE);
+    const bn = new BitcoreBN(hex, HEX_BASE);
     return bn;
   }
 
@@ -136,7 +136,7 @@ export class BitcoreBN extends BN {
    * 4 bytes. We copy that behavior here. A third argument, `size`, is provided to
    * extend the hard limit of 4 bytes, as some usages require more than 4 bytes.
    */
-  public static fromScriptNumBuffer(buf, fRequireMinimal, size) {
+  public static fromScriptNumBuffer(buf, fRequireMinimal, size = 4) {
     const DEFAULT_SIZE = 4;
     const nMaxNumSize = size || DEFAULT_SIZE;
     $.checkArgument(

@@ -1,5 +1,3 @@
-'use strict';
-
 import * as _ from 'lodash';
 import { bs58 } from 'bs58';
 import { Buffer } from 'buffer';
@@ -28,7 +26,7 @@ export class Base58 {
   }
 
   public static validCharacters(chars) {
-    if (buffer.Buffer.isBuffer(chars)) {
+    if (Buffer.isBuffer(chars)) {
       chars = chars.toString();
     }
     return _.every(_.map(chars, char => _.includes(ALPHABET, char)));
@@ -40,7 +38,7 @@ export class Base58 {
   }
 
   public static encode(buf) {
-    if (!buffer.Buffer.isBuffer(buf)) {
+    if (!Buffer.isBuffer(buf)) {
       throw new Error('Input should be a buffer');
     }
     return bs58.encode(buf);

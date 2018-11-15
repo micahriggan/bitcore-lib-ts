@@ -1,6 +1,6 @@
 'use strict';
 
-import * as lodash from 'lodash';
+import * as _ from 'lodash';
 import { BitcoreBN } from '../crypto/bn';
 import { BufferUtil } from '../util/buffer';
 import { BufferReader } from '../encoding/bufferreader';
@@ -12,21 +12,23 @@ import BN from 'bn.js';
 
 const GENESIS_BITS = 0x1d00ffff;
 
-interface IRawBlockHeader {
-  version: number;
-  hash: string;
-  prevHash: number;
-  merkleRoot: number;
-  time: number;
-  timestamp: number;
-  bits: number;
-  nonce: number;
+export namespace BlockHeader {
+  export interface BlockHeaderObj {
+    version: number;
+    hash: string;
+    prevHash: Buffer;
+    merkleRoot: Buffer;
+    time: number;
+    timestamp: number;
+    bits: number;
+    nonce: number;
+  }
 }
 export class BlockHeader {
   public _id: string;
   public version: number;
-  public prevHash: number;
-  public merkleRoot: number;
+  public prevHash: Buffer;
+  public merkleRoot: Buffer;
   public time: number;
   public timestamp: number;
   public bits: number;
@@ -70,7 +72,7 @@ export class BlockHeader {
    * @private
    */
   public static _from(arg) {
-    let info = {} as IRawBlockHeader;
+    let info: Partial<BlockHeader.BlockHeaderObj> = {};
     if (BufferUtil.isBuffer(arg)) {
       info = BlockHeader._fromBufferReader(new BufferReader(arg));
     } else if (_.isObject(arg)) {
@@ -86,7 +88,7 @@ export class BlockHeader {
    * @returns {Object} - An object representing block header data
    * @private
    */
-  public static _fromObject(data): IRawBlockHeader {
+  public static _fromObject(data): BlockHeader.BlockHeaderObj {
     $.checkArgument(data, 'data is required');
     let prevHash = data.prevHash;
     let merkleRoot = data.merkleRoot;
@@ -156,7 +158,7 @@ export class BlockHeader {
    * @private
    */
   public static _fromBufferReader(br) {
-    const info = {} as IRawBlockHeader;
+    const info: Partial<BlockHeader.BlockHeaderObj> = {};
     info.version = br.readInt32LE();
     info.prevHash = br.read(32);
     info.merkleRoot = br.read(32);

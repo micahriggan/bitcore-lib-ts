@@ -9,14 +9,15 @@ import { Hash } from './crypto/hash';
 import { JSUtil } from './util/js';
 import { PublicKey } from './publickey';
 import { Script } from './script';
+import { ERROR_TYPES } from './errors/spec';
 
 export declare namespace Address {
   export type AddressData =
+    | 'string'
     | Buffer
     | Uint8Array
     | PublicKey
     | Script
-    | 'string'
     | AddressObj;
   export type AddressObj = {
     hashBuffer: Buffer;
@@ -113,14 +114,6 @@ export class Address {
     info.network =
       info.network || Network.get(network) || Network.defaultNetwork;
     info.type = info.type || type || Address.PayToPublicKeyHash;
-
-    JSUtil.defineImmutable(this, {
-      hashBuffer: info.hashBuffer,
-      network: info.network,
-      type: info.type
-    });
-
-    return this;
   }
   /**
    * Internal function used to split different kinds of arguments of the constructor
@@ -294,7 +287,10 @@ export class Address {
     );
     var info = script.getAddressInfo(network);
     if (!info) {
-      throw new errors.Script.CantDeriveAddress(script);
+      throw new BitcoreError(
+        ERROR_TYPES.Script.errors.CantDeriveAddress,
+        script
+      );
     }
     return info;
   }
@@ -508,7 +504,7 @@ export class Address {
    * @param {string} type - The type of address: 'script' or 'pubkey'
    * @returns {boolean} The corresponding error message
    */
-  public static isValid(data, network, type) {
+  public static isValid(data, network?: Network, type?: 'script' | 'pubkey') {
     return !Address.getValidationError(data, network, type);
   }
 

@@ -1,5 +1,8 @@
 {
-  "extends": "tslint:recommended",
+  "extends": [
+    "tslint:latest",
+    "tslint-config-prettier"
+  ],
   "rules": {
     "curly": true,
     "no-bitwise": false,
@@ -22,7 +25,7 @@
     ],
     "max-classes-per-file": [true, 5],
     "no-var-requires": false,
-    "interface-name": false, "always-prefix"],
+    "interface-name": false,
     "no-namespace": false,
     "array-type": [true, "generic"],
     "member-ordering": [false],

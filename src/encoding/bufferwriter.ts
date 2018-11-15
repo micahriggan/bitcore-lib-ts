@@ -2,6 +2,7 @@
 
 import { BufferUtil } from '../util/buffer';
 import assert from 'assert';
+import { BitcoreBN } from '../crypto/bn';
 
 export class BufferWriter {
   public bufs: Array<Uint8Array>;
@@ -18,7 +19,7 @@ export class BufferWriter {
     }
   }
 
-  public set(obj) {
+  public set(obj: { bufs: Array<Uint8Array> }) {
     this.bufs = obj.bufs || this.bufs || [];
     this.bufLen = this.bufs.reduce((prev, buf) => {
       return prev + buf.length;
@@ -34,64 +35,64 @@ export class BufferWriter {
     return Buffer.concat(this.bufs, this.bufLen);
   }
 
-  public write(buf) {
-    assert(bufferUtil.isBuffer(buf));
+  public write(buf: Buffer) {
+    assert(BufferUtil.isBuffer(buf));
     this.bufs.push(buf);
     this.bufLen += buf.length;
     return this;
   }
 
-  public writeReverse(buf) {
-    assert(bufferUtil.isBuffer(buf));
-    this.bufs.push(bufferUtil.reverse(buf));
+  public writeReverse(buf: Buffer) {
+    assert(BufferUtil.isBuffer(buf));
+    this.bufs.push(BufferUtil.reverse(buf));
     this.bufLen += buf.length;
     return this;
   }
 
-  public writeUInt8(n) {
+  public writeUInt8(n: number) {
     const buf = Buffer.alloc(1);
     buf.writeUInt8(n, 0);
     this.write(buf);
     return this;
   }
 
-  public writeUInt16BE(n) {
+  public writeUInt16BE(n: number) {
     const buf = Buffer.alloc(2);
     buf.writeUInt16BE(n, 0);
     this.write(buf);
     return this;
   }
 
-  public writeUInt16LE(n) {
+  public writeUInt16LE(n: number) {
     const buf = Buffer.alloc(2);
     buf.writeUInt16LE(n, 0);
     this.write(buf);
     return this;
   }
 
-  public writeUInt32BE(n) {
+  public writeUInt32BE(n: number) {
     const buf = Buffer.alloc(4);
     buf.writeUInt32BE(n, 0);
     this.write(buf);
     return this;
   }
 
-  public writeInt32LE(n) {
+  public writeInt32LE(n: number) {
     const buf = Buffer.alloc(4);
     buf.writeInt32LE(n, 0);
     this.write(buf);
     return this;
   }
 
-  public writeUInt32LE(n) {
+  public writeUInt32LE(n: number) {
     const buf = Buffer.alloc(4);
     buf.writeUInt32LE(n, 0);
     this.write(buf);
     return this;
   }
 
-  public writeUInt64BEBN(bn) {
-    const buf = bn.toBuffer({ size: 8 });
+  public writeUInt64BEBN(bn: BitcoreBN) {
+    const buf = bn.toBitcoreBuffer({ size: 8 });
     this.write(buf);
     return this;
   }
@@ -102,19 +103,19 @@ export class BufferWriter {
     return this;
   }
 
-  public writeVarintNum(n) {
+  public writeVarintNum(n: number) {
     const buf = BufferWriter.varintBufNum(n);
     this.write(buf);
     return this;
   }
 
-  public writeVarintBN(bn) {
+  public writeVarintBN(bn: BitcoreBN) {
     const buf = BufferWriter.varintBufBN(bn);
     this.write(buf);
     return this;
   }
 
-  public static varintBufNum(n) {
+  public static varintBufNum(n: number) {
     let buf;
     if (n < 253) {
       buf = Buffer.alloc(1);
@@ -136,7 +137,7 @@ export class BufferWriter {
     return buf;
   }
 
-  public static varintBufBN(bn) {
+  public static varintBufBN(bn: BitcoreBN) {
     let buf;
     const n = bn.toNumber();
     if (n < 253) {

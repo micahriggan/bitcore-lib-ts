@@ -1,4 +1,3 @@
-'use strict';
 import { Buffer } from 'buffer';
 import { JSUtil } from './js';
 import $ from './preconditions';

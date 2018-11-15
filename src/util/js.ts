@@ -17,6 +17,8 @@ export class JSUtil {
     return /^[0-9a-fA-F]+$/.test(value);
   }
 
+  public static isHexaString = JSUtil.isHexa;
+
   /**
    * @namespace JSUtil
    */
@@ -80,5 +82,9 @@ export class JSUtil {
       Math.floor(value) === value &&
       value >= 0
     );
+  }
+
+  public static booleanToNumber(bool: boolean) {
+    return bool ? 1 : 0;
   }
 }

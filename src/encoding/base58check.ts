@@ -31,10 +31,10 @@ export class Base58Check {
 
   public static validChecksum(data, checksum) {
     if (_.isString(data)) {
-      data = new buffer.Buffer(Base58.decode(data));
+      data = new Buffer(Base58.decode(data));
     }
     if (_.isString(checksum)) {
-      checksum = new buffer.Buffer(Base58.decode(checksum));
+      checksum = new Buffer(Base58.decode(checksum));
     }
     if (!checksum) {
       checksum = data.slice(-4);

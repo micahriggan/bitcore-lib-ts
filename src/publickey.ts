@@ -1,12 +1,10 @@
-'use strict';
-
+import $ from './util/preconditions';
+import * as _ from 'lodash';
 import { BitcoreBN } from './crypto/bn';
 import { Point } from './crypto/point';
 import { Hash } from './crypto/hash';
 import { JSUtil } from './util/js';
 import { Network } from './networks';
-import * as _ from 'lodash';
-import $ from './util/preconditions';
 import { Address } from './address';
 import { PrivateKey } from './privatekey';
 /**
@@ -67,13 +65,6 @@ export class PublicKey {
     // validation
     info.point.validate();
 
-    JSUtil.defineImmutable(this, {
-      point: info.point,
-      compressed: info.compressed,
-      network: info.network || Network.defaultNetwork
-    });
-
-    return this;
   }
   /**
    * Internal function to differentiate between arguments passed to the constructor
@@ -179,18 +170,18 @@ export class PublicKey {
       if (xbuf.length !== 32 || ybuf.length !== 32 || buf.length !== 65) {
         throw new TypeError('Length of x and y must be 32 bytes');
       }
-      x = new BN(xbuf);
-      y = new BN(ybuf);
+      x = new BitcoreBN(xbuf);
+      y = new BitcoreBN(ybuf);
       info.point = new Point(x, y);
       info.compressed = false;
     } else if (buf[0] === 0x03) {
       xbuf = buf.slice(1);
-      x = new BN(xbuf);
+      x = new BitcoreBN(xbuf);
       info = PublicKey._transformX(true, x);
       info.compressed = true;
     } else if (buf[0] === 0x02) {
       xbuf = buf.slice(1);
-      x = new BN(xbuf);
+      x = new BitcoreBN(xbuf);
       info = PublicKey._transformX(false, x);
       info.compressed = true;
     } else {
@@ -224,8 +215,8 @@ export class PublicKey {
    * @private
    */
   public static _transformObject(json) {
-    const x = new BN(json.x, 'hex');
-    const y = new BN(json.y, 'hex');
+    const x = new BitcoreBN(json.x, 'hex');
+    const y = new BitcoreBN(json.y, 'hex');
     const point = new Point(x, y);
     return new PublicKey(point, {
       compressed: json.compressed
@@ -276,7 +267,7 @@ export class PublicKey {
    * @param {boolean=} compressed - whether to store this public key as compressed format
    * @returns {PublicKey} A new valid instance of PublicKey
    */
-  public static fromPoint(point, compressed) {
+  public static fromPoint(point, compressed = false) {
     $.checkArgument(
       point instanceof Point,
       'First argument must be an instance of Point.'

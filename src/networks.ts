@@ -1,23 +1,23 @@
-'use strict';
 import * as _ from 'lodash';
-
 import { BufferUtil } from './util/buffer';
 import { JSUtil } from './util/js';
+
 const networks = [];
 const networkMaps = {};
 
-export interface INetworkObject {
-  name: string;
-  alias: string;
-  pubkeyhash: number;
-  privatekey: number;
-  scripthash: number;
-  xpubkey: number;
-  xprivkey: number;
-  networkMagic: Buffer;
-  port: number;
-  dnsSeeds: Array<string>;
-
+export namespace Network {
+  export type NetworkObj = {
+    name: string;
+    alias: string;
+    pubkeyhash: number;
+    privatekey: number;
+    scripthash: number;
+    xpubkey: number;
+    xprivkey: number;
+    networkMagic: Buffer;
+    port: number;
+    dnsSeeds: Array<string>;
+  };
 }
 /**
  * A network is merely a map containing values that correspond to version
@@ -25,7 +25,7 @@ export interface INetworkObject {
  * (a.k.a. "mainnet") and "testnet".
  * @constructor
  */
-export class Network implements INetworkObject {
+export class Network {
   public name: string;
   public alias: string;
   public pubkeyhash: number;
@@ -36,9 +36,11 @@ export class Network implements INetworkObject {
   public networkMagic: Buffer;
   public port: number;
   public dnsSeeds: Array<string>;
-  public static defaultNetwork: Network;
+  public static defaultNetwork = Network.get('livenet');
+  public static livenet = Network.get('livenet');
+  public static testnet = Network.get('testnet');
 
-  constructor(obj?: INetworkObject) {
+  constructor(obj?: Network.NetworkObj) {
     const {
       name,
       alias,
@@ -86,7 +88,7 @@ export class Network implements INetworkObject {
         keys = [<string>keys];
       }
       for (const index in networks) {
-        if (_.some(keys, (key) => networks[index][key] === arg)) {
+        if (_.some(keys, key => networks[index][key] === arg)) {
           return networks[index];
         }
       }
@@ -113,8 +115,7 @@ export class Network implements INetworkObject {
    * @return Network
    */
   public static addNetwork(data) {
-
-    const network = new Network({
+    const network = {
       name: data.name,
       alias: data.alias,
       pubkeyhash: data.pubkeyhash,
@@ -125,18 +126,17 @@ export class Network implements INetworkObject {
       networkMagic: BufferUtil.integerAsBuffer(data.networkMagic),
       dnsSeeds: data.dnsSeeds,
       port: data.port
-    });
+    };
 
-    _.each(network, (value) => {
+    _.each(network, value => {
       if (!_.isUndefined(value) && !_.isObject(value)) {
         networkMaps[value] = network;
       }
     });
 
-    networks.push(network);
+    networks.push(new Network(network));
 
     return network;
-
   }
 
   /**
@@ -208,22 +208,3 @@ Network.addNetwork({
   networkMagic: BufferUtil.integerAsBuffer(0xfabfb5da),
   dnsSeeds: []
 });
-
-Network.defaultNetwork = Network.get('livenet');
-
-/**
- * @namespace Networks
- */
-/*
- *module.exports = {
- *  add: addNetwork,
- *  remove: removeNetwork,
- *  defaultNetwork: livenet,
- *  livenet: livenet,
- *  mainnet: livenet,
- *  testnet: testnet,
- *  get: get,
- *  enableRegtest: enableRegtest,
- *  disableRegtest: disableRegtest
- *};
- */

@@ -1,7 +1,6 @@
-'use strict';
-
 import { Buffer } from 'buffer';
-
+import { Transaction } from './transaction';
+import { Input } from './input';
 import { Signature } from '../crypto/signature';
 import { Script } from '../script';
 import { Output } from './output';
@@ -13,9 +12,15 @@ import { ECDSA } from '../crypto/ecdsa';
 import $ from '../util/preconditions';
 import * as _ from 'lodash';
 
-var SIGHASH_SINGLE_BUG = '0000000000000000000000000000000000000000000000000000000000000001';
-var BITS_64_ON = 'ffffffffffffffff';
+const SIGHASH_SINGLE_BUG =
+  '0000000000000000000000000000000000000000000000000000000000000001';
+const BITS_64_ON = 'ffffffffffffffff';
 
+export const Sighash = {
+  sighash,
+  verify,
+  sign
+};
 /**
  * Returns a buffer of length 32 bytes with the hash that needs to be signed
  * for OP_CHECKSIG.
@@ -26,13 +31,10 @@ var BITS_64_ON = 'ffffffffffffffff';
  * @param {number} inputNumber the input index for the signature
  * @param {Script} subscript the script that will be signed
  */
-var sighash = function sighash(transaction, sighashType, inputNumber, subscript) {
-  var Transaction = require('./transaction');
-  var Input = require('./input');
-
-  var i;
+export function sighash(transaction, sighashType, inputNumber, subscript) {
+  let i;
   // Copy transaction
-  var txcopy = Transaction.shallowCopy(transaction);
+  const txcopy = Transaction.shallowCopy(transaction);
 
   // Copy script
   subscript = new Script(subscript);
@@ -43,11 +45,14 @@ var sighash = function sighash(transaction, sighashType, inputNumber, subscript)
     txcopy.inputs[i] = new Input(txcopy.inputs[i]).setScript(Script.empty());
   }
 
-  txcopy.inputs[inputNumber] = new Input(txcopy.inputs[inputNumber]).setScript(subscript);
+  txcopy.inputs[inputNumber] = new Input(txcopy.inputs[inputNumber]).setScript(
+    subscript
+  );
 
-  if ((sighashType & 31) === Signature.SIGHASH_NONE ||
-    (sighashType & 31) === Signature.SIGHASH_SINGLE) {
-
+  if (
+    (sighashType & 31) === Signature.SIGHASH_NONE ||
+    (sighashType & 31) === Signature.SIGHASH_SINGLE
+  ) {
     // clear all sequenceNumbers
     for (i = 0; i < txcopy.inputs.length; i++) {
       if (i !== inputNumber) {
@@ -58,7 +63,6 @@ var sighash = function sighash(transaction, sighashType, inputNumber, subscript)
 
   if ((sighashType & 31) === Signature.SIGHASH_NONE) {
     txcopy.outputs = [];
-
   } else if ((sighashType & 31) === Signature.SIGHASH_SINGLE) {
     // The SIGHASH_SINGLE bug.
     // https://bitcointalk.org/index.php?topic=260595.0
@@ -70,7 +74,7 @@ var sighash = function sighash(transaction, sighashType, inputNumber, subscript)
 
     for (i = 0; i < inputNumber; i++) {
       txcopy.outputs[i] = new Output({
-        satoshis: BN.fromBuffer(new buffer.Buffer(BITS_64_ON, 'hex')),
+        satoshis: BitcoreBN.fromBuffer(new Buffer(BITS_64_ON, 'hex')),
         script: Script.empty()
       });
     }
@@ -80,14 +84,14 @@ var sighash = function sighash(transaction, sighashType, inputNumber, subscript)
     txcopy.inputs = [txcopy.inputs[inputNumber]];
   }
 
-  var buf = new BufferWriter()
+  const buf = new BufferWriter()
     .write(txcopy.toBuffer())
     .writeInt32LE(sighashType)
     .toBuffer();
-  var ret = Hash.sha256sha256(buf);
+  let ret = Hash.sha256sha256(buf);
   ret = new BufferReader(ret).readReverse();
   return ret;
-};
+}
 
 /**
  * Create a signature
@@ -100,9 +104,15 @@ var sighash = function sighash(transaction, sighashType, inputNumber, subscript)
  * @param {Script} subscript
  * @return {Signature}
  */
-function sign(transaction, privateKey, sighashType, inputIndex, subscript) {
-  var hashbuf = sighash(transaction, sighashType, inputIndex, subscript);
-  var sig = ECDSA.sign(hashbuf, privateKey, 'little').set({
+export function sign(
+  transaction,
+  privateKey,
+  sighashType,
+  inputIndex,
+  subscript
+) {
+  const hashbuf = sighash(transaction, sighashType, inputIndex, subscript);
+  const sig = ECDSA.sign(hashbuf, privateKey, 'little').set({
     nhashtype: sighashType
   });
   return sig;
@@ -119,18 +129,22 @@ function sign(transaction, privateKey, sighashType, inputIndex, subscript) {
  * @param {Script} subscript
  * @return {boolean}
  */
-function verify(transaction, signature, publicKey, inputIndex, subscript) {
+export function verify(
+  transaction,
+  signature,
+  publicKey,
+  inputIndex,
+  subscript
+) {
   $.checkArgument(!_.isUndefined(transaction));
-  $.checkArgument(!_.isUndefined(signature) && !_.isUndefined(signature.nhashtype));
-  var hashbuf = sighash(transaction, signature.nhashtype, inputIndex, subscript);
+  $.checkArgument(
+    !_.isUndefined(signature) && !_.isUndefined(signature.nhashtype)
+  );
+  const hashbuf = sighash(
+    transaction,
+    signature.nhashtype,
+    inputIndex,
+    subscript
+  );
   return ECDSA.verify(hashbuf, signature, publicKey, 'little');
 }
-
-/**
- * @namespace Signing
- */
-module.exports = {
-  sighash: sighash,
-  sign: sign,
-  verify: verify
-};

@@ -90,11 +90,11 @@ export class Hash {
     );
   }
 
-  public sha256hmac(data, key) {
+  public static sha256hmac(data, key) {
     return Hash.hmac('sha256', data, key);
   }
 
-  public sha512hmac(data, key) {
+  public static sha512hmac(data, key) {
     return Hash.hmac('sha512', data, key);
   }
 }

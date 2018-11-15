@@ -1,5 +1,3 @@
-'use strict';
-
 import * as _ from 'lodash';
 import $ from './util/preconditions';
 import { Address } from './address';
@@ -62,7 +60,7 @@ export class PrivateKey {
     var info = this._classifyArguments(data, network);
 
     // validation
-    if (!info.bn || info.bn.cmp(new BN(0)) === 0) {
+    if (!info.bn || info.bn.cmp(new BitcoreBN(0)) === 0) {
       throw new TypeError(
         'Number can not be equal to zero, undefined, null or false'
       );
@@ -79,14 +77,10 @@ export class PrivateKey {
       compressed: info.compressed,
       network: info.network
     });
+  }
 
-    Object.defineProperty(this, 'publicKey', {
-      configurable: false,
-      enumerable: true,
-      get: this.toPublicKey.bind(this)
-    });
-
-    return this;
+  public get publicKey() {
+    return this.toPublicKey();
   }
 
   /**
@@ -110,7 +104,7 @@ export class PrivateKey {
     // detect type of data
     if (_.isUndefined(data) || _.isNull(data)) {
       info.bn = PrivateKey._getRandomBN();
-    } else if (data instanceof BN) {
+    } else if (data instanceof BitcoreBN) {
       info.bn = <BitcoreBN>data;
     } else if (data instanceof Buffer || data instanceof Uint8Array) {
       info = PrivateKey._transformBuffer(data, network);
@@ -124,7 +118,7 @@ export class PrivateKey {
       info.network = Network.get(data);
     } else if (typeof data === 'string') {
       if (JSUtil.isHexa(data)) {
-        info.bn = new BN(Buffer.from(data, 'hex'));
+        info.bn = new BitcoreBN(Buffer.from(data, 'hex'));
       } else {
         info = PrivateKey._transformWIF(data, network);
       }
@@ -145,7 +139,7 @@ export class PrivateKey {
     var bn;
     do {
       var privbuf = Random.getRandomBuffer(32);
-      bn = BN.fromBuffer(privbuf);
+      bn = BitcoreBN.fromBuffer(privbuf);
       condition = bn.lt(Point.getN());
     } while (!condition);
     return bn;
@@ -186,7 +180,7 @@ export class PrivateKey {
       );
     }
 
-    info.bn = BN.fromBuffer(buf.slice(1, 32 + 1));
+    info.bn = BitcoreBN.fromBuffer(buf.slice(1, 32 + 1));
 
     return info;
   }
@@ -202,7 +196,7 @@ export class PrivateKey {
   public static _transformBNBuffer = function(buf, network) {
     var info = {} as PrivateKey.PrivateKeyObj;
     info.network = Network.get(network) || Network.defaultNetwork;
-    info.bn = BN.fromBuffer(buf);
+    info.bn = BitcoreBN.fromBuffer(buf);
     info.compressed = false;
     return info;
   };
@@ -238,7 +232,7 @@ export class PrivateKey {
    * @private
    */
   public static _transformObject = function(json) {
-    var bn = new BN(json.bn, 'hex');
+    var bn = new BitcoreBN(json.bn, 'hex');
     var network = Network.get(json.network);
     return {
       bn: bn,
@@ -311,7 +305,7 @@ export class PrivateKey {
    * @param {string=} network - Either "livenet" or "testnet"
    * @returns {Boolean} If the private key is would be valid
    */
-  public static isValid = function(data, network) {
+  public static isValid = function(data, network?: Network) {
     if (!data) {
       return false;
     }
