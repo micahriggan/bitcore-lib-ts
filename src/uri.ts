@@ -7,12 +7,12 @@ import { Unit } from './unit';
 import { Network } from './networks';
 
 export namespace URI {
-  export type URIObj = {
+  export interface URIObj {
     amount: number;
     message: string;
     label: string;
     r: number;
-  };
+  }
 }
 /**
  * Bitcore URI
@@ -41,14 +41,14 @@ export namespace URI {
  * @constructor
  */
 export class URI {
-  amount: number;
-  message: string;
-  label: string;
-  r: number;
-  extras = {};
-  knownParams: string[];
-  address: Address;
-  network: Network;
+  public amount: number;
+  public message: string;
+  public label: string;
+  public r: number;
+  public extras = {};
+  public knownParams: Array<string>;
+  public address: Address;
+  public network: Network;
 
   constructor(data, knownParams?) {
     if (!(this instanceof URI)) {
@@ -60,7 +60,7 @@ export class URI {
     this.address = this.network = this.amount = this.message = null;
 
     if (typeof data === 'string') {
-      var params = URI.parse(data);
+      const params = URI.parse(data);
       if (params.amount) {
         params.amount = this._parseAmount(params.amount);
       }
@@ -111,7 +111,7 @@ export class URI {
    */
   public static isValid(arg, knownParams) {
     try {
-      new URI(arg, knownParams);
+      const uri = new URI(arg, knownParams);
     } catch (err) {
       return false;
     }
@@ -126,14 +126,14 @@ export class URI {
    * @returns {Object} An object with the parsed params
    */
   public static parse(uri) {
-    var info = parse(uri, true);
+    const info = parse(uri, true);
 
     if (info.protocol !== 'bitcoin:') {
       throw new TypeError('Invalid bitcoin URI');
     }
 
     // workaround to host insensitiveness
-    var group = /[^:]*:\/?\/?([^?]*)/.exec(uri);
+    const group = /[^:]*:\/?\/?([^?]*)/.exec(uri);
     info.query.address = (group && group[1]) || undefined;
 
     return info.query;
@@ -160,7 +160,7 @@ export class URI {
     this.network = this.address.network;
     this.amount = obj.amount;
 
-    for (var key in obj) {
+    for (const key in obj) {
       if (key === 'address' || key === 'amount') {
         continue;
       }
@@ -169,7 +169,7 @@ export class URI {
         throw Error('Unknown required argument ' + key);
       }
 
-      var destination = URI.Members.indexOf(key) > -1 ? this : this.extras;
+      const destination = URI.Members.indexOf(key) > -1 ? this : this.extras;
       destination[key] = obj[key];
     }
   }
@@ -190,9 +190,8 @@ export class URI {
   }
 
   public toObject = function toObject() {
-    var json = {};
-    for (var i = 0; i < URI.Members.length; i++) {
-      var m = URI.Members[i];
+    const json = {};
+    for (const m of URI.Members) {
       if (this.hasOwnProperty(m) && typeof this[m] !== 'undefined') {
         json[m] = this[m].toString();
       }
@@ -207,7 +206,7 @@ export class URI {
    * @returns {string} Bitcoin URI string
    */
   public toString() {
-    var query = {} as URI.URIObj;
+    const query: Partial<URI.URIObj> = {};
     if (this.amount) {
       query.amount = Unit.fromSatoshis(this.amount).toBTC();
     }
@@ -225,7 +224,7 @@ export class URI {
     return format({
       protocol: 'bitcoin:',
       host: this.address.toString(),
-      query: query
+      query
     });
   }
 

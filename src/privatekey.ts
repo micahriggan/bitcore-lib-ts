@@ -10,11 +10,11 @@ import { PublicKey } from './publickey';
 import { Random } from './crypto/random';
 
 declare namespace PrivateKey {
-  export type PrivateKeyObj = {
+  export interface PrivateKeyObj {
     compressed: boolean;
     network: Network;
     bn: BitcoreBN;
-  };
+  }
 }
 
 /**
@@ -41,10 +41,10 @@ declare namespace PrivateKey {
  * @constructor
  */
 export class PrivateKey {
-  compressed: boolean;
-  network: Network;
-  bn: BitcoreBN;
-  _pubkey: PublicKey;
+  public compressed: boolean;
+  public network: Network;
+  public bn: BitcoreBN;
+  public _pubkey: PublicKey;
 
   constructor(data, network?: Network) {
     /* jshint maxstatements: 20 */
@@ -57,7 +57,7 @@ export class PrivateKey {
       return data;
     }
 
-    var info = this._classifyArguments(data, network);
+    const info = this._classifyArguments(data, network);
 
     // validation
     if (!info.bn || info.bn.cmp(new BitcoreBN(0)) === 0) {
@@ -96,21 +96,21 @@ export class PrivateKey {
     network
   ) {
     /* jshint maxcomplexity: 10 */
-    var info = {
+    let info: Partial<PrivateKey.PrivateKeyObj> = {
       compressed: true,
       network: network ? Network.get(network) : Network.defaultNetwork
-    } as PrivateKey.PrivateKeyObj;
+    };
 
     // detect type of data
     if (_.isUndefined(data) || _.isNull(data)) {
       info.bn = PrivateKey._getRandomBN();
     } else if (data instanceof BitcoreBN) {
-      info.bn = <BitcoreBN>data;
+      info.bn = data as BitcoreBN;
     } else if (data instanceof Buffer || data instanceof Uint8Array) {
       info = PrivateKey._transformBuffer(data, network);
     } else if (
-      (<PrivateKey.PrivateKeyObj>data).bn &&
-      (<PrivateKey.PrivateKeyObj>data).network
+      (data as PrivateKey.PrivateKeyObj).bn &&
+      (data as PrivateKey.PrivateKeyObj).network
     ) {
       info = PrivateKey._transformObject(data);
     } else if (!network && Network.get(data)) {
@@ -134,16 +134,16 @@ export class PrivateKey {
    * @returns {BN} A new randomly generated BN
    * @private
    */
-  public static _getRandomBN = function() {
-    var condition;
-    var bn;
+  public static _getRandomBN() {
+    let condition;
+    let bn;
     do {
-      var privbuf = Random.getRandomBuffer(32);
+      const privbuf = Random.getRandomBuffer(32);
       bn = BitcoreBN.fromBuffer(privbuf);
       condition = bn.lt(Point.getN());
     } while (!condition);
     return bn;
-  };
+  }
 
   /**
    * Internal function to transform a WIF Buffer into a private key
@@ -154,7 +154,7 @@ export class PrivateKey {
    * @private
    */
   public static _transformBuffer(buf, network) {
-    var info = {} as PrivateKey.PrivateKeyObj;
+    const info: Partial<PrivateKey.PrivateKeyObj> = {};
 
     if (buf.length === 32) {
       return PrivateKey._transformBNBuffer(buf, network);
@@ -193,13 +193,13 @@ export class PrivateKey {
    * @returns {object} an Object with keys: bn, network, and compressed
    * @private
    */
-  public static _transformBNBuffer = function(buf, network) {
-    var info = {} as PrivateKey.PrivateKeyObj;
+  public static _transformBNBuffer(buf, network) {
+    const info: Partial<PrivateKey.PrivateKeyObj> = {};
     info.network = Network.get(network) || Network.defaultNetwork;
     info.bn = BitcoreBN.fromBuffer(buf);
     info.compressed = false;
     return info;
-  };
+  }
 
   /**
    * Internal function to transform a WIF string into a private key
@@ -208,9 +208,9 @@ export class PrivateKey {
    * @returns {Object} An object with keys: bn, network and compressed
    * @private
    */
-  public static _transformWIF = function(str, network) {
+  public static _transformWIF(str, network) {
     return PrivateKey._transformBuffer(Base58Check.decode(str), network);
-  };
+  }
 
   /**
    * Instantiate a PrivateKey from a Buffer with the DER or WIF representation
@@ -219,9 +219,9 @@ export class PrivateKey {
    * @param {Network} network
    * @return {PrivateKey}
    */
-  public static fromBuffer = function(arg, network) {
+  public static fromBuffer(arg, network) {
     return new PrivateKey(arg, network);
-  };
+  }
 
   /**
    * Internal function to transform a JSON string on plain object into a private key
@@ -231,15 +231,15 @@ export class PrivateKey {
    * @returns {Object} An object with keys: bn, network and compressed
    * @private
    */
-  public static _transformObject = function(json) {
-    var bn = new BitcoreBN(json.bn, 'hex');
-    var network = Network.get(json.network);
+  public static _transformObject(json) {
+    const bn = new BitcoreBN(json.bn, 'hex');
+    const network = Network.get(json.network);
     return {
-      bn: bn,
-      network: network,
+      bn,
+      network,
       compressed: json.compressed
     };
-  };
+  }
 
   /**
    * Instantiate a PrivateKey from a WIF string
@@ -260,13 +260,13 @@ export class PrivateKey {
    *
    * @param {Object} obj - The output from privateKey.toObject()
    */
-  public static fromObject = function(obj) {
+  public static fromObject(obj) {
     $.checkArgument(
       _.isObject(obj),
       'First argument is expected to be an object.'
     );
     return new PrivateKey(obj);
-  };
+  }
 
   /**
    * Instantiate a PrivateKey from random bytes
@@ -274,10 +274,10 @@ export class PrivateKey {
    * @param {string=} network - Either "livenet" or "testnet"
    * @returns {PrivateKey} A new valid instance of PrivateKey
    */
-  public static fromRandom = function(network) {
-    var bn = PrivateKey._getRandomBN();
+  public static fromRandom(network) {
+    const bn = PrivateKey._getRandomBN();
     return new PrivateKey(bn, network);
-  };
+  }
 
   /**
    * Check if there would be any errors when initializing a PrivateKey
@@ -287,16 +287,15 @@ export class PrivateKey {
    * @returns {null|Error} An error if exists
    */
 
-  public static getValidationError = function(data, network) {
-    var error;
+  public static getValidationError(data, network) {
+    let error;
     try {
-      /* jshint nonew: false */
-      new PrivateKey(data, network);
+      const key = new PrivateKey(data, network);
     } catch (e) {
       error = e;
     }
     return error;
-  };
+  }
 
   /**
    * Check if the parameters are valid
@@ -305,12 +304,12 @@ export class PrivateKey {
    * @param {string=} network - Either "livenet" or "testnet"
    * @returns {Boolean} If the private key is would be valid
    */
-  public static isValid = function(data, network?: Network) {
+  public static isValid(data, network?: Network) {
     if (!data) {
       return false;
     }
     return !PrivateKey.getValidationError(data, network);
-  };
+  }
 
   /**
    * Will output the PrivateKey encoded as hex string
@@ -327,10 +326,10 @@ export class PrivateKey {
    * @returns {string} A WIP representation of the private key
    */
   public toWIF() {
-    var network = this.network;
-    var compressed = this.compressed;
+    const network = this.network;
+    const compressed = this.compressed;
 
-    var buf;
+    let buf;
     if (compressed) {
       buf = Buffer.concat([
         Buffer.from([network.privatekey]),
@@ -398,7 +397,7 @@ export class PrivateKey {
    * @returns {Address} An address generated from the private key
    */
   public toAddress(network) {
-    var pubkey = this.toPublicKey();
+    const pubkey = this.toPublicKey();
     return Address.fromPublicKey(pubkey, network || this.network);
   }
 
@@ -419,7 +418,7 @@ export class PrivateKey {
    * @returns {string} Private key
    */
   public inspect() {
-    var uncompressed = !this.compressed ? ', uncompressed' : '';
+    const uncompressed = !this.compressed ? ', uncompressed' : '';
     return (
       '<PrivateKey: ' +
       this.toString() +

@@ -3,7 +3,7 @@ import { BitcoreError } from './errors';
 import $ from './util/preconditions';
 import { ERROR_TYPES } from './errors/spec';
 
-var UNITS = {
+const UNITS = {
   BTC: [1e8, 8],
   mBTC: [1e5, 5],
   uBTC: [1e2, 2],
@@ -56,7 +56,7 @@ export class Unit {
     return this.to([1, 0]);
   }
 
-  _value: number;
+  public _value: number;
   constructor(amount, code) {
     if (!(this instanceof Unit)) {
       return new Unit(amount, code);
@@ -70,20 +70,7 @@ export class Unit {
       amount = amount / code;
       code = this.BTC;
     }
-
     this._value = this._from(amount, code);
-
-    var self = this;
-    var defineAccesor = function(key) {
-      Object.defineProperty(self, key, {
-        get: function() {
-          return this.to(key);
-        },
-        enumerable: true
-      });
-    };
-
-    Object.keys(UNITS).forEach(defineAccesor);
   }
 
   /**
@@ -154,7 +141,7 @@ export class Unit {
     if (!UNITS[code]) {
       throw new BitcoreError(UNIT_ERRORS.UnknownCode, code);
     }
-    return parseInt((amount * UNITS[code][0]).toFixed());
+    return parseInt((amount * UNITS[code][0]).toFixed(), 10);
   }
 
   /**
@@ -175,7 +162,7 @@ export class Unit {
       throw new BitcoreError(UNIT_ERRORS.UnknownCode, code);
     }
 
-    var value = this._value / UNITS[code][0];
+    const value = this._value / UNITS[code][0];
     return parseFloat(value.toFixed(UNITS[code][1]));
   }
 

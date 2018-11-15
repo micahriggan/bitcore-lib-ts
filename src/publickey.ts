@@ -33,16 +33,16 @@ import { PrivateKey } from './privatekey';
  * @constructor
  */
 export namespace PublicKey {
-  export type PubKeyObj = {
+  export interface PubKeyObj {
     point: Point;
     compressed: boolean;
     network: Network;
-  };
+  }
 }
 export class PublicKey {
-  point: Point;
-  compressed: boolean;
-  network: Network;
+  public point: Point;
+  public compressed: boolean;
+  public network: Network;
 
   constructor(data, extra?: { network?: Network; compressed?: boolean }) {
     if (!(this instanceof PublicKey)) {
@@ -64,7 +64,6 @@ export class PublicKey {
 
     // validation
     info.point.validate();
-
   }
   /**
    * Internal function to differentiate between arguments passed to the constructor
@@ -73,9 +72,9 @@ export class PublicKey {
    */
   public _classifyArgs(data, extra) {
     /* jshint maxcomplexity: 10 */
-    let info = {
+    let info: Partial<PublicKey.PubKeyObj> = {
       compressed: _.isUndefined(extra.compressed) || extra.compressed
-    } as PublicKey.PubKeyObj;
+    };
 
     // detect type of data
     if (data instanceof Point) {
@@ -133,7 +132,7 @@ export class PublicKey {
       PublicKey._isPrivateKey(privkey),
       'Must be an instance of PrivateKey'
     );
-    const info = {} as PublicKey.PubKeyObj;
+    const info: Partial<PublicKey.PubKeyObj> = {};
     info.point = Point.getG().mul(privkey.bn);
     info.compressed = privkey.compressed;
     info.network = privkey.network;
@@ -155,7 +154,7 @@ export class PublicKey {
       PublicKey._isBuffer(buf),
       'Must be a hex buffer of DER encoded public key'
     );
-    let info = {} as PublicKey.PubKeyObj;
+    let info: Partial<PublicKey.PubKeyObj> = {};
 
     strict = _.isUndefined(strict) ? true : strict;
 
@@ -203,7 +202,7 @@ export class PublicKey {
       typeof odd === 'boolean',
       'Must specify whether y is odd or not (true or false)'
     );
-    const info = { point: Point.fromX(odd, x) } as PublicKey.PubKeyObj;
+    const info: Partial<PublicKey.PubKeyObj> = { point: Point.fromX(odd, x) };
     return info;
   }
 
@@ -365,11 +364,7 @@ export class PublicKey {
       return Buffer.concat([prefix, xbuf, ybuf]);
     } else {
       const odd = ybuf[ybuf.length - 1] % 2;
-      if (odd) {
-        prefix = Buffer.from([0x03]);
-      } else {
-        prefix = Buffer.from([0x02]);
-      }
+      prefix = odd ? Buffer.from([0x03]) : Buffer.from([0x02]);
       return Buffer.concat([prefix, xbuf]);
     }
   }
