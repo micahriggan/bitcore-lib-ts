@@ -10,14 +10,14 @@ import { Unit } from '../unit';
 import { BitcoreError } from '../errors';
 
 export namespace UnspentOutput {
-  export type UnspentOutputObj = {
+  export interface UnspentOutputObj {
     address: string;
     txid: string;
     vout: number;
     scriptPubKey: string;
     amount: number;
     satoshis: number;
-  };
+  }
 }
 /**
  * Represents an unspent output information: its script, associated amount and address,
@@ -36,14 +36,14 @@ export namespace UnspentOutput {
  * @param {string|Address=} data.address the associated address to the script, if provided
  */
 export class UnspentOutput {
-  address: string;
-  txId: string;
-  vout: number;
-  scriptPubKey: string;
-  amount: number;
-  satoshis: number;
-  script: Script;
-  outputIndex: number;
+  public address: string;
+  public txId: string;
+  public vout: number;
+  public scriptPubKey: string;
+  public amount: number;
+  public satoshis: number;
+  public script: Script;
+  public outputIndex: number;
   constructor(data) {
     /* jshint maxcomplexity: 20 */
     /* jshint maxstatements: 20 */
@@ -54,13 +54,13 @@ export class UnspentOutput {
       _.isObject(data),
       'Must provide an object from where to extract data'
     );
-    var address = data.address ? new Address(data.address) : undefined;
-    var txId = data.txid ? data.txid : data.txId;
+    const address = data.address ? new Address(data.address) : undefined;
+    const txId = data.txid ? data.txid : data.txId;
     if (!txId || !JSUtil.isHexaString(txId) || txId.length > 64) {
       // TODO: Use the errors library
       throw new BitcoreError('InvalidArgument', data);
     }
-    var outputIndex = _.isUndefined(data.vout) ? data.outputIndex : data.vout;
+    const outputIndex = _.isUndefined(data.vout) ? data.outputIndex : data.vout;
     if (!_.isNumber(outputIndex)) {
       throw new Error('Invalid outputIndex, received ' + outputIndex);
     }
@@ -68,18 +68,18 @@ export class UnspentOutput {
       !_.isUndefined(data.scriptPubKey) || !_.isUndefined(data.script),
       'Must provide the scriptPubKey for that output!'
     );
-    var script = new Script(data.scriptPubKey || data.script);
-    var amount = !_.isUndefined(data.amount)
+    const script = new Script(data.scriptPubKey || data.script);
+    let amount = !_.isUndefined(data.amount)
       ? Unit.fromBTC(data.amount).toSatoshis()
       : data.satoshis;
     amount = amount || data.value;
     $.checkArgument(amount, 'Must provide an amount for the output');
     $.checkArgument(_.isNumber(amount), 'Amount must be a number');
     JSUtil.defineImmutable(this, {
-      address: address,
-      txId: txId,
-      outputIndex: outputIndex,
-      script: script,
+      address,
+      txId,
+      outputIndex,
+      script,
       satoshis: amount
     });
   }
