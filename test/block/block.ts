@@ -3,26 +3,28 @@
 import * as fs from 'fs';
 import { Transaction } from '../../src/transaction';
 import { Block, BlockHeader } from '../../src/block';
-import { BufferReader } from '../../src/encoding/bufferreader';
-import { BufferWriter } from '../../src/encoding/bufferwriter';
+import { BufferWriter, BufferReader } from '../../src/encoding';
 import BN = require('bn.js');
+import * as path from 'path';
 
 // https://test-insight.bitpay.com/block/000000000b99b16390660d79fcc138d2ad0c89a0d044c4201a02bdf1f61ffa11
-const dataRawBlockBuffer = fs.readFileSync('test/data/blk86756-testnet.dat');
+const dataRawBlockBuffer = fs.readFileSync(
+  path.resolve(__dirname , '../../../test-data/blk86756-testnet.dat')
+);
 const dataRawBlockBinary = fs.readFileSync(
-  'test/data/blk86756-testnet.dat',
+  path.resolve(__dirname , '../../../test-data/blk86756-testnet.dat'),
   'binary'
 );
-const dataJson = fs.readFileSync('test/data/blk86756-testnet.json').toString();
-const data = require('../data/blk86756-testnet');
-const dataBlocks = require('../data/bitcoind/blocks');
+const dataJson = fs.readFileSync(path.resolve(__dirname , '../../../test-data/blk86756-testnet.json')).toString();
+const data = require(path.resolve(__dirname, '../../../test-data/blk86756-testnet'));
+const dataBlocks = require(path.resolve(__dirname , '../../../test-data/bitcoind/blocks'));
 
 describe('Block', () => {
   const blockhex = data.blockhex;
   const blockbuf = new Buffer(blockhex, 'hex');
   const bh = BlockHeader.fromBuffer(new Buffer(data.blockheaderhex, 'hex'));
   const txs = [];
-  JSON.parse(dataJson).transactions.forEach((tx) => {
+  JSON.parse(dataJson).transactions.forEach(tx => {
     txs.push(new Transaction().fromObject(tx));
   });
   const json = dataJson;
@@ -62,7 +64,7 @@ describe('Block', () => {
     });
 
     it('should properly deserialize blocks', () => {
-      dataBlocks.forEach((block) => {
+      dataBlocks.forEach(block => {
         const b = Block.fromBuffer(new Buffer(block.data, 'hex'));
         b.transactions.length.should.equal(block.transactions);
       });

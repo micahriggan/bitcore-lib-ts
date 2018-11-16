@@ -183,7 +183,7 @@ export function verify(
  * @namespace Signing
  */
 export const SighashWitness = {
-  sighash,
+  sighash: sighashwitness,
   sign,
   verify
 };

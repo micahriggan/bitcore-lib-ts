@@ -1,11 +1,9 @@
-import { ERROR_TYPES } from '../errors/spec';
 import * as _ from 'lodash';
 import $ from '../util/preconditions';
-import { BufferUtil } from '../util/buffer';
-import { JSUtil } from '../util/js';
+import { JSUtil, BufferUtil } from '../util';
 import { PublicKey } from '../publickey';
-import { BitcoreError } from '../errors';
-import { Signature } from '../crypto/signature';
+import { ERROR_TYPES, BitcoreError } from '../errors';
+import { Signature } from '../crypto';
 
 export declare namespace TransactionSignature {
   export interface TransactionSignatureObj {
@@ -118,5 +116,3 @@ export class TransactionSignature extends Signature {
     return new TransactionSignature(object);
   }
 }
-
-module.exports = TransactionSignature;

@@ -260,5 +260,3 @@ export class Opcode {
 for (var k in Opcode.map) {
   Opcode.reverseMap[Opcode.map[k]] = k;
 }
-
-module.exports = Opcode;

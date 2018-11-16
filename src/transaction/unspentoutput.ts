@@ -135,4 +135,3 @@ export class UnspentOutput {
 
   public toJSON = this.toObject;
 }
-module.exports = UnspentOutput;

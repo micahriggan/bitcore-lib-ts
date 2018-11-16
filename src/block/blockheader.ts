@@ -325,5 +325,3 @@ export class BlockHeader {
     )
   };
 }
-
-module.exports = BlockHeader;

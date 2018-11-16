@@ -272,4 +272,3 @@ export class MultiSigInput extends Input {
     );
   }
 }
-module.exports = MultiSigInput;

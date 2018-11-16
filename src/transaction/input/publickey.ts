@@ -107,4 +107,3 @@ export class PublicKeyInput extends Input {
     return PublicKeyInput.SCRIPT_MAX_SIZE;
   }
 }
-module.exports = PublicKeyInput;

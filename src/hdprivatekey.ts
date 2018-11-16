@@ -740,4 +740,3 @@ export class HDPrivateKey {
   }
 }
 assert(HDPrivateKey.ChecksumEnd === HDPrivateKey.SerializedByteSize);
-module.exports = HDPrivateKey;

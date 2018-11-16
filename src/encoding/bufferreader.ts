@@ -207,5 +207,3 @@ export class BufferReader {
     return BufferUtil.reverse(buf);
   }
 }
-
-module.exports = BufferReader;

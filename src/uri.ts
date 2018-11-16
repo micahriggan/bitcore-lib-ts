@@ -237,5 +237,3 @@ export class URI {
     return '<URI: ' + this.toString() + '>';
   }
 }
-
-module.exports = URI;

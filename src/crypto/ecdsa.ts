@@ -356,5 +356,3 @@ export class ECDSA {
       .verify().verified;
   }
 }
-
-module.exports = ECDSA;

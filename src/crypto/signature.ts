@@ -1,8 +1,7 @@
-import { BitcoreBN } from './bn';
 import * as _ from 'lodash';
 import $ from '../util/preconditions';
-import { BufferUtil } from '../util/buffer';
-import { JSUtil } from '../util/js';
+import { BitcoreBN } from '.';
+import {  BufferUtil, JSUtil } from '../util';
 
 export namespace Signature {
   export interface SignatureObj {
@@ -364,5 +363,3 @@ export class Signature {
   public static SIGHASH_SINGLE = 0x03;
   public static SIGHASH_ANYONECANPAY = 0x80;
 }
-
-module.exports = Signature;

@@ -278,5 +278,3 @@ export class Input {
     return this.toBufferWriter().toBuffer().length;
   }
 }
-
-module.exports = Input;
