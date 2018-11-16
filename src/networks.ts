@@ -6,7 +6,7 @@ const networks = [];
 const networkMaps = {};
 
 export namespace Network {
-  export type NetworkObj = {
+  export interface NetworkObj {
     name: string;
     alias: string;
     pubkeyhash: number;
@@ -14,10 +14,10 @@ export namespace Network {
     scripthash: number;
     xpubkey: number;
     xprivkey: number;
-    networkMagic: Buffer;
+    networkMagic: Buffer | number;
     port: number;
     dnsSeeds: Array<string>;
-  };
+  }
 }
 /**
  * A network is merely a map containing values that correspond to version
@@ -85,7 +85,7 @@ export class Network {
     }
     if (keys) {
       if (!_.isArray(keys)) {
-        keys = [<string>keys];
+        keys = [keys as string];
       }
       for (const index in networks) {
         if (_.some(keys, key => networks[index][key] === arg)) {
@@ -114,7 +114,7 @@ export class Network {
    * @param {Array}  data.dnsSeeds - An array of dns seeds
    * @return Network
    */
-  public static addNetwork(data) {
+  public static addNetwork(data: Network.NetworkObj) {
     const network = {
       name: data.name,
       alias: data.alias,
@@ -123,13 +123,20 @@ export class Network {
       scripthash: data.scripthash,
       xpubkey: data.xpubkey,
       xprivkey: data.xprivkey,
-      networkMagic: BufferUtil.integerAsBuffer(data.networkMagic),
+      networkMagic:
+        data.networkMagic instanceof Buffer
+          ? data.networkMagic
+          : BufferUtil.integerAsBuffer(data.networkMagic),
       dnsSeeds: data.dnsSeeds,
       port: data.port
     };
 
     _.each(network, value => {
-      if (!_.isUndefined(value) && !_.isObject(value)) {
+      if (
+        !_.isUndefined(value) &&
+        !_.isObject(value) &&
+        typeof value === 'string'
+      ) {
         networkMaps[value] = network;
       }
     });

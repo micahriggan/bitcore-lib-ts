@@ -2,17 +2,13 @@ import $ from '../util/preconditions';
 import * as _ from 'lodash';
 import { Network } from '../networks';
 import { Address } from '../address';
-import { BufferReader } from '../encoding/bufferreader';
-import { BufferWriter } from '../encoding/bufferwriter';
-import { Hash } from '../crypto/hash';
+import { BufferWriter, BufferReader } from '../encoding';
+import { Signature, Hash } from '../crypto';
 import { Opcode, OP_CODES } from '../opcode';
 import { PublicKey } from '../publickey';
-import { Signature } from '../crypto/signature';
-import { BitcoreError } from '../errors';
+import { ERROR_TYPES, BitcoreError } from '../errors';
 import { Buffer } from 'buffer';
-import { BufferUtil } from '../util/buffer';
-import { JSUtil } from '../util/js';
-import { ERROR_TYPES } from '../errors/spec';
+import { JSUtil, BufferUtil } from '../util';
 
 /**
  * A bitcoin transaction script. Each transaction's inputs and outputs
@@ -33,6 +29,10 @@ export declare namespace Script {
     buf?: Buffer;
     len?: number;
     opcodenum: number;
+  }
+  export interface WitnessProgram {
+    version: number;
+    program: Buffer;
   }
 }
 export class Script {
@@ -75,7 +75,8 @@ export class Script {
       try {
         const opcodenum = br.readUInt8();
 
-        let len, buf;
+        let len;
+        let buf;
         if (opcodenum > 0 && opcodenum < OP_CODES.OP_PUSHDATA1) {
           len = opcodenum;
           script.chunks.push({
@@ -129,8 +130,7 @@ export class Script {
   public toBuffer() {
     const bw = new BufferWriter();
 
-    for (let i = 0; i < this.chunks.length; i++) {
-      const chunk = this.chunks[i];
+    for (const chunk of this.chunks) {
       const opcodenum = chunk.opcodenum;
       bw.writeUInt8(chunk.opcodenum);
       if (chunk.buf) {
@@ -178,7 +178,7 @@ export class Script {
       ) {
         script.chunks.push({
           buf: Buffer.from(tokens[i + 2], 'hex'),
-          len: parseInt(tokens[i + 1]),
+          len: parseInt(tokens[i + 1], 10),
           opcodenum
         });
         i = i + 3;
@@ -211,7 +211,7 @@ export class Script {
       let opcodenum = opcode.toNumber();
 
       if (_.isUndefined(opcodenum)) {
-        opcodenum = parseInt(token);
+        opcodenum = parseInt(token, 10);
         if (opcodenum > 0 && opcodenum < OP_CODES.OP_PUSHDATA1) {
           script.chunks.push({
             buf: Buffer.from(tokens[i + 1].slice(2), 'hex'),
@@ -232,7 +232,7 @@ export class Script {
         }
         script.chunks.push({
           buf: Buffer.from(tokens[i + 2].slice(2), 'hex'),
-          len: parseInt(tokens[i + 1]),
+          len: parseInt(tokens[i + 1], 10),
           opcodenum
         });
         i = i + 3;
@@ -273,11 +273,7 @@ export class Script {
         if (numstr.length % 2 !== 0) {
           numstr = '0' + numstr;
         }
-        if (asm) {
-          str = str + ' ' + numstr;
-        } else {
-          str = str + ' ' + '0x' + numstr;
-        }
+        str = asm ? str + ' ' + numstr : str + ' ' + '0x' + numstr;
       }
     } else {
       // data chunk
@@ -289,11 +285,9 @@ export class Script {
         str = str + ' ' + new Opcode(opcodenum).toString();
       }
       if (chunk.len > 0) {
-        if (asm) {
-          str = str + ' ' + chunk.buf.toString('hex');
-        } else {
-          str = str + ' ' + chunk.len + ' ' + '0x' + chunk.buf.toString('hex');
-        }
+        str = asm
+          ? str + ' ' + chunk.buf.toString('hex')
+          : str + ' ' + chunk.len + ' ' + '0x' + chunk.buf.toString('hex');
       }
     }
     return str;
@@ -301,8 +295,7 @@ export class Script {
 
   public toASM() {
     let str = '';
-    for (let i = 0; i < this.chunks.length; i++) {
-      const chunk = this.chunks[i];
+    for (const chunk of this.chunks) {
       str += this._chunkToString(chunk, 'asm');
     }
 
@@ -311,8 +304,7 @@ export class Script {
 
   public toString() {
     let str = '';
-    for (let i = 0; i < this.chunks.length; i++) {
-      const chunk = this.chunks[i];
+    for (const chunk of this.chunks) {
       str += this._chunkToString(chunk);
     }
 
@@ -470,7 +462,7 @@ export class Script {
    * @param {Buffer} values.program - Set with the witness program
    * @returns {boolean} if this is a p2wpkh output script
    */
-  public isWitnessProgram(values) {
+  public isWitnessProgram(values: Partial<Script.WitnessProgram> = {}) {
     if (!values) {
       values = {};
     }
@@ -528,7 +520,7 @@ export class Script {
     return (
       this.chunks.length > 3 &&
       Opcode.isSmallIntOp(this.chunks[0].opcodenum) &&
-      this.chunks.slice(1, this.chunks.length - 2).every(function(obj) {
+      this.chunks.slice(1, this.chunks.length - 2).every(obj => {
         return obj.buf && BufferUtil.isBuffer(obj.buf);
       }) &&
       Opcode.isSmallIntOp(this.chunks[this.chunks.length - 2].opcodenum) &&
@@ -544,7 +536,7 @@ export class Script {
     return (
       this.chunks.length >= 2 &&
       this.chunks[0].opcodenum === 0 &&
-      this.chunks.slice(1, this.chunks.length).every(function(obj) {
+      this.chunks.slice(1, this.chunks.length).every(obj => {
         return (
           obj.buf && BufferUtil.isBuffer(obj.buf) && Signature.isTxDER(obj.buf)
         );
@@ -592,7 +584,7 @@ export class Script {
    * opcodes or small int opcodes (OP_0, OP_1, ..., OP_16)
    */
   public isPushOnly() {
-    return _.every(this.chunks, function(chunk) {
+    return _.every(this.chunks, chunk => {
       return chunk.opcodenum <= OP_CODES.OP_16;
     });
   }
@@ -622,7 +614,7 @@ export class Script {
       return this.classifyOutput();
     } else {
       const outputType = this.classifyOutput();
-      return outputType != Script.types.UNKNOWN
+      return outputType !== Script.types.UNKNOWN
         ? outputType
         : this.classifyInput();
     }
@@ -799,8 +791,8 @@ export class Script {
   }
 
   public hasCodeseparators() {
-    for (let i = 0; i < this.chunks.length; i++) {
-      if (this.chunks[i].opcodenum === OP_CODES.OP_CODESEPARATOR) {
+    for (const chunk of this.chunks) {
+      if (chunk.opcodenum === OP_CODES.OP_CODESEPARATOR) {
         return true;
       }
     }
@@ -809,9 +801,9 @@ export class Script {
 
   public removeCodeseparators() {
     const chunks = [];
-    for (let i = 0; i < this.chunks.length; i++) {
-      if (this.chunks[i].opcodenum !== OP_CODES.OP_CODESEPARATOR) {
-        chunks.push(this.chunks[i]);
+    for (const chunk of this.chunks) {
+      if (chunk.opcodenum !== OP_CODES.OP_CODESEPARATOR) {
+        chunks.push(chunk);
       }
     }
     this.chunks = chunks;
@@ -844,12 +836,12 @@ export class Script {
     publicKeys = _.map(publicKeys, key => new PublicKey(key));
     let sorted = publicKeys;
     if (!opts.noSorting) {
-      sorted = _.sortBy(publicKeys, function(publicKey) {
+      sorted = _.sortBy(publicKeys, publicKey => {
         return publicKey.toString();
       });
     }
-    for (let i = 0; i < sorted.length; i++) {
-      const publicKey = sorted[i];
+    for (const sort of sorted) {
+      const publicKey = sort;
       script.add(publicKey.toBuffer());
     }
     script.add(Opcode.smallInt(publicKeys.length));
@@ -892,7 +884,7 @@ export class Script {
     opts = opts || {};
     const s = new Script();
     s.add(OP_CODES.OP_0);
-    _.each(signatures, function(signature) {
+    _.each(signatures, signature => {
       $.checkArgument(
         BufferUtil.isBuffer(signature),
         'Signatures must be an array of Buffers'
@@ -922,7 +914,7 @@ export class Script {
     opts = opts || {};
     const s = new Script();
     s.add(OP_CODES.OP_0);
-    _.each(signatures, function(signature) {
+    _.each(signatures, signature => {
       $.checkArgument(
         BufferUtil.isBuffer(signature),
         'Signatures must be an array of Buffers'
@@ -979,7 +971,7 @@ export class Script {
    * @param {(string|Buffer)} data - the data to embed in the output
    * @param {(string)} encoding - the type of encoding of the string
    */
-  public static buildDataOut(data: string | Buffer, encoding?: string) {
+  public static buildDataOut(data?: string | Buffer, encoding?: string) {
     $.checkArgument(
       _.isUndefined(data) || _.isString(data) || BufferUtil.isBuffer(data)
     );
@@ -1085,7 +1077,7 @@ export class Script {
   /**
    * @return {Script} an output script built from the address
    */
-  public static fromAddress(address) {
+  public static fromAddress(address: Address) {
     address = new Address(address);
     if (address.isPayToScriptHash()) {
       return Script.buildScriptHashOut(address);
@@ -1122,7 +1114,7 @@ export class Script {
    * @private
    */
   public _getOutputAddressInfo() {
-    const info = {} as Address.AddressObj;
+    const info: Partial<Address.AddressObj> = {};
     if (this.isScriptHashOut()) {
       info.hashBuffer = this.getData();
       info.type = Address.PayToScriptHash;
@@ -1141,7 +1133,7 @@ export class Script {
    * @private
    */
   public _getInputAddressInfo() {
-    const info = {} as Address.AddressObj;
+    const info: Partial<Address.AddressObj> = {};
     if (this.isPublicKeyHashIn()) {
       // hash the publickey found in the scriptSig
       info.hashBuffer = Hash.sha256ripemd160(this.chunks[1].buf);
@@ -1162,10 +1154,10 @@ export class Script {
    * @param {Network=} network
    * @return {Address|boolean} the associated address for this script if possible, or false
    */
-  public toAddress(network) {
+  public toAddress(network?: Network): Address {
     const info = this.getAddressInfo();
     if (!info) {
-      return false;
+      throw new BitcoreError(ERROR_TYPES.Script.errors.UnrecognizedAddress);
     }
     info.network =
       Network.get(network) || this._network || Network.defaultNetwork;
@@ -1249,28 +1241,27 @@ export class Script {
    * @param {boolean} use current (true) or pre-version-0.6 (false) logic
    * @returns {number} number of signature operations required by this script
    */
-  public getSignatureOperationsCount(accurate) {
+  public getSignatureOperationsCount(accurate = true) {
     accurate = _.isUndefined(accurate) ? true : accurate;
-    const self = this;
     let n = 0;
     let lastOpcode = OP_CODES.OP_INVALIDOPCODE;
-    _.each(self.chunks, function getChunk(chunk) {
+    _.each(this.chunks, chunk => {
       const opcode = chunk.opcodenum;
       if (
-        opcode == OP_CODES.OP_CHECKSIG ||
-        opcode == OP_CODES.OP_CHECKSIGVERIFY
+        opcode === OP_CODES.OP_CHECKSIG ||
+        opcode === OP_CODES.OP_CHECKSIGVERIFY
       ) {
         n++;
       } else if (
-        opcode == OP_CODES.OP_CHECKMULTISIG ||
-        opcode == OP_CODES.OP_CHECKMULTISIGVERIFY
+        opcode === OP_CODES.OP_CHECKMULTISIG ||
+        opcode === OP_CODES.OP_CHECKMULTISIGVERIFY
       ) {
         if (
           accurate &&
           lastOpcode >= OP_CODES.OP_1 &&
           lastOpcode <= OP_CODES.OP_16
         ) {
-          n += self._decodeOP_N(lastOpcode);
+          n += this._decodeOP_N(lastOpcode);
         } else {
           n += 20;
         }

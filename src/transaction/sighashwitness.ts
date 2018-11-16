@@ -23,7 +23,7 @@ import { PrivateKey } from '../privatekey';
  * @param {Buffer} scriptCode
  * @param {Buffer} satoshisBuffer
  */
-export function sighash(
+export function sighashwitness(
   transaction: Transaction,
   sighashType: number,
   inputNumber: number,

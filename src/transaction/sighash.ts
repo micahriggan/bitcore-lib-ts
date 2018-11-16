@@ -1,16 +1,10 @@
-import { Buffer } from 'buffer';
-import { Transaction } from './transaction';
-import { Input } from './input';
-import { Signature } from '../crypto/signature';
-import { Script } from '../script';
-import { Output } from './output';
-import { BufferReader } from '../encoding/bufferreader';
-import { BufferWriter } from '../encoding/bufferwriter';
-import { BitcoreBN } from '../crypto/bn';
-import { Hash } from '../crypto/hash';
-import { ECDSA } from '../crypto/ecdsa';
 import $ from '../util/preconditions';
 import * as _ from 'lodash';
+import { Buffer } from 'buffer';
+import { Script } from '../script';
+import { Transaction, Input, Output } from '.';
+import { BufferWriter, BufferReader } from '../encoding';
+import { Signature, Hash, ECDSA, BitcoreBN } from '../crypto';
 
 const SIGHASH_SINGLE_BUG =
   '0000000000000000000000000000000000000000000000000000000000000001';

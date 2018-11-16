@@ -1,8 +1,7 @@
-'use strict';
 import * as _ from 'lodash';
 import $ from '../util/preconditions';
-import { BufferUtil } from '../util/buffer';
-import { BitcoreBN } from '../crypto/bn';
+import { BufferUtil } from '../util';
+import { BitcoreBN } from '../crypto';
 import BN from 'bn.js';
 
 export class BufferReader {

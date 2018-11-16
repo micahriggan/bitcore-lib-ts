@@ -1,6 +1,5 @@
 'use strict';
 
-var chai = chai || require('chai');
 var bitcore = require('..');
 var expect = chai.expect;
 var Networks = bitcore.Networks;

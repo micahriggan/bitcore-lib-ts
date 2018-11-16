@@ -2,29 +2,27 @@
 
 import * as _ from 'lodash';
 import $ from '../util/preconditions';
-import { BitcoreError } from '../errors';
-import { BufferUtil } from '../util/buffer';
-import { JSUtil } from '../util/js';
-import { BufferReader } from '../encoding/bufferreader';
-import { BufferWriter } from '../encoding/bufferwriter';
-import { Hash } from '../crypto/hash';
-import { Signature } from '../crypto/signature';
-import { sighash, Sighash } from './sighash';
-import { SighashWitness } from './sighashwitness';
+import { ERROR_TYPES, BitcoreError } from '../errors';
+import { JSUtil, BufferUtil } from '../util';
+import { BufferWriter, BufferReader } from '../encoding';
+import { BitcoreBN, Signature, Hash } from '../crypto';
 import { Address } from '../address';
-import { UnspentOutput } from './unspentoutput';
-import { Input } from './input';
-import { Output } from './output';
+import {
+  sighash,
+  Sighash,
+  Output,
+  Input,
+  SighashWitness,
+  UnspentOutput,
+  TransactionSignature,
+  MultiSigInput,
+  MultiSigScriptHashInput,
+  PublicKeyInput,
+  PublicKeyHashInput
+} from '.';
 import { Script } from '../script';
 import { PrivateKey } from '../privatekey';
-import { BitcoreBN } from '../crypto/bn';
 import { PublicKey } from '../publickey';
-import { PublicKeyHashInput } from './input/publickeyhash';
-import { PublicKeyInput } from './input/publickey';
-import { MultiSigScriptHashInput } from './input/multisigscripthash';
-import { MultiSigInput } from './input/multisig';
-import { TransactionSignature } from './signature';
-import { ERROR_TYPES } from '../errors/spec';
 
 const compare = Buffer.compare || require('buffer-compare');
 

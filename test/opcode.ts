@@ -1,7 +1,6 @@
 'use strict';
 
 var _ = require('lodash');
-var chai = require('chai');
 var should = chai.should();
 var expect = chai.expect;
 var bitcore = require('..');

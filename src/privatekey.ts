@@ -1,13 +1,9 @@
 import * as _ from 'lodash';
 import $ from './util/preconditions';
-import { Address } from './address';
-import { Base58Check } from './encoding/base58check';
-import { BitcoreBN } from './crypto/bn';
-import { JSUtil } from './util/js';
-import { Network } from './networks';
-import { Point } from './crypto/point';
-import { PublicKey } from './publickey';
-import { Random } from './crypto/random';
+import { Address, Network, PublicKey } from '.';
+import { Base58Check } from './encoding';
+import { Random, Point, BitcoreBN } from './crypto';
+import { JSUtil } from './util';
 
 declare namespace PrivateKey {
   export interface PrivateKeyObj {

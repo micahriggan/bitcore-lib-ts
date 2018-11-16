@@ -1,10 +1,7 @@
-'use strict';
-
 import * as _ from 'lodash';
 import { Base58 } from './base58';
 import { Buffer } from 'buffer';
 import { Hash } from '../crypto/hash';
-const sha256sha256 = Hash.sha256sha256;
 
 export class Base58Check {
   public buf: Buffer;
@@ -59,7 +56,7 @@ export class Base58Check {
     const data = buf.slice(0, -4);
     const csum = buf.slice(-4);
 
-    const hash = sha256sha256(data);
+    const hash = Hash.sha256sha256(data);
     const hash4 = hash.slice(0, 4);
 
     if (csum.toString('hex') !== hash4.toString('hex')) {
@@ -70,7 +67,7 @@ export class Base58Check {
   }
 
   public static checksum(buffer) {
-    return sha256sha256(buffer).slice(0, 4);
+    return Hash.sha256sha256(buffer).slice(0, 4);
   }
 
   public static encode(buf) {

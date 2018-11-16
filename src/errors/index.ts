@@ -1,5 +1,6 @@
 import * as _ from 'lodash';
 import { ERROR_TYPES } from './spec';
+export * from './spec';
 
 type MessageType = ((args: any) => string) | string;
 type ErrorParam = keyof typeof ERROR_TYPES | { message: MessageType };

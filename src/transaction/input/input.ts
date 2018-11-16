@@ -3,15 +3,14 @@ import * as _ from 'lodash';
 import BN from 'bn.js';
 import $ from '../../util/preconditions';
 import { BitcoreError } from '../../errors';
-import { BufferWriter } from '../../encoding/bufferwriter';
+import { BufferWriter } from '../../encoding';
 import { Buffer } from 'buffer';
-import { BufferUtil } from '../../util/buffer';
-import { JSUtil } from '../../util/js';
+import { JSUtil, BufferUtil } from '../../util';
 import { Script } from '../../script';
 import { sighash, Sighash } from '../sighash';
 import { Output } from '../output';
 import { Transaction } from '../transaction';
-import { Signature } from '../../crypto/signature';
+import { Signature } from '../../crypto';
 import { TransactionSignature } from '../signature';
 import { PublicKey } from '../../publickey';
 

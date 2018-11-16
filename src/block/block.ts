@@ -27,7 +27,7 @@ export class Block {
   public _id: string;
   public header: BlockHeader;
 
-  constructor(arg) {
+  constructor(arg?: Partial<Block.BlockObj> | Buffer) {
     if (!(this instanceof Block)) {
       return new Block(arg);
     }
@@ -157,6 +157,8 @@ export class Block {
       transactions
     };
   }
+
+  public toJSON = this.toObject;
 
   /**
    * @returns {Buffer} - A buffer of the block

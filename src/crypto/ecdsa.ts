@@ -1,12 +1,6 @@
-'use strict';
-
-import { BitcoreBN } from './bn';
-import { Point } from './point';
-import { Signature } from './signature';
+import {  BitcoreBN, Random, Hash, Signature, Point } from '.';
 import { PublicKey } from '../publickey';
-import { Random } from './random';
-import { Hash } from './hash';
-import { BufferUtil } from '../util/buffer';
+import { BufferUtil } from '../util';
 import * as _ from 'lodash';
 import $ from '../util/preconditions';
 import { PrivateKey } from '../privatekey';

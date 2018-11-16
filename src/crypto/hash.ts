@@ -1,6 +1,6 @@
-import * as crypto from 'crypto';
-import { BufferUtil } from '../util/buffer';
 import $ from '../util/preconditions';
+import * as crypto from 'crypto';
+import { BufferUtil } from '../util';
 
 type HashFunctions = 'sha256' | 'sha512' | 'sha1';
 const BlockSizes: { [fnName in HashFunctions]: number } = {

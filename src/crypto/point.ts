@@ -1,4 +1,4 @@
-import { BitcoreBN } from './bn';
+import { BitcoreBN } from '.';
 import { BufferUtil } from '../util/buffer';
 import { ec, curve } from 'elliptic';
 const secp256k1 = new ec('secp256k1');

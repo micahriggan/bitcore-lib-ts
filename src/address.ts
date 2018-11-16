@@ -2,28 +2,26 @@
 
 import * as _ from 'lodash';
 import $ from './util/preconditions';
-import { BitcoreError } from './errors';
-import { Base58Check } from './encoding/base58check';
-import { Network } from './networks';
-import { Hash } from './crypto/hash';
-import { JSUtil } from './util/js';
-import { PublicKey } from './publickey';
+import { ERROR_TYPES, BitcoreError } from './errors';
+import { Base58Check } from './encoding';
+import { PublicKey, Network } from '.';
+import { Hash } from './crypto';
+import { JSUtil } from './util';
 import { Script } from './script';
-import { ERROR_TYPES } from './errors/spec';
 
 export declare namespace Address {
   export type AddressData =
-    | 'string'
+    | string
     | Buffer
     | Uint8Array
     | PublicKey
     | Script
-    | AddressObj;
-  export type AddressObj = {
+    | Partial<AddressObj>;
+  export interface AddressObj {
     hashBuffer: Buffer;
     network: Network;
     type: string;
-  };
+  }
 }
 /**
  * Instantiate an address from an address String or Buffer, a public key or script hash Buffer,
@@ -69,8 +67,8 @@ export class Address {
   public hashBuffer: Buffer;
 
   constructor(
-    data: Address.AddressData,
-    network?: Network | number,
+    data: Address.AddressData | Address,
+    network?: Network | number | string,
     type?: string
   ) {
     /* jshint maxcomplexity: 12 */
@@ -108,7 +106,7 @@ export class Address {
       );
     }
 
-    var info = this._classifyArguments(data, network, type);
+    const info = this._classifyArguments(data, network, type);
 
     // set defaults if not set
     info.network =
@@ -153,8 +151,8 @@ export class Address {
    * @returns {Object} An object with keys: hashBuffer
    * @private
    */
-  public static _transformHash = function(hash) {
-    var info = {};
+  public static _transformHash = hash => {
+    const info = {};
     if (!(hash instanceof Buffer) && !(hash instanceof Uint8Array)) {
       throw new TypeError('Address supplied is not a buffer.');
     }
@@ -193,8 +191,8 @@ export class Address {
    * @private
    */
   public static _classifyFromVersion(buffer) {
-    var pubkeyhashNetwork = Network.get(buffer[0], 'pubkeyhash');
-    var scripthashNetwork = Network.get(buffer[0], 'scripthash');
+    const pubkeyhashNetwork = Network.get(buffer[0], 'pubkeyhash');
+    const scripthashNetwork = Network.get(buffer[0], 'scripthash');
 
     if (pubkeyhashNetwork) {
       return {
@@ -229,8 +227,8 @@ export class Address {
       throw new TypeError('Address buffers must be exactly 21 bytes.');
     }
 
-    var networkObj = Network.get(network);
-    var bufferVersion = Address._classifyFromVersion(buffer);
+    const networkObj = Network.get(network);
+    const bufferVersion = Address._classifyFromVersion(buffer);
 
     if (network && !networkObj) {
       throw new TypeError('Unknown network');
@@ -247,7 +245,7 @@ export class Address {
       throw new TypeError('Address has mismatched type.');
     }
 
-    var info = {
+    const info = {
       hashBuffer: buffer.slice(1),
       network: bufferVersion.network,
       type: bufferVersion.type
@@ -266,7 +264,7 @@ export class Address {
     if (!(pubkey instanceof PublicKey)) {
       throw new TypeError('Address must be an instance of PublicKey.');
     }
-    var info = {
+    const info = {
       hashBuffer: Hash.sha256ripemd160(pubkey.toBuffer()),
       type: Address.PayToPublicKeyHash
     };
@@ -285,7 +283,7 @@ export class Address {
       script instanceof Script,
       'script must be a Script instance'
     );
-    var info = script.getAddressInfo(network);
+    const info = script.getAddressInfo(network);
     if (!info) {
       throw new BitcoreError(
         ERROR_TYPES.Script.errors.CantDeriveAddress,
@@ -315,7 +313,7 @@ export class Address {
     nestedWitness = false
   ) {
     network = network || publicKeys[0].network || Network.defaultNetwork;
-    var redeemScript = Script.buildMultisigOut(publicKeys, threshold);
+    const redeemScript = Script.buildMultisigOut(publicKeys, threshold);
     if (nestedWitness) {
       return Address.payingTo(
         Script.buildWitnessMultisigOutFromScript(redeemScript),
@@ -339,8 +337,8 @@ export class Address {
       throw new TypeError('data parameter supplied is not a string.');
     }
     data = data.trim();
-    var addressBuffer = Base58Check.decode(data);
-    var info = Address._transformBuffer(addressBuffer, network, type);
+    const addressBuffer = Base58Check.decode(data);
+    const info = Address._transformBuffer(addressBuffer, network, type);
     return info;
   }
 
@@ -352,7 +350,7 @@ export class Address {
    * @returns {Address} A new valid and frozen instance of an Address
    */
   public static fromPublicKey(data, network) {
-    var info = Address._transformPublicKey(data);
+    const info = Address._transformPublicKey(data);
     network = network || Network.defaultNetwork;
     return new Address(info.hashBuffer, network, info.type);
   }
@@ -365,7 +363,7 @@ export class Address {
    * @returns {Address} A new valid and frozen instance of an Address
    */
   public static fromPublicKeyHash(hash, network) {
-    var info = Address._transformHash(hash);
+    const info = Address._transformHash(hash);
     return new Address(info.hashBuffer, network, Address.PayToPublicKeyHash);
   }
 
@@ -378,7 +376,7 @@ export class Address {
    */
   public static fromScriptHash(hash, network) {
     $.checkArgument(hash, 'hash parameter is required');
-    var info = Address._transformHash(hash);
+    const info = Address._transformHash(hash);
     return new Address(info.hashBuffer, network, Address.PayToScriptHash);
   }
 
@@ -421,7 +419,7 @@ export class Address {
       script instanceof Script,
       'script must be a Script instance'
     );
-    var info = Address._transformScript(script, network);
+    const info = Address._transformScript(script, network);
     return new Address(info.hashBuffer, network, info.type);
   }
 
@@ -434,7 +432,7 @@ export class Address {
    * @returns {Address} A new valid and frozen instance of an Address
    */
   public static fromBuffer(buffer, network, type) {
-    var info = Address._transformBuffer(buffer, network, type);
+    const info = Address._transformBuffer(buffer, network, type);
     return new Address(info.hashBuffer, info.network, info.type);
   }
 
@@ -446,8 +444,12 @@ export class Address {
    * @param {string=} type - The type of address: 'script' or 'pubkey'
    * @returns {Address} A new valid and frozen instance of an Address
    */
-  public static fromString(str, network, type) {
-    var info = Address._transformString(str, network, type);
+  public static fromString(
+    str: string,
+    network?: Network | string,
+    type?: string
+  ) {
+    const info = Address._transformString(str, network, type);
     return new Address(info.hashBuffer, info.network, info.type);
   }
 
@@ -462,7 +464,7 @@ export class Address {
       JSUtil.isHexa(obj.hash),
       'Unexpected hash property, "' + obj.hash + '", expected to be hex.'
     );
-    var hashBuffer = Buffer.from(obj.hash, 'hex');
+    const hashBuffer = Buffer.from(obj.hash, 'hex');
     return new Address(hashBuffer, obj.network, obj.type);
   }
 
@@ -480,11 +482,15 @@ export class Address {
    * @param {string} type - The type of address: 'script' or 'pubkey'
    * @returns {null|Error} The corresponding error message
    */
-  public static getValidationError(data, network, type) {
-    var error;
+  public static getValidationError(
+    data: string,
+    network: string | Network,
+    type: string
+  ) {
+    let error;
     try {
       /* jshint nonew: false */
-      new Address(data, network, type);
+      const addr = new Address(data, network, type);
     } catch (e) {
       error = e;
     }
@@ -530,7 +536,7 @@ export class Address {
    * @returns {Buffer} Bitcoin address buffer
    */
   public toBuffer() {
-    var version = Buffer.from([this.network[this.type]]);
+    const version = Buffer.from([this.network[this.type]]);
     return Buffer.concat([version, this.hashBuffer]);
   }
 

@@ -1,10 +1,10 @@
-import BN from 'bn.js';
+import $ from '../util/preconditions';
 import * as _ from 'lodash';
+import BN from 'bn.js';
 const HEX_BASE = 16;
 const DECIMAL_BASE = 10;
 const NEGATIVE_128 = 0x80;
 const POSITIVE_127 = 0x7f;
-const $ = require('../util/preconditions');
 
 interface IBufferEncodingOptions {
   size?: number;
@@ -15,6 +15,7 @@ export class BitcoreBN extends BN {
   public static Zero = new BitcoreBN(0);
   public static One = new BitcoreBN(1);
   public static Minus1 = new BitcoreBN(-1);
+
 
   public static fromNumber(n: number) {
     $.checkArgument(_.isNumber(n));
@@ -216,5 +217,3 @@ function reversebuf(buf: Buffer) {
   }
   return buf2;
 }
-
-module.exports = BN;

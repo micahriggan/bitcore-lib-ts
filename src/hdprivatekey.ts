@@ -2,28 +2,20 @@ import { ERROR_TYPES } from './errors/spec';
 import assert from 'assert';
 import * as _ from 'lodash';
 import $ from './util/preconditions';
-import { PrivateKey } from './privatekey';
-import { Network } from './networks';
 import { Buffer } from 'buffer';
-import { BitcoreBN } from './crypto/bn';
-import { Base58 } from './encoding/base58';
-import { Base58Check } from './encoding/base58check';
-import { Hash } from './crypto/hash';
-import { Point } from './crypto/point';
-import { Random } from './crypto/random';
+import { Base58Check, Base58 } from './encoding';
+import { BitcoreBN, Random, Hash, Point } from './crypto';
 import { BitcoreError } from './errors';
-import { BufferUtil } from './util/buffer';
-import { JSUtil } from './util/js';
-import { PublicKey } from './publickey';
-import { HDPublicKey } from './hdpublickey';
+import { JSUtil, BufferUtil } from './util';
+import { Network, PrivateKey, HDPublicKey, PublicKey } from '.';
 
 const hdErrors = ERROR_TYPES.HDPrivateKey.errors;
-var MINIMUM_ENTROPY_BITS = 128;
-var BITS_TO_BYTES = 1 / 8;
-var MAXIMUM_ENTROPY_BITS = 512;
+const MINIMUM_ENTROPY_BITS = 128;
+const BITS_TO_BYTES = 1 / 8;
+const MAXIMUM_ENTROPY_BITS = 512;
 
 export namespace HDPrivateKey {
-  export type HDPrivateKeyObj = {
+  export interface HDPrivateKeyObj {
     network: Network;
     depth: number;
     fingerPrint: Buffer;
@@ -34,7 +26,7 @@ export namespace HDPrivateKey {
     checksum: Buffer;
     xprivkey: Buffer;
     version: Buffer;
-  };
+  }
 }
 /**
  * Represents an instance of an hierarchically derived private key.
@@ -85,19 +77,19 @@ export class HDPrivateKey {
   public static ChecksumEnd =
     HDPrivateKey.ChecksumStart + HDPrivateKey.CheckSumSize;
 
-  publicKey: PublicKey;
-  _hdPublicKey: HDPublicKey;
-  _buffers: HDPrivateKey.HDPrivateKeyObj;
-  network: Network;
-  depth: number;
-  fingerPrint: Buffer;
-  parentFingerPrint: Buffer;
-  childIndex: Buffer;
-  chainCode: string;
-  privateKey: PrivateKey;
-  checksum: Buffer;
-  xprivkey: Buffer;
-  version: Buffer;
+  public publicKey: PublicKey;
+  public _hdPublicKey: HDPublicKey;
+  public _buffers: HDPrivateKey.HDPrivateKeyObj;
+  public network: Network;
+  public depth: number;
+  public fingerPrint: Buffer;
+  public parentFingerPrint: Buffer;
+  public childIndex: Buffer;
+  public chainCode: string;
+  public privateKey: PrivateKey;
+  public checksum: Buffer;
+  public xprivkey: Buffer;
+  public version: Buffer;
 
   constructor(arg) {
     /* jshint maxcomplexity: 10 */
@@ -145,7 +137,7 @@ export class HDPrivateKey {
    */
   public static isValidPath(arg, hardened = false) {
     if (_.isString(arg)) {
-      var indexes = HDPrivateKey._getDerivationIndexes(arg);
+      const indexes = HDPrivateKey._getDerivationIndexes(arg);
       return indexes !== null && _.every(indexes, HDPrivateKey.isValidPath);
     }
 
@@ -167,8 +159,8 @@ export class HDPrivateKey {
    * @param {string} path
    * @return {Array}
    */
-  public static _getDerivationIndexes(path): string[] {
-    var steps = path.split('/');
+  public static _getDerivationIndexes(path): Array<string> {
+    const steps = path.split('/');
 
     // Special cases:
     if (_.includes(HDPrivateKey.RootElementAlias, path)) {
@@ -179,15 +171,15 @@ export class HDPrivateKey {
       return null;
     }
 
-    var indexes = steps.slice(1).map(function(step) {
-      var isHardened = step.slice(-1) === "'";
+    const indexes = steps.slice(1).map(step => {
+      const isHardened = step.slice(-1) === "'";
       if (isHardened) {
         step = step.slice(0, -1);
       }
       if (!step || step[0] === '-') {
         return NaN;
       }
-      var index = +step; // cast to number
+      let index = +step; // cast to number
       if (isHardened) {
         index += HDPrivateKey.Hardened;
       }
@@ -311,16 +303,16 @@ export class HDPrivateKey {
       index += HDPrivateKey.Hardened;
     }
 
-    var indexBuffer = BufferUtil.integerAsBuffer(index);
-    var data;
+    const indexBuffer = BufferUtil.integerAsBuffer(index);
+    let data;
     if (hardened && nonCompliant) {
       // The private key serialization in this case will not be exactly 32 bytes and can be
       // any value less, and the value is not zero-padded.
-      var nonZeroPadded = this.privateKey.bn.toBuffer();
+      const nonZeroPadded = this.privateKey.bn.toBuffer();
       data = BufferUtil.concat([new Buffer([0]), nonZeroPadded, indexBuffer]);
     } else if (hardened) {
       // This will use a 32 byte zero padded serialization of the private key
-      var privateKeyBuffer = this.privateKey.bn.toBitcoreBuffer({ size: 32 });
+      const privateKeyBuffer = this.privateKey.bn.toBitcoreBuffer({ size: 32 });
       assert(
         privateKeyBuffer.length === 32,
         'length of private key buffer is expected to be 32 bytes'
@@ -333,13 +325,13 @@ export class HDPrivateKey {
     } else {
       data = BufferUtil.concat([this.publicKey.toBuffer(), indexBuffer]);
     }
-    var hash = Hash.sha512hmac(data, this._buffers.chainCode);
-    var leftPart = BitcoreBN.fromBuffer(hash.slice(0, 32), {
+    const hash = Hash.sha512hmac(data, this._buffers.chainCode);
+    const leftPart = BitcoreBN.fromBuffer(hash.slice(0, 32), {
       size: 32
     });
-    var chainCode = hash.slice(32, 64);
+    const chainCode = hash.slice(32, 64);
 
-    var privateKey = new BitcoreBN(
+    const privateKey = new BitcoreBN(
       leftPart.add(this.privateKey.toBigNumber()).umod(Point.getN())
     ).toBitcoreBuffer({
       size: 32
@@ -350,13 +342,13 @@ export class HDPrivateKey {
       return this._deriveWithNumber(index + 1, null, nonCompliant);
     }
 
-    var derived = new HDPrivateKey({
+    const derived = new HDPrivateKey({
       network: this.network,
       depth: this.depth + 1,
       parentFingerPrint: this.fingerPrint,
       childIndex: index,
-      chainCode: chainCode,
-      privateKey: privateKey
+      chainCode,
+      privateKey
     });
 
     return derived;
@@ -367,8 +359,8 @@ export class HDPrivateKey {
       throw new BitcoreError(hdErrors.InvalidPath, path);
     }
 
-    var indexes = HDPrivateKey._getDerivationIndexes(path);
-    var derived = indexes.reduce(function(prev, index) {
+    const indexes = HDPrivateKey._getDerivationIndexes(path);
+    const derived = indexes.reduce((prev, index) => {
       return prev._deriveWithNumber(index, null, nonCompliant);
     }, this);
 
@@ -417,7 +409,7 @@ export class HDPrivateKey {
       return new BitcoreError(hdErrors.InvalidLength, data);
     }
     if (!_.isUndefined(network)) {
-      var error = HDPrivateKey._validateNetwork(data, network);
+      const error = HDPrivateKey._validateNetwork(data, network);
       if (error) {
         return error;
       }
@@ -426,11 +418,11 @@ export class HDPrivateKey {
   }
 
   public static _validateNetwork(data, networkArg) {
-    var network = Network.get(networkArg);
+    const network = Network.get(networkArg);
     if (!network) {
       return new BitcoreError(ERROR_TYPES.InvalidNetworkArgument, networkArg);
     }
-    var version = data.slice(0, 4);
+    const version = data.slice(0, 4);
     if (BufferUtil.integerFromBuffer(version) !== network.xprivkey) {
       return new BitcoreError(ERROR_TYPES.InvalidNetwork, version);
     }
@@ -454,7 +446,7 @@ export class HDPrivateKey {
   public _buildFromObject(arg) {
     /* jshint maxcomplexity: 12 */
     // TODO: Type validation
-    var buffers = {
+    const buffers = {
       version: arg.network
         ? BufferUtil.integerAsBuffer(Network.get(arg.network).xprivkey)
         : arg.version,
@@ -484,8 +476,8 @@ export class HDPrivateKey {
   }
 
   public _buildFromSerialized(arg) {
-    var decoded = Base58Check.decode(arg);
-    var buffers = {
+    const decoded = Base58Check.decode(arg);
+    const buffers = {
       version: decoded.slice(
         HDPrivateKey.VersionStart,
         HDPrivateKey.VersionEnd
@@ -547,7 +539,7 @@ export class HDPrivateKey {
         hexa
       );
     }
-    var hash = Hash.sha512hmac(hexa, new Buffer('Bitcoin seed'));
+    const hash = Hash.sha512hmac(hexa, new Buffer('Bitcoin seed'));
 
     return new HDPrivateKey({
       network: Network.get(network) || Network.defaultNetwork,
@@ -561,7 +553,6 @@ export class HDPrivateKey {
 
   public _calcHDPublicKey() {
     if (!this._hdPublicKey) {
-      var HDPublicKey = require('./hdpublickey');
       this._hdPublicKey = new HDPublicKey(this);
     }
   }
@@ -592,7 +583,7 @@ export class HDPrivateKey {
       _buffers: arg
     });
 
-    var sequence = [
+    const sequence = [
       arg.version,
       arg.depth,
       arg.parentFingerPrint,
@@ -601,7 +592,7 @@ export class HDPrivateKey {
       BufferUtil.emptyBuffer(1),
       arg.privateKey
     ];
-    var concat = Buffer.concat(sequence);
+    const concat = Buffer.concat(sequence);
     if (!arg.checksum || !arg.checksum.length) {
       arg.checksum = Base58Check.checksum(concat);
     } else {
@@ -610,26 +601,29 @@ export class HDPrivateKey {
       }
     }
 
-    var network = Network.get(BufferUtil.integerFromBuffer(arg.version));
-    var xprivkey;
+    const network = Network.get(BufferUtil.integerFromBuffer(arg.version));
+    let xprivkey;
     xprivkey = Base58Check.encode(Buffer.concat(sequence));
     arg.xprivkey = Buffer.from(xprivkey);
 
-    var privateKey = new PrivateKey(
+    const privateKey = new PrivateKey(
       BitcoreBN.fromBuffer(arg.privateKey),
       network
     );
-    var publicKey = privateKey.toPublicKey();
-    var size = HDPrivateKey.ParentFingerPrintSize;
-    var fingerPrint = Hash.sha256ripemd160(publicKey.toBuffer()).slice(0, size);
+    const publicKey = privateKey.toPublicKey();
+    const size = HDPrivateKey.ParentFingerPrintSize;
+    const fingerPrint = Hash.sha256ripemd160(publicKey.toBuffer()).slice(
+      0,
+      size
+    );
 
     JSUtil.defineImmutable(this, {
-      xprivkey: xprivkey,
-      network: network,
+      xprivkey,
+      network,
       depth: BufferUtil.integerFromSingleByteBuffer(arg.depth),
-      privateKey: privateKey,
-      publicKey: publicKey,
-      fingerPrint: fingerPrint
+      privateKey,
+      publicKey,
+      fingerPrint
     });
 
     this._hdPublicKey = null;
@@ -647,8 +641,8 @@ export class HDPrivateKey {
   }
 
   public static _validateBufferArguments(arg) {
-    var checkBuffer = function(name, size) {
-      var buff = arg[name];
+    const checkBuffer = (name, size) => {
+      const buff = arg[name];
       assert(BufferUtil.isBuffer(buff), name + ' argument is not a buffer');
       assert(
         buff.length === size,
