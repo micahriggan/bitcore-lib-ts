@@ -6,10 +6,15 @@ const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'.sp
   ''
 );
 
+export namespace Base58 {
+  export interface Base58Obj{
+    buf: Buffer
+  }
+}
 export class Base58 {
   public buf: Buffer;
 
-  constructor(obj) {
+  constructor(obj?: Base58 | Buffer | string | Base58.Base58Obj) {
     /* jshint maxcomplexity: 8 */
     if (!(this instanceof Base58)) {
       return new Base58(obj);
@@ -32,7 +37,7 @@ export class Base58 {
     return _.every(_.map(chars, char => _.includes(ALPHABET, char)));
   }
 
-  public set(obj) {
+  public set(obj: Base58.Base58Obj): Base58 {
     this.buf = obj.buf || this.buf || undefined;
     return this;
   }

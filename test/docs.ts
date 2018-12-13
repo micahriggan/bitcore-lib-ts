@@ -1,17 +1,12 @@
-'use strict';
+import * as chai from 'chai';
+import { BitcoreLib } from '../src';
+import * as fs from 'fs';
 
-var chai = require('chai');
-var should = chai.should();
-
-var bitcore = require('..');
-var fs = require('fs');
-
-describe('Documentation', function() {
-
-  it('major and minor versions should match', function() {
-    var versionRE = /v[0-9]+\.[0-9]+/;
-    var docIndex = fs.readFileSync('./docs/index.md', 'ascii');
-    var docVersion = docIndex.match(versionRE)[0];
+describe('Documentation', () => {
+  it('major and minor versions should match', () => {
+    const versionRE = /v[0-9]+\.[0-9]+/;
+    const docIndex = fs.readFileSync('./docs/index.md', 'ascii');
+    const docVersion = docIndex.match(versionRE)[0];
     bitcore.version.indexOf(docVersion).should.equal(0);
   });
 });

@@ -1,7 +1,8 @@
+import { Signature } from '../crypto/signature';
 import * as _ from 'lodash';
 import { Script } from './script';
 import { OP_CODES } from '../opcode';
-import { BitcoreBN, Signature, Hash } from '../crypto';
+import { BitcoreBN, Hash } from '../crypto';
 import { PublicKey } from '../publickey';
 import { Transaction } from '../transaction';
 
@@ -9,6 +10,22 @@ declare namespace Interpreter {
   export interface WitnessValue {
     version: number;
     program: Buffer;
+  }
+
+  export interface InterpreterObj {
+    stack: Array<Buffer>;
+    altstack: Array<Buffer>;
+    pc: number;
+    satoshis: number;
+    sigversion: number;
+    pbegincodehash: number;
+    nOpCount: number;
+    vfExec: Array<boolean>;
+    errstr: string;
+    flags: number;
+    script: Script;
+    tx: Transaction;
+    nin: number;
   }
 }
 /**
@@ -98,7 +115,7 @@ export class Interpreter {
   public static SCRIPT_VERIFY_WITNESS = 1 << 10;
   public static SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS = 1 << 11;
 
-  constructor(obj) {
+  constructor(obj?: Interpreter | Interpreter.InterpreterObj) {
     if (!(this instanceof Interpreter)) {
       return new Interpreter(obj);
     }
@@ -198,7 +215,15 @@ export class Interpreter {
    *
    * Translated from bitcoind's VerifyScript
    */
-  public verify(scriptSig, scriptPubkey, tx, nin, flags, witness, satoshis) {
+  public verify(
+    scriptSig,
+    scriptPubkey,
+    tx?: Transaction,
+    nin?: number,
+    flags?: number,
+    witness?: Array<string>,
+    satoshis?: number
+  ) {
     if (_.isUndefined(tx)) {
       tx = new Transaction();
     }

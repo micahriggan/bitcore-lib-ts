@@ -1,12 +1,21 @@
 import * as _ from 'lodash';
 import { Base58 } from './base58';
 import { Buffer } from 'buffer';
+import { BufferUtil } from '../util/buffer';
 import { Hash } from '../crypto/hash';
+
+export namespace Base58Check {
+  export interface Base58CheckObj {
+    buf: Buffer;
+  }
+}
 
 export class Base58Check {
   public buf: Buffer;
 
-  constructor(obj) {
+  constructor(
+    obj?: Base58Check | Buffer | string | Base58Check.Base58CheckObj
+  ) {
     if (!(this instanceof Base58Check)) {
       return new Base58Check(obj);
     }
@@ -26,19 +35,25 @@ export class Base58Check {
     return this;
   }
 
-  public static validChecksum(data, checksum) {
+  public static validChecksum(
+    data: string | Buffer,
+    checksum?: string | Buffer
+  ) {
+    let newData = BufferUtil.toBufferIfString(data);
+    let newChecksum = BufferUtil.toBufferIfString(checksum);
     if (_.isString(data)) {
-      data = new Buffer(Base58.decode(data));
+      newData = new Buffer(Base58.decode(data));
     }
     if (_.isString(checksum)) {
-      checksum = new Buffer(Base58.decode(checksum));
+      newChecksum = new Buffer(Base58.decode(checksum));
     }
     if (!checksum) {
-      checksum = data.slice(-4);
-      data = data.slice(0, -4);
+      newChecksum = data.slice(-4) as Buffer;
+      newData = data.slice(0, -4) as Buffer;
     }
     return (
-      Base58Check.checksum(data).toString('hex') === checksum.toString('hex')
+      Base58Check.checksum(newData).toString('hex') ===
+      newChecksum.toString('hex')
     );
   }
 

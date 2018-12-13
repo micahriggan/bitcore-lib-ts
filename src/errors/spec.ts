@@ -26,7 +26,7 @@ export const ERROR_TYPES = {
   },
 
   InvalidArgument: {
-    message(args: Array<string>) {
+    message(args?: Array<string>) {
       return (
         'Invalid Argument {0} ' +
         (args[0] ? ': ' + args[0] : '') +

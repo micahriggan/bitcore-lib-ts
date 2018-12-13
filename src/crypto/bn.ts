@@ -6,6 +6,7 @@ const DECIMAL_BASE = 10;
 const NEGATIVE_128 = 0x80;
 const POSITIVE_127 = 0x7f;
 
+type Endianness = 'le' | 'be';
 interface IBufferEncodingOptions {
   size?: number;
   endian?: 'little' | 'big';
@@ -15,7 +16,6 @@ export class BitcoreBN extends BN {
   public static Zero = new BitcoreBN(0);
   public static One = new BitcoreBN(1);
   public static Minus1 = new BitcoreBN(-1);
-
 
   public static fromNumber(n: number) {
     $.checkArgument(_.isNumber(n));
@@ -69,30 +69,36 @@ export class BitcoreBN extends BN {
     return parseInt(this.toString(DECIMAL_BASE), DECIMAL_BASE);
   }
 
-  public toBitcoreBuffer(opts?: IBufferEncodingOptions) {
+
+  public toBuffer(opts?: IBufferEncodingOptions): Buffer;
+  public toBuffer(endian?: Endianness, length?: number): Buffer;
+
+  public toBuffer(opts?: Endianness | IBufferEncodingOptions, length?: number) {
     let buf;
     let hex;
-    if (opts && opts.size) {
-      hex = this.toString(HEX_BASE, 2);
-      const natlen = hex.length / 2;
-      buf = Buffer.from(hex, 'hex');
+    if (opts && typeof opts === 'object') {
+      if ((opts as IBufferEncodingOptions).size) {
+        hex = this.toString(HEX_BASE, 2);
+        const natlen = hex.length / 2;
+        buf = Buffer.from(hex, 'hex');
 
-      if (natlen === opts.size) {
-        buf = buf;
-      } else if (natlen > opts.size) {
-        buf = BitcoreBN.trim(buf, natlen);
-      } else if (natlen < opts.size) {
-        buf = BitcoreBN.pad(buf, natlen, opts.size);
+        if (natlen === opts.size) {
+          buf = buf;
+        } else if (natlen > opts.size) {
+          buf = BitcoreBN.trim(buf, natlen);
+        } else if (natlen < opts.size) {
+          buf = BitcoreBN.pad(buf, natlen, opts.size);
+        }
       }
+      if (typeof opts !== 'undefined' && opts.endian === 'little') {
+        buf = reversebuf(buf);
+      }
+    } else if (typeof opts === 'string') {
+      buf = super.toBuffer(opts, length);
     } else {
       hex = this.toString(HEX_BASE, 2);
       buf = Buffer.from(hex, 'hex');
     }
-
-    if (typeof opts !== 'undefined' && opts.endian === 'little') {
-      buf = reversebuf(buf);
-    }
-
     return buf;
   }
 

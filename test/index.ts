@@ -1,16 +1,22 @@
-"use strict";
+import { BitcoreLib } from '../src';
+import { should } from 'chai';
 
-var should = require("chai").should();
-var bitcore = require("../");
+declare global {
+  export interface Global extends NodeJS.Global {
+    _bitcore: string;
+  }
+}
 
-describe('#versionGuard', function() {
-  it('global._bitcore should be defined', function() {
-    should.equal(global._bitcore, bitcore.version);
+const Global: Global = global as any;
+
+describe('#versionGuard', () => {
+  it('global._bitcore should be defined', () => {
+    should().equal(Global._bitcore, BitcoreLib.version);
   });
 
-  it('throw an error if version is already defined', function() {
-    (function() {
-      bitcore.versionGuard('version');
+  it('throw an error if version is already defined', () => {
+    (() => {
+      BitcoreLib.versionGuard('version');
     }).should.throw('More than one instance of bitcore');
   });
 });

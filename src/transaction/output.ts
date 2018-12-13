@@ -14,7 +14,7 @@ const MAX_SAFE_INTEGER = 0x1fffffffffffff;
 
 export namespace Output {
   export interface OutputObj {
-    satoshis: number | BitcoreBN;
+    satoshis: number | BitcoreBN | string;
     script: Script | Buffer | string;
   }
 }
@@ -33,12 +33,10 @@ export class Output {
       if (BufferUtil.isBuffer(args.script)) {
         this._scriptBuffer = args.script as Buffer;
       } else {
-        let script;
-        if (_.isString(args.script) && JSUtil.isHexa(args.script)) {
-          script = new Buffer(args.script, 'hex');
-        } else {
-          script = args.script;
-        }
+        const script =
+          _.isString(args.script) && JSUtil.isHexa(args.script)
+            ? new Buffer(args.script, 'hex')
+            : args.script;
         this.setScript(script);
       }
     } else {
@@ -63,8 +61,8 @@ export class Output {
     if (num instanceof BN) {
       this._satoshisBN = num;
       this._satoshis = num.toNumber();
-    } else if (typeof num == 'string') {
-      this._satoshis = parseInt(num);
+    } else if (typeof num === 'string') {
+      this._satoshis = parseInt(num, 10);
       this._satoshisBN = BitcoreBN.fromNumber(this._satoshis);
     } else {
       $.checkArgument(
@@ -139,31 +137,22 @@ export class Output {
   }
 
   public inspect() {
-    let scriptStr;
-    if (this.script) {
-      scriptStr = this.script.inspect();
-    } else {
-      scriptStr = this._scriptBuffer.toString('hex');
-    }
+    const scriptStr = this.script
+      ? this.script.inspect()
+      : this._scriptBuffer.toString('hex');
     return '<Output (' + this.satoshis + ' sats) ' + scriptStr + '>';
   }
 
   public static fromBufferReader(br: BufferReader) {
-    const obj = {} as Output.OutputObj;
-    obj.satoshis = br.readUInt64LEBN();
     const size = br.readVarintNum();
-    if (size !== 0) {
-      obj.script = br.read(size);
-    } else {
-      obj.script = new Buffer([]);
-    }
+    const obj: Output.OutputObj = {
+      satoshis: br.readUInt64LEBN(),
+      script: size !== 0 ? br.read(size) : new Buffer([])
+    };
     return new Output(obj);
   }
 
-  public toBufferWriter(writer) {
-    if (!writer) {
-      writer = new BufferWriter();
-    }
+  public toBufferWriter(writer = new BufferWriter()) {
     writer.writeUInt64LEBN(this._satoshisBN);
     const script = this._scriptBuffer;
     writer.writeVarintNum(script.length);

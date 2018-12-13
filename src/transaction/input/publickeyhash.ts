@@ -36,7 +36,7 @@ export class PublicKeyHashInput extends Input {
     index: number,
     sigtype: number,
     hashData: Buffer
-  ): TransactionSignature[] {
+  ): Array<TransactionSignature> {
     $.checkState(
       this.output instanceof Output,
       'Output property must be an Output'
@@ -59,7 +59,7 @@ export class PublicKeyHashInput extends Input {
             index,
             this.output.script
           ),
-          sigtype: sigtype
+          sigtype
         })
       ];
     }

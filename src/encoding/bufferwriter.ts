@@ -92,7 +92,7 @@ export class BufferWriter {
   }
 
   public writeUInt64BEBN(bn: BitcoreBN) {
-    const buf = bn.toBitcoreBuffer({ size: 8 });
+    const buf = bn.toBuffer({ size: 8 });
     this.write(buf);
     return this;
   }

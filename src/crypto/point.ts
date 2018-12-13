@@ -1,6 +1,7 @@
 import { BitcoreBN } from '.';
 import { BufferUtil } from '../util/buffer';
 import { ec, curve } from 'elliptic';
+import BN from 'bn.js';
 const secp256k1 = new ec('secp256k1');
 const curveInstance = secp256k1.curve as Curve;
 const ecPointFromX = curveInstance.pointFromX.bind(secp256k1.curve);
@@ -11,6 +12,12 @@ declare class EcPoint {
   public mul(num: BitcoreBN): EcPoint;
   public pointFromX(x: number, isOdd: boolean): EcPoint;
   public y: number;
+  public x: number;                    
+  public dblp(k: number):EcPoint;
+  public encode(encoding: string, compressed: boolean): BN
+  public encodeCompressed(compressed: boolean): BN
+  public eq(other: EcPoint);
+  public precompute(power: number): EcPoint;
 }
 
 interface PointConstructor {

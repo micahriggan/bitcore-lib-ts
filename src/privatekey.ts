@@ -42,10 +42,7 @@ export class PrivateKey {
   public bn: BitcoreBN;
   public _pubkey: PublicKey;
 
-  constructor(data, network?: Network) {
-    /* jshint maxstatements: 20 */
-    /* jshint maxcomplexity: 8 */
-
+  constructor(data?: PrivateKey | PrivateKey.PrivateKeyObj | string, network?: Network) {
     if (!(this instanceof PrivateKey)) {
       return new PrivateKey(data, network);
     }
@@ -88,7 +85,7 @@ export class PrivateKey {
    * @return {Object}
    */
   public _classifyArguments(
-    data: BitcoreBN | Uint8Array | Buffer | PrivateKey.PrivateKeyObj,
+    data: BitcoreBN | Uint8Array | Buffer | PrivateKey.PrivateKeyObj | string,
     network
   ) {
     /* jshint maxcomplexity: 10 */
@@ -329,13 +326,13 @@ export class PrivateKey {
     if (compressed) {
       buf = Buffer.concat([
         Buffer.from([network.privatekey]),
-        this.bn.toBitcoreBuffer({ size: 32 }),
+        this.bn.toBuffer({ size: 32 }),
         Buffer.from([0x01])
       ]);
     } else {
       buf = Buffer.concat([
         Buffer.from([network.privatekey]),
-        this.bn.toBitcoreBuffer({ size: 32 })
+        this.bn.toBuffer({ size: 32 })
       ]);
     }
 

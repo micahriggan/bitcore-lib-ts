@@ -1,17 +1,21 @@
-import {  BitcoreBN, Random, Hash, Signature, Point } from '.';
 import { PublicKey } from '../publickey';
 import { BufferUtil } from '../util';
 import * as _ from 'lodash';
 import $ from '../util/preconditions';
 import { PrivateKey } from '../privatekey';
+import { Signature } from './signature';
+import { BitcoreBN } from './bn';
+import { Point } from './point';
+import { Random } from './random';
+import { Hash } from './hash';
 
 export namespace ECDSA {
   export interface ECDSAObj {
-    hashbuf: string;
+    hashbuf: string | Buffer;
     endian: string; // the endianness of hashbuf
     privkey: string;
     pubkey: string;
-    sig: string;
+    sig: string | Signature;
     k: string;
     verified: boolean;
   }
@@ -25,7 +29,7 @@ export class ECDSA {
   public k: BitcoreBN;
   public verified: boolean;
 
-  constructor(obj?: ECDSA.ECDSAObj) {
+  constructor(obj?: Partial<ECDSA.ECDSAObj> | ECDSA) {
     if (!(this instanceof ECDSA)) {
       return new ECDSA(obj);
     }
@@ -88,7 +92,7 @@ export class ECDSA {
   }
 
   // https://tools.ietf.org/html/rfc6979#section-3.2
-  public deterministicK(badrs) {
+  public deterministicK(badrs = 0) {
     /* jshint maxstatements: 25 */
     // if r or s were invalid when this function was used in signing,
     // we do not want to actually compute r, s here for efficiency, so,
@@ -100,7 +104,7 @@ export class ECDSA {
     v.fill(0x01);
     let k = Buffer.alloc(32);
     k.fill(0x00);
-    const x = this.privkey.bn.toBitcoreBuffer({
+    const x = this.privkey.bn.toBuffer({
       size: 32
     });
     const hashbuf =

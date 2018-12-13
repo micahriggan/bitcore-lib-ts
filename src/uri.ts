@@ -9,9 +9,10 @@ import { Network } from './networks';
 export namespace URI {
   export interface URIObj {
     amount: number;
+    address: string;
     message: string;
     label: string;
-    r: number;
+    r: string;
   }
 }
 /**
@@ -45,12 +46,12 @@ export class URI {
   public message: string;
   public label: string;
   public r: number;
-  public extras = {};
+  public extras = {} as any;
   public knownParams: Array<string>;
   public address: Address;
   public network: Network;
 
-  constructor(data, knownParams?) {
+  constructor(data?: URI | Partial<URI.URIObj> | string | any, knownParams = []) {
     if (!(this instanceof URI)) {
       return new URI(data, knownParams);
     }
@@ -65,7 +66,7 @@ export class URI {
         params.amount = this._parseAmount(params.amount);
       }
       this._fromObject(params);
-    } else if (typeof data === 'object') {
+    } else if (typeof data === 'object' && !(data instanceof URI)) {
       this._fromObject(data);
     } else {
       throw new TypeError('Unrecognized data format.');
@@ -95,6 +96,8 @@ export class URI {
     return new URI(json);
   }
 
+  public static fromJSON = URI.fromObject;
+
   /**
    * Check if an bitcoin URI string is valid
    *
@@ -109,7 +112,7 @@ export class URI {
    * @param {Array.<string>=} knownParams - Required non-standard params
    * @returns {boolean} Result of uri validation
    */
-  public static isValid(arg, knownParams) {
+  public static isValid(arg, knownParams = []) {
     try {
       const uri = new URI(arg, knownParams);
     } catch (err) {
@@ -125,8 +128,8 @@ export class URI {
    * @throws {TypeError} Invalid bitcoin URI
    * @returns {Object} An object with the parsed params
    */
-  public static parse(uri) {
-    const info = parse(uri, true);
+  public static parse(uri): URI.URIObj {
+    const info = parse(uri, true) as any;
 
     if (info.protocol !== 'bitcoin:') {
       throw new TypeError('Invalid bitcoin URI');
@@ -136,7 +139,7 @@ export class URI {
     const group = /[^:]*:\/?\/?([^?]*)/.exec(uri);
     info.query.address = (group && group[1]) || undefined;
 
-    return info.query;
+    return info.query as URI.URIObj;
   }
 
   public static Members = ['address', 'amount', 'message', 'label', 'r'];
@@ -149,7 +152,7 @@ export class URI {
    * @throws {TypeError} Invalid amount
    * @throws {Error} Unknown required argument
    */
-  public _fromObject(obj) {
+  public _fromObject(obj: Partial<URI.URIObj>) {
     /* jshint maxcomplexity: 10 */
 
     if (!Address.isValid(obj.address)) {
@@ -158,7 +161,7 @@ export class URI {
 
     this.address = new Address(obj.address);
     this.network = this.address.network;
-    this.amount = obj.amount;
+    this.amount = Number(obj.amount);
 
     for (const key in obj) {
       if (key === 'address' || key === 'amount') {
@@ -217,7 +220,7 @@ export class URI {
       query.label = this.label;
     }
     if (this.r) {
-      query.r = this.r;
+      query.r = this.r.toString();
     }
     _.extend(query, this.extras);
 

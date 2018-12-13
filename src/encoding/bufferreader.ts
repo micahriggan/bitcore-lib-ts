@@ -8,7 +8,7 @@ export class BufferReader {
   public buf: Buffer;
   public pos: number;
 
-  constructor(buf: BufferReader | Buffer | string | object) {
+  constructor(buf?: BufferReader | Buffer | string | object) {
     if (!(this instanceof BufferReader)) {
       return new BufferReader(buf);
     }

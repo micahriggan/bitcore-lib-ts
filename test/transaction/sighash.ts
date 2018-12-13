@@ -1,37 +1,44 @@
 'use strict';
 
-var buffer = require('buffer');
+import { Buffer } from 'buffer';
 
-var chai = require('chai');
-var should = chai.should();
-var bitcore = require('../../');
-var Script = bitcore.Script;
-var Transaction = bitcore.Transaction;
-var sighash = Transaction.sighash;
+import { BitcoreLib } from '../../src';
+const Script = BitcoreLib.Script;
+const Transaction = BitcoreLib.Transaction;
+const sighash = Transaction.Sighash;
 
-var vectors_sighash = require('../data/sighash.json');
+const vectors_sighash = require('../data/sighash.json');
 
-describe('sighash', function() {
-
-  vectors_sighash.forEach(function(vector, i) {
+describe('sighash', () => {
+  vectors_sighash.forEach((vector, i) => {
     if (i === 0) {
       // First element is just a row describing the next ones
       return;
     }
-    it('test vector from bitcoind #' + i + ' (' + vector[4].substring(0, 16) + ')', function() {
-      var txbuf = new buffer.Buffer(vector[0], 'hex');
-      var scriptbuf = new buffer.Buffer(vector[1], 'hex');
-      var subscript = Script(scriptbuf);
-      var nin = vector[2];
-      var nhashtype = vector[3];
-      var sighashbuf = new buffer.Buffer(vector[4], 'hex');
-      var tx = new Transaction(txbuf);
+    it(
+      'test vector from bitcoind #' +
+        i +
+        ' (' +
+        vector[4].substring(0, 16) +
+        ')',
+      () => {
+        const txbuf = new Buffer(vector[0], 'hex');
+        const scriptbuf = new Buffer(vector[1], 'hex');
+        const subscript = new Script(scriptbuf);
+        const nin = vector[2];
+        const nhashtype = vector[3];
+        const sighashbuf = new Buffer(vector[4], 'hex');
+        const tx = new Transaction(txbuf);
 
-      //make sure transacion to/from buffer is isomorphic
-      tx.uncheckedSerialize().should.equal(txbuf.toString('hex'));
+        // make sure transacion to/from buffer is isomorphic
+        tx.uncheckedSerialize().should.equal(txbuf.toString('hex'));
 
-      //sighash ought to be correct
-      sighash.sighash(tx, nhashtype, nin, subscript).toString('hex').should.equal(sighashbuf.toString('hex'));
-    });
+        // sighash ought to be correct
+        sighash
+          .sighash(tx, nhashtype, nin, subscript)
+          .toString('hex')
+          .should.equal(sighashbuf.toString('hex'));
+      }
+    );
   });
 });

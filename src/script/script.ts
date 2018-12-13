@@ -3,12 +3,14 @@ import * as _ from 'lodash';
 import { Network } from '../networks';
 import { Address } from '../address';
 import { BufferWriter, BufferReader } from '../encoding';
-import { Signature, Hash } from '../crypto';
+import { Hash } from '../crypto';
 import { Opcode, OP_CODES } from '../opcode';
 import { PublicKey } from '../publickey';
 import { ERROR_TYPES, BitcoreError } from '../errors';
 import { Buffer } from 'buffer';
 import { JSUtil, BufferUtil } from '../util';
+import { Signature } from '../crypto/signature';
+import { Interpreter } from './interpreter';
 
 /**
  * A bitcoin transaction script. Each transaction's inputs and outputs
@@ -36,6 +38,7 @@ export declare namespace Script {
   }
 }
 export class Script {
+  public static Interpreter = Interpreter;
   public chunks: Array<Script.Chunk>;
   public _isInput = false;
   public _isOutput = false;
@@ -1077,7 +1080,7 @@ export class Script {
   /**
    * @return {Script} an output script built from the address
    */
-  public static fromAddress(address: Address) {
+  public static fromAddress(address: Address | string) {
     address = new Address(address);
     if (address.isPayToScriptHash()) {
       return Script.buildScriptHashOut(address);

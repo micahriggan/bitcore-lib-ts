@@ -36,6 +36,12 @@ const UNIT_ERRORS = ERROR_TYPES.Unit.errors;
  * @constructor
  */
 export class Unit {
+  public static BTC = UNITS.BTC;
+  public static mBTC = UNITS.mBTC;
+  public static uBTC = UNITS.uBTC;
+  public static bits = UNITS.bits;
+  public static satoshis = UNITS.satoshis;
+
   public get BTC() {
     return this.to([1e8, 8]);
   }
@@ -83,6 +89,8 @@ export class Unit {
     $.checkArgument(_.isObject(data), 'Argument is expected to be an object');
     return new Unit(data.amount, data.code);
   }
+
+  public static fromJSON = Unit.fromObject;
 
   /**
    * Returns a Unit instance created from an amount in BTC

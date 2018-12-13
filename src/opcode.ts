@@ -141,15 +141,15 @@ export const OP_CODES = {
   OP_PUBKEYHASH: 253,
   OP_PUBKEY: 254,
   OP_INVALIDOPCODE: 255
-}
+};
 export class Opcode {
-  num: number;
+  public num: number;
   constructor(num: number | string) {
     if (!(this instanceof Opcode)) {
       return new Opcode(num);
     }
 
-    var value;
+    let value;
 
     if (_.isNumber(num)) {
       value = num;
@@ -173,41 +173,41 @@ export class Opcode {
   public static fromBuffer(buf) {
     $.checkArgument(BufferUtil.isBuffer(buf));
     return new Opcode(Number('0x' + buf.toString('hex')));
-  };
+  }
 
   public static fromNumber(num) {
     $.checkArgument(_.isNumber(num));
     return new Opcode(num);
-  };
+  }
 
   public static fromString(str) {
     $.checkArgument(_.isString(str));
-    var value = Opcode.map[str];
+    const value = Opcode.map[str];
     if (typeof value === 'undefined') {
       throw new TypeError('Invalid opcodestr');
     }
     return new Opcode(value);
-  };
+  }
 
   public toHex() {
     return this.num.toString(16);
-  };
+  }
 
   public toBuffer() {
     return Buffer.from(this.toHex(), 'hex');
-  };
+  }
 
   public toNumber() {
     return this.num;
-  };
+  }
 
   public toString() {
-    var str = Opcode.reverseMap[this.num];
+    const str = Opcode.reverseMap[this.num];
     if (typeof str === 'undefined') {
       throw new Error('Opcode does not have a string representation');
     }
     return str;
-  };
+  }
 
   public static smallInt(n) {
     $.checkArgument(_.isNumber(n), 'Invalid Argument: n should be number');
@@ -219,9 +219,9 @@ export class Opcode {
       return new Opcode('OP_0');
     }
     return new Opcode(Opcode.map.OP_1 + n - 1);
-  };
+  }
 
-  public static map = OP_CODES; 
+  public static map = OP_CODES;
   // Maps values to op_codes
   public static reverseMap = [];
 
@@ -257,6 +257,6 @@ export class Opcode {
     );
   }
 }
-for (var k in Opcode.map) {
+for (const k of Object.keys(Opcode.map)) {
   Opcode.reverseMap[Opcode.map[k]] = k;
 }

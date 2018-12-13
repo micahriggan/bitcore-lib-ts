@@ -1,3 +1,4 @@
+import { PublicKeyHashInput } from './publickeyhash';
 import { ERROR_TYPES } from '../../errors/spec';
 import * as _ from 'lodash';
 import BN from 'bn.js';
@@ -10,9 +11,11 @@ import { Script } from '../../script';
 import { sighash, Sighash } from '../sighash';
 import { Output } from '../output';
 import { Transaction } from '../transaction';
-import { Signature } from '../../crypto';
 import { TransactionSignature } from '../signature';
 import { PublicKey } from '../../publickey';
+import { Signature } from '../../crypto/signature';
+import { MultiSigScriptHashInput } from './multisigscripthash';
+import { MultiSigInput } from './multisig';
 
 const MAXINT = 0xffffffff; // Math.pow(2, 32) - 1;
 const DEFAULT_RBF_SEQNUMBER = MAXINT - 2;
@@ -38,6 +41,10 @@ export class Input {
   public static DEFAULT_SEQNUMBER = DEFAULT_SEQNUMBER;
   public static DEFAULT_LOCKTIME_SEQNUMBER = DEFAULT_LOCKTIME_SEQNUMBER;
   public static DEFAULT_RBF_SEQNUMBER = DEFAULT_RBF_SEQNUMBER;
+  public static PublicKey = PublicKey;
+  public static PublicKeyHash = PublicKeyHashInput;
+  public static MultiSigScriptHash = MultiSigScriptHashInput;
+  public static MultiSig = MultiSigInput;
 
   public _scriptBuffer: Buffer;
   public _script: Script;
@@ -82,19 +89,17 @@ export class Input {
   }
 
   public _fromObject(params: Input.InputObj) {
-    let prevTxId;
-    if (_.isString(params.prevTxId) && JSUtil.isHexa(params.prevTxId)) {
-      prevTxId = new Buffer(params.prevTxId, 'hex');
-    } else {
-      prevTxId = params.prevTxId;
-    }
+    const prevTxId =
+      typeof params.prevTxId === 'string' && JSUtil.isHexa(params.prevTxId)
+        ? new Buffer(params.prevTxId, 'hex')
+        : params.prevTxId;
     this.witnesses = [];
     this.output = params.output
       ? params.output instanceof Output
         ? params.output
         : new Output(params.output)
       : undefined;
-    this.prevTxId = prevTxId || params.txidbuf;
+    this.prevTxId = (prevTxId as Buffer) || params.txidbuf;
     this.outputIndex = _.isUndefined(params.outputIndex)
       ? params.txoutnum
       : params.outputIndex;
@@ -250,7 +255,7 @@ export class Input {
 
   public isValidSignature(
     transaction: Transaction,
-    signature: TransactionSignature
+    signature: Partial<TransactionSignature>
   ) {
     // FIXME: Refactor signature so this is not necessary
     signature.signature.nhashtype = signature.sigtype;

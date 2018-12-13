@@ -29,11 +29,10 @@ export class MultiSigInput extends Input {
   constructor(input, pubkeys, threshold, signatures) {
     super();
     Input.apply(this, arguments);
-    const self = this;
     pubkeys = pubkeys || input.publicKeys;
     threshold = threshold || input.threshold;
     signatures = signatures || input.signatures;
-    this.publicKeys = _.sortBy(pubkeys, function(publicKey) {
+    this.publicKeys = _.sortBy(pubkeys, (publicKey) => {
       return publicKey.toString('hex');
     });
     $.checkState(
@@ -43,8 +42,8 @@ export class MultiSigInput extends Input {
       "Provided public keys don't match to the provided output script"
     );
     this.publicKeyIndex = {};
-    _.each(this.publicKeys, function(publicKey, index) {
-      self.publicKeyIndex[publicKey.toString()] = index;
+    _.each(this.publicKeys, (publicKey, index) => {
+      this.publicKeyIndex[publicKey.toString()] = index;
     });
     this.threshold = threshold;
     // Empty array of signatures
@@ -56,7 +55,7 @@ export class MultiSigInput extends Input {
   public toObject() {
     const obj = Input.prototype.toObject.apply(this, arguments);
     obj.threshold = this.threshold;
-    obj.publicKeys = _.map(this.publicKeys, function(publicKey) {
+    obj.publicKeys = _.map(this.publicKeys, (publicKey) => {
       return publicKey.toString();
     });
     obj.signatures = this._serializeSignatures();
@@ -64,7 +63,7 @@ export class MultiSigInput extends Input {
   }
 
   public _deserializeSignatures(signatures) {
-    return _.map(signatures, function(signature) {
+    return _.map(signatures, (signature) => {
       if (!signature) {
         return undefined;
       }
@@ -73,7 +72,7 @@ export class MultiSigInput extends Input {
   }
 
   public _serializeSignatures() {
-    return _.map(this.signatures, function(signature) {
+    return _.map(this.signatures, (signature) => {
       if (!signature) {
         return undefined;
       }
@@ -94,22 +93,21 @@ export class MultiSigInput extends Input {
     );
     sigtype = sigtype || Signature.SIGHASH_ALL;
 
-    const self = this;
     const results = [];
-    _.each(this.publicKeys, function(publicKey) {
+    _.each(this.publicKeys, (publicKey) => {
       if (publicKey.toString() === privateKey.publicKey.toString()) {
         results.push(
           new TransactionSignature({
             publicKey: privateKey.publicKey,
-            prevTxId: self.prevTxId,
-            outputIndex: self.outputIndex,
+            prevTxId: this.prevTxId,
+            outputIndex: this.outputIndex,
             inputIndex: index,
             signature: Sighash.sign(
               transaction,
               privateKey,
               sigtype,
               index,
-              self.output.script
+              this.output.script
             ),
             sigtype
           })
@@ -156,10 +154,10 @@ export class MultiSigInput extends Input {
 
   public _createSignatures() {
     return _.map(
-      _.filter(this.signatures, function(signature) {
+      _.filter(this.signatures, (signature) => {
         return !_.isUndefined(signature);
       }),
-      function(signature) {
+      (signature) => {
         return BufferUtil.concat([
           signature.signature.toDER(),
           BufferUtil.integerAsSingleByteBuffer(signature.sigtype)
@@ -184,7 +182,7 @@ export class MultiSigInput extends Input {
   public countSignatures() {
     return _.reduce(
       this.signatures,
-      function(sum, signature) {
+      (sum, signature) => {
         return sum + (!!signature ? 1 : 0);
       },
       0
@@ -192,15 +190,14 @@ export class MultiSigInput extends Input {
   }
 
   public publicKeysWithoutSignature() {
-    const self = this;
-    return _.filter(this.publicKeys, function(publicKey) {
-      return !self.signatures[self.publicKeyIndex[publicKey.toString()]];
+    return _.filter(this.publicKeys, (publicKey) => {
+      return !this.signatures[this.publicKeyIndex[publicKey.toString()]];
     });
   }
 
   public isValidSignature(
     transaction: Transaction,
-    signature: TransactionSignature
+    signature: Partial<TransactionSignature>
   ) {
     // FIXME: Refactor signature so this is not necessary
     signature.signature.nhashtype = signature.sigtype;
@@ -229,9 +226,9 @@ export class MultiSigInput extends Input {
     signatures,
     publicKeys
   ) {
-    return publicKeys.map(function(pubKey) {
+    return publicKeys.map((pubKey) => {
       let signatureMatch = null;
-      signatures = signatures.filter(function(signatureBuffer) {
+      signatures = signatures.filter((signatureBuffer) => {
         if (signatureMatch) {
           return true;
         }

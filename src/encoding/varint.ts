@@ -6,7 +6,7 @@ import { BitcoreBN } from '../crypto/bn';
 
 export class Varint {
   public buf: Buffer;
-  constructor(buf: Buffer | BitcoreBN | number) {
+  constructor(buf?: Buffer | BitcoreBN | number) {
     if (!(this instanceof Varint)) {
       return new Varint(buf);
     }

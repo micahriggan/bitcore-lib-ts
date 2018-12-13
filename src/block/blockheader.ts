@@ -13,16 +13,24 @@ import BN from 'bn.js';
 const GENESIS_BITS = 0x1d00ffff;
 
 export namespace BlockHeader {
-  export interface BlockHeaderObj {
+  export interface GenericBlockHeaderObj<T> {
     version: number;
     hash: string;
-    prevHash: Buffer;
-    merkleRoot: Buffer;
+    prevHash: T;
+    merkleRoot: T;
     time: number;
     timestamp: number;
     bits: number;
     nonce: number;
   }
+  export interface SerializedBlockHeaderObj
+    extends GenericBlockHeaderObj<string> {}
+
+  export interface DeserializedBlockHeaderObj
+    extends GenericBlockHeaderObj<Buffer> {}
+
+  export interface BlockHeaderObj
+    extends GenericBlockHeaderObj<string | Buffer> {}
 }
 export class BlockHeader {
   public _id: string;
@@ -71,12 +79,14 @@ export class BlockHeader {
    * @throws {TypeError} - If the argument was not recognized
    * @private
    */
-  public static _from(arg) {
-    let info: Partial<BlockHeader.BlockHeaderObj> = {};
+  public static _from(arg: Buffer | BlockHeader.DeserializedBlockHeaderObj) {
+    let info: Partial<BlockHeader.DeserializedBlockHeaderObj> = {};
     if (BufferUtil.isBuffer(arg)) {
       info = BlockHeader._fromBufferReader(new BufferReader(arg));
     } else if (_.isObject(arg)) {
-      info = BlockHeader._fromObject(arg);
+      info = BlockHeader._fromObject(
+        arg as BlockHeader.DeserializedBlockHeaderObj
+      );
     } else {
       throw new TypeError('Unrecognized argument for BlockHeader');
     }
@@ -88,16 +98,23 @@ export class BlockHeader {
    * @returns {Object} - An object representing block header data
    * @private
    */
-  public static _fromObject(data): BlockHeader.BlockHeaderObj {
+  public static _fromObject(
+    data:
+      | BlockHeader.DeserializedBlockHeaderObj
+      | BlockHeader.SerializedBlockHeaderObj
+  ): BlockHeader.DeserializedBlockHeaderObj {
     $.checkArgument(data, 'data is required');
-    let prevHash = data.prevHash;
-    let merkleRoot = data.merkleRoot;
-    if (_.isString(data.prevHash)) {
-      prevHash = BufferUtil.reverse(Buffer.from(data.prevHash, 'hex'));
-    }
-    if (_.isString(data.merkleRoot)) {
-      merkleRoot = BufferUtil.reverse(Buffer.from(data.merkleRoot, 'hex'));
-    }
+
+    const prevHash =
+      typeof data.prevHash === 'string'
+        ? BufferUtil.reverse(Buffer.from(data.prevHash, 'hex'))
+        : (data.prevHash as Buffer);
+
+    const merkleRoot =
+      typeof data.merkleRoot === 'string'
+        ? BufferUtil.reverse(Buffer.from(data.merkleRoot, 'hex'))
+        : (data.prevHash as Buffer);
+
     const info = {
       hash: data.hash,
       version: data.version,
@@ -158,7 +175,7 @@ export class BlockHeader {
    * @private
    */
   public static _fromBufferReader(br) {
-    const info: Partial<BlockHeader.BlockHeaderObj> = {};
+    const info: Partial<BlockHeader.DeserializedBlockHeaderObj> = {};
     info.version = br.readInt32LE();
     info.prevHash = br.read(32);
     info.merkleRoot = br.read(32);
@@ -180,13 +197,14 @@ export class BlockHeader {
   /**
    * @returns {Object} - A plain object of the BlockHeader
    */
-  public toObject() {
+  public toObject(): BlockHeader.SerializedBlockHeaderObj {
     return {
       hash: this.hash,
       version: this.version,
       prevHash: BufferUtil.reverse(this.prevHash).toString('hex'),
       merkleRoot: BufferUtil.reverse(this.merkleRoot).toString('hex'),
       time: this.time,
+      timestamp: this.time,
       bits: this.bits,
       nonce: this.nonce
     };

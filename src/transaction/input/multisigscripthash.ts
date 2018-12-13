@@ -36,20 +36,19 @@ export class MultiSigScriptHashInput extends Input {
   public publicKeyIndex = {};
 
   constructor(
-    input: MultiSigScriptHashInput,
+    input: MultiSigScriptHashInput | Input.InputObj,
     pubkeys: Array<PublicKey>,
     threshold: number,
-    signatures: Array<Signature>,
+    signatures: Array<Signature | Signature.PostSignature>,
     nestedWitness?: boolean
   ) {
-    /* jshint maxstatements:20 */
     super();
-    const self = this;
-    pubkeys = pubkeys || input.publicKeys;
-    threshold = threshold || input.threshold;
-    signatures = signatures || input.signatures;
+    pubkeys = pubkeys || (input as MultiSigScriptHashInput).publicKeys;
+    threshold = threshold || (input as MultiSigScriptHashInput).threshold;
+    const inputSignatures =
+      signatures || (input as MultiSigScriptHashInput).signatures;
     this.nestedWitness = nestedWitness ? true : false;
-    this.publicKeys = _.sortBy(pubkeys, function(publicKey) {
+    this.publicKeys = _.sortBy(pubkeys, publicKey => {
       return publicKey.toString();
     });
     this.redeemScript = Script.buildMultisigOut(this.publicKeys, threshold);
@@ -71,12 +70,12 @@ export class MultiSigScriptHashInput extends Input {
       );
     }
 
-    _.each(this.publicKeys, function(publicKey, index) {
-      self.publicKeyIndex[publicKey.toString()] = index;
+    _.each(this.publicKeys, (publicKey, index) => {
+      this.publicKeyIndex[publicKey.toString()] = index;
     });
     this.threshold = threshold;
     // Empty array of signatures
-    this.signatures = signatures
+    this.signatures = inputSignatures
       ? this._deserializeSignatures(signatures)
       : new Array(this.publicKeys.length);
   }
@@ -84,7 +83,7 @@ export class MultiSigScriptHashInput extends Input {
   public toObject() {
     const obj = Input.prototype.toObject.apply(this, arguments);
     obj.threshold = this.threshold;
-    obj.publicKeys = _.map(this.publicKeys, function(publicKey) {
+    obj.publicKeys = _.map(this.publicKeys, publicKey => {
       return publicKey.toString();
     });
     obj.signatures = this._serializeSignatures();
@@ -92,7 +91,7 @@ export class MultiSigScriptHashInput extends Input {
   }
 
   public _deserializeSignatures(signatures) {
-    return _.map(signatures, function(signature) {
+    return _.map(signatures, signature => {
       if (!signature) {
         return undefined;
       }
@@ -101,7 +100,7 @@ export class MultiSigScriptHashInput extends Input {
   }
 
   public _serializeSignatures() {
-    return _.map(this.signatures, function(signature) {
+    return _.map(this.signatures, signature => {
       if (!signature) {
         return undefined;
       }
@@ -122,11 +121,10 @@ export class MultiSigScriptHashInput extends Input {
   }
 
   public getSighash(transaction, privateKey, index, sigtype) {
-    const self = this;
     let hash;
-    if (self.nestedWitness) {
-      const scriptCode = self.getScriptCode();
-      const satoshisBuffer = self.getSatoshisBuffer();
+    if (this.nestedWitness) {
+      const scriptCode = this.getScriptCode();
+      const satoshisBuffer = this.getSatoshisBuffer();
       hash = SighashWitness.sighash(
         transaction,
         sigtype,
@@ -135,7 +133,7 @@ export class MultiSigScriptHashInput extends Input {
         satoshisBuffer
       );
     } else {
-      hash = Sighash.sighash(transaction, sigtype, index, self.redeemScript);
+      hash = Sighash.sighash(transaction, sigtype, index, this.redeemScript);
     }
     return hash;
   }
@@ -153,14 +151,13 @@ export class MultiSigScriptHashInput extends Input {
     );
     sigtype = sigtype || Signature.SIGHASH_ALL;
 
-    const self = this;
     const results = [];
-    _.each(this.publicKeys, function(publicKey) {
+    _.each(this.publicKeys, publicKey => {
       if (publicKey.toString() === privateKey.publicKey.toString()) {
         let signature;
-        if (self.nestedWitness) {
-          const scriptCode = self.getScriptCode();
-          const satoshisBuffer = self.getSatoshisBuffer();
+        if (this.nestedWitness) {
+          const scriptCode = this.getScriptCode();
+          const satoshisBuffer = this.getSatoshisBuffer();
           signature = SighashWitness.sign(
             transaction,
             privateKey,
@@ -175,14 +172,14 @@ export class MultiSigScriptHashInput extends Input {
             privateKey,
             sigtype,
             index,
-            self.redeemScript
+            this.redeemScript
           );
         }
         results.push(
           new TransactionSignature({
             publicKey: privateKey.publicKey,
-            prevTxId: self.prevTxId,
-            outputIndex: self.outputIndex,
+            prevTxId: this.prevTxId,
+            outputIndex: this.outputIndex,
             inputIndex: index,
             signature,
             sigtype
@@ -220,8 +217,8 @@ export class MultiSigScriptHashInput extends Input {
     if (this.nestedWitness) {
       const stack = [new Buffer(0)];
       const signatures = this._createSignatures();
-      for (let i = 0; i < signatures.length; i++) {
-        stack.push(signatures[i]);
+      for (const signature of signatures) {
+        stack.push(signature);
       }
       stack.push(this.redeemScript.toBuffer());
       this.setWitnesses(stack);
@@ -239,10 +236,10 @@ export class MultiSigScriptHashInput extends Input {
 
   public _createSignatures() {
     return _.map(
-      _.filter(this.signatures, function(signature) {
+      _.filter(this.signatures, signature => {
         return !_.isUndefined(signature);
       }),
-      function(signature) {
+      signature => {
         return BufferUtil.concat([
           signature.signature.toDER(),
           BufferUtil.integerAsSingleByteBuffer(signature.sigtype)
@@ -267,7 +264,7 @@ export class MultiSigScriptHashInput extends Input {
   public countSignatures() {
     return _.reduce(
       this.signatures,
-      function(sum, signature) {
+      (sum, signature) => {
         return sum + JSUtil.booleanToNumber(!!signature);
       },
       0
@@ -275,15 +272,14 @@ export class MultiSigScriptHashInput extends Input {
   }
 
   public publicKeysWithoutSignature() {
-    const self = this;
-    return _.filter(this.publicKeys, function(publicKey) {
-      return !self.signatures[self.publicKeyIndex[publicKey.toString()]];
+    return _.filter(this.publicKeys, publicKey => {
+      return !this.signatures[this.publicKeyIndex[publicKey.toString()]];
     });
   }
 
   public isValidSignature(
     transaction: Transaction,
-    signature: TransactionSignature
+    signature: Partial<TransactionSignature>
   ) {
     if (this.nestedWitness) {
       signature.signature.nhashtype = signature.sigtype;

@@ -1,11 +1,9 @@
 {
-  "extends": [
-    "tslint:latest",
-    "tslint-config-prettier"
-  ],
+  "extends": ["tslint:latest", "tslint-config-prettier"],
   "rules": {
     "curly": true,
     "no-bitwise": false,
+    "no-console": [false],
     "arrow-parens": false,
     "object-literal-sort-keys": false,
     "indent": [true, "spaces"],
@@ -18,11 +16,7 @@
         "singleline": "never"
       }
     ],
-    "variable-name": [
-      true,
-      "ban-keywords",
-      "allow-leading-underscore"
-    ],
+    "variable-name": [true, "ban-keywords", "allow-leading-underscore"],
     "max-classes-per-file": [true, 5],
     "no-var-requires": false,
     "interface-name": false,

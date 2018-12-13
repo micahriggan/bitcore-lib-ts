@@ -312,7 +312,7 @@ export class HDPrivateKey {
       data = BufferUtil.concat([new Buffer([0]), nonZeroPadded, indexBuffer]);
     } else if (hardened) {
       // This will use a 32 byte zero padded serialization of the private key
-      const privateKeyBuffer = this.privateKey.bn.toBitcoreBuffer({ size: 32 });
+      const privateKeyBuffer = this.privateKey.bn.toBuffer({ size: 32 });
       assert(
         privateKeyBuffer.length === 32,
         'length of private key buffer is expected to be 32 bytes'
@@ -333,7 +333,7 @@ export class HDPrivateKey {
 
     const privateKey = new BitcoreBN(
       leftPart.add(this.privateKey.toBigNumber()).umod(Point.getN())
-    ).toBitcoreBuffer({
+    ).toBuffer({
       size: 32
     });
 

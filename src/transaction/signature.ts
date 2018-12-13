@@ -3,7 +3,7 @@ import $ from '../util/preconditions';
 import { JSUtil, BufferUtil } from '../util';
 import { PublicKey } from '../publickey';
 import { ERROR_TYPES, BitcoreError } from '../errors';
-import { Signature } from '../crypto';
+import { Signature } from '../crypto/signature';
 
 export declare namespace TransactionSignature {
   export interface TransactionSignatureObj {
@@ -31,8 +31,8 @@ export class TransactionSignature extends Signature {
   public signature: Signature;
   public sigtype: number;
 
-  constructor(arg) {
-    super(arg);
+  constructor(arg: TransactionSignature | TransactionSignature.TransactionSignatureObj | string) {
+    super();
     if (!(this instanceof TransactionSignature)) {
       return new TransactionSignature(arg);
     }
@@ -40,7 +40,7 @@ export class TransactionSignature extends Signature {
       return arg;
     }
     if (_.isObject(arg)) {
-      return this._fromObject(arg);
+      return this._fromObject(arg as TransactionSignature.TransactionSignatureObj);
     }
     throw new BitcoreError(
       ERROR_TYPES.InvalidArgument,

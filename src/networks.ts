@@ -8,7 +8,7 @@ const networkMaps = {};
 export namespace Network {
   export interface NetworkObj {
     name: string;
-    alias: string;
+    alias?: string;
     pubkeyhash: number;
     privatekey: number;
     scripthash: number;
@@ -16,7 +16,7 @@ export namespace Network {
     xprivkey: number;
     networkMagic: Buffer | number;
     port: number;
-    dnsSeeds: Array<string>;
+    dnsSeeds?: Array<string>;
   }
 }
 /**
@@ -152,7 +152,7 @@ export class Network {
    * Will remove a custom network
    * @param {Network} network
    */
-  public removeNetwork(network) {
+  public static removeNetwork(network) {
     for (let i = 0; i < networks.length; i++) {
       if (networks[i] === network) {
         networks.splice(i, 1);

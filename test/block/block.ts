@@ -1,5 +1,3 @@
-'use strict';
-
 import * as fs from 'fs';
 import { Transaction } from '../../src/transaction';
 import { Block, BlockHeader } from '../../src/block';
@@ -9,15 +7,25 @@ import * as path from 'path';
 
 // https://test-insight.bitpay.com/block/000000000b99b16390660d79fcc138d2ad0c89a0d044c4201a02bdf1f61ffa11
 const dataRawBlockBuffer = fs.readFileSync(
-  path.resolve(__dirname , '../../../test-data/blk86756-testnet.dat')
+  path.resolve(__dirname, '../../../test-data/blk86756-testnet.dat')
 );
 const dataRawBlockBinary = fs.readFileSync(
-  path.resolve(__dirname , '../../../test-data/blk86756-testnet.dat'),
+  path.resolve(__dirname, '../../../test-data/blk86756-testnet.dat'),
   'binary'
 );
-const dataJson = fs.readFileSync(path.resolve(__dirname , '../../../test-data/blk86756-testnet.json')).toString();
-const data = require(path.resolve(__dirname, '../../../test-data/blk86756-testnet'));
-const dataBlocks = require(path.resolve(__dirname , '../../../test-data/bitcoind/blocks'));
+const dataJson = fs
+  .readFileSync(
+    path.resolve(__dirname, '../../../test-data/blk86756-testnet.json')
+  )
+  .toString();
+const data = require(path.resolve(
+  __dirname,
+  '../../../test-data/blk86756-testnet'
+));
+const dataBlocks = require(path.resolve(
+  __dirname,
+  '../../../test-data/bitcoind/blocks'
+));
 
 describe('Block', () => {
   const blockhex = data.blockhex;
@@ -59,8 +67,8 @@ describe('Block', () => {
         header: bh,
         transactions: txs
       });
-      should().exist(b.header);
-      should().exist(b.transactions);
+      chai.should().exist(b.header);
+      chai.should().exist(b.transactions);
     });
 
     it('should properly deserialize blocks', () => {
@@ -88,14 +96,14 @@ describe('Block', () => {
   describe('#fromJSON', () => {
     it('should set these known values', () => {
       const block = Block.fromObject(JSON.parse(json));
-      should().exist(block.header);
-      should().exist(block.transactions);
+      chai.should().exist(block.header);
+      chai.should().exist(block.transactions);
     });
 
     it('should set these known values', () => {
       const block = new Block(JSON.parse(json));
-      should().exist(block.header);
-      should().exist(block.transactions);
+      chai.should().exist(block.header);
+      chai.should().exist(block.transactions);
     });
   });
 
@@ -103,8 +111,8 @@ describe('Block', () => {
     it('should recover these known values', () => {
       const block = Block.fromObject(JSON.parse(json));
       const b = block.toJSON();
-      should().exist(b.header);
-      should().exist(b.transactions);
+      chai.should().exist(b.header);
+      chai.should().exist(b.transactions);
     });
   });
 

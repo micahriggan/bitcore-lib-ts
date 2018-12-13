@@ -11,7 +11,9 @@ function format(message, args) {
     .replace('{1}', args[1])
     .replace('{2}', args[2]);
 }
-export class BitcoreError {
+export class BitcoreError extends Error {
+  public static Types = ERROR_TYPES;
+
   constructor(errType: ErrorParam, ...args) {
     const message =
       typeof errType === 'string'
@@ -22,6 +24,6 @@ export class BitcoreError {
       typeof message === 'function'
         ? format(message(args), args)
         : format(message, args);
-    return Error(formattedMessage);
+    super(formattedMessage);
   }
 }

@@ -1,83 +1,75 @@
 'use strict';
-/* jshint unused: false */
 
-var should = require('chai').should();
-var expect = require('chai').expect;
+import { BitcoreLib } from '../../src';
+const JSUtil = BitcoreLib.util.js;
 
-var bitcore = require('../..');
-var JSUtil = bitcore.util.js;
+describe('js utils', () => {
+  describe('isValidJSON', () => {
+    const hexa =
+      '8080808080808080808080808080808080808080808080808080808080808080';
+    const json = '{"key": ["value", "value2"]}';
+    const json2 = '["value", "value2", {"key": "value"}]';
 
-describe('js utils', function() {
-
-  describe('isValidJSON', function() {
-
-    var hexa = '8080808080808080808080808080808080808080808080808080808080808080';
-    var json = '{"key": ["value", "value2"]}';
-    var json2 = '["value", "value2", {"key": "value"}]';
-
-    it('does not mistake an integer as valid json object', function() {
-      var valid = JSUtil.isValidJSON(hexa);
+    it('does not mistake an integer as valid json object', () => {
+      const valid = JSUtil.isValidJSON(hexa);
       valid.should.equal(false);
     });
 
-    it('correctly validates a json object', function() {
-      var valid = JSUtil.isValidJSON(json);
+    it('correctly validates a json object', () => {
+      const valid = JSUtil.isValidJSON(json);
       valid.should.equal(true);
     });
 
-    it('correctly validates an array json object', function() {
-      var valid = JSUtil.isValidJSON(json);
+    it('correctly validates an array json object', () => {
+      const valid = JSUtil.isValidJSON(json);
       valid.should.equal(true);
     });
-
   });
 
-  describe('isNaturalNumber', function() {
-    it('false for float', function() {
-      var a = JSUtil.isNaturalNumber(0.1);
+  describe('isNaturalNumber', () => {
+    it('false for float', () => {
+      const a = JSUtil.isNaturalNumber(0.1);
       a.should.equal(false);
     });
 
-    it('false for string float', function() {
-      var a = JSUtil.isNaturalNumber('0.1');
+    it('false for string float', () => {
+      const a = JSUtil.isNaturalNumber('0.1');
       a.should.equal(false);
     });
 
-    it('false for string integer', function() {
-      var a = JSUtil.isNaturalNumber('1');
+    it('false for string integer', () => {
+      const a = JSUtil.isNaturalNumber('1');
       a.should.equal(false);
     });
 
-    it('false for negative integer', function() {
-      var a = JSUtil.isNaturalNumber(-1);
+    it('false for negative integer', () => {
+      const a = JSUtil.isNaturalNumber(-1);
       a.should.equal(false);
     });
 
-    it('false for negative integer string', function() {
-      var a = JSUtil.isNaturalNumber('-1');
+    it('false for negative integer string', () => {
+      const a = JSUtil.isNaturalNumber('-1');
       a.should.equal(false);
     });
 
-    it('false for infinity', function() {
-      var a = JSUtil.isNaturalNumber(Infinity);
+    it('false for infinity', () => {
+      const a = JSUtil.isNaturalNumber(Infinity);
       a.should.equal(false);
     });
 
-    it('false for NaN', function() {
-      var a = JSUtil.isNaturalNumber(NaN);
+    it('false for NaN', () => {
+      const a = JSUtil.isNaturalNumber(NaN);
       a.should.equal(false);
     });
 
-    it('true for zero', function() {
-      var a = JSUtil.isNaturalNumber(0);
+    it('true for zero', () => {
+      const a = JSUtil.isNaturalNumber(0);
       a.should.equal(true);
     });
 
-    it('true for positive integer', function() {
-      var a = JSUtil.isNaturalNumber(1000);
+    it('true for positive integer', () => {
+      const a = JSUtil.isNaturalNumber(1000);
       a.should.equal(true);
     });
-
   });
-
 });

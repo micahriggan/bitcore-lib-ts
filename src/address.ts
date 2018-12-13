@@ -390,7 +390,10 @@ export class Address {
    * @param {String|Network} network - either a Network instance, 'livenet', or 'testnet'
    * @returns {Address} A new valid and frozen instance of an Address
    */
-  public static payingTo(script, network) {
+  public static payingTo(
+    script: Script,
+    network: Network | string = Network.defaultNetwork
+  ) {
     $.checkArgument(script, 'script is required');
     $.checkArgument(
       script instanceof Script,

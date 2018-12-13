@@ -17,7 +17,7 @@ export class BufferUtil {
    * @param {number} value
    * @return {Buffer}
    */
-  public static fill(buffer: Buffer, value: number): Buffer {
+  public static fill(buffer: Buffer, value = 0): Buffer {
     $.checkArgumentType(buffer, 'Buffer', 'buffer');
     $.checkArgumentType(value, 'number', 'value');
     const length = buffer.length;
@@ -179,4 +179,10 @@ export class BufferUtil {
    * Shortcut for <tt>Buffer.concat</tt>
    */
   public static concat = Buffer.concat;
+
+  public static toBufferIfString(value: string | Buffer): Buffer {
+    return typeof value === 'string'
+      ? Buffer.from(value, 'hex')
+      : (value as Buffer);
+  }
 }

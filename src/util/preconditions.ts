@@ -17,8 +17,7 @@ export default {
       );
     }
   },
-  checkArgumentType(argument, type, argumentName) {
-    argumentName = argumentName || '(unknown name)';
+  checkArgumentType(argument, type, argumentName = '(unknown name)') {
     if (_.isString(type)) {
       if (type === 'Buffer') {
         const buffer = require('buffer'); // './buffer' fails on cordova & RN

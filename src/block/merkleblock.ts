@@ -12,9 +12,7 @@ import { ERROR_TYPES } from '../errors/spec';
 
 declare namespace MerkleBlock {
   export interface MerkleBlockObj {
-    _flagBitsUsed: number;
-    _hashesUsed: number;
-    header: BlockHeader;
+    header: BlockHeader.BlockHeaderObj;
     hashes: Array<string>;
     flags: Array<number>;
     numTransactions: number;
@@ -36,7 +34,9 @@ export class MerkleBlock {
   public flags: Array<number>;
   public numTransactions: number;
 
-  constructor(arg) {
+  constructor(
+    arg?: MerkleBlock | Buffer | Partial<MerkleBlock.MerkleBlockObj>
+  ) {
     /* jshint maxstatements: 18 */
 
     if (!(this instanceof MerkleBlock)) {
@@ -47,6 +47,7 @@ export class MerkleBlock {
     if (BufferUtil.isBuffer(arg)) {
       info = MerkleBlock._fromBufferReader(new BufferReader(arg));
     } else if (_.isObject(arg)) {
+      arg = arg as MerkleBlock.MerkleBlockObj;
       const header =
         arg.header instanceof BlockHeader
           ? arg.header
@@ -130,7 +131,7 @@ export class MerkleBlock {
   /**
    * @returns {Object} - A plain object with the MerkleBlock properties
    */
-  public toObject() {
+  public toObject(): MerkleBlock.MerkleBlockObj {
     return {
       header: this.header.toObject(),
       numTransactions: this.numTransactions,
@@ -318,14 +319,14 @@ export class MerkleBlock {
     for (let i = 0; i < numFlags; i++) {
       info.flags.push(br.readUInt8());
     }
-    return info;
+    return info as MerkleBlock.MerkleBlockObj;
   }
 
   /**
    * @param {Object} - A plain JavaScript object
    * @returns {Block} - An instance of block
    */
-  public static fromObject(obj: MerkleBlock.MerkleBlockObj) {
+  public static fromObject(obj?: MerkleBlock.MerkleBlockObj) {
     return new MerkleBlock(obj);
   }
 }

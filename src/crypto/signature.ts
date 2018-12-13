@@ -1,15 +1,25 @@
 import * as _ from 'lodash';
+import BN from 'bn.js';
 import $ from '../util/preconditions';
 import { BitcoreBN } from '.';
-import {  BufferUtil, JSUtil } from '../util';
+import { BufferUtil, JSUtil } from '../util';
 
+export type BigOrSmallNumber = BitcoreBN | BN | number;
 export namespace Signature {
   export interface SignatureObj {
-    r?: BitcoreBN;
-    s?: BitcoreBN;
+    r?: BigOrSmallNumber;
+    s?: BigOrSmallNumber;
     i?: number;
     compressed?: boolean;
     nhashtype?: number;
+  }
+  export interface PostSignature {
+    publicKey: string;
+    prevTxId: string;
+    outputIndex: number;
+    inputIndex: number;
+    signature: string;
+    sigtype: number;
   }
 }
 export class Signature {
@@ -18,24 +28,24 @@ export class Signature {
   public i: number;
   public compressed: boolean;
   public nhashtype: number;
-  constructor(r?: BitcoreBN | Signature.SignatureObj, s?: BitcoreBN) {
+  constructor(r?: BigOrSmallNumber | Signature.SignatureObj, s?: BigOrSmallNumber) {
     if (!(this instanceof Signature)) {
       return new Signature(r, s);
     }
-    if (r instanceof BitcoreBN) {
+    if (r instanceof BitcoreBN || r instanceof BN) {
       this.set({
         r,
         s
       });
     } else if (r) {
       const obj = r;
-      this.set(obj);
+      this.set(obj as Signature.SignatureObj);
     }
   }
   /* jshint maxcomplexity: 7 */
   public set(obj: Signature.SignatureObj) {
-    this.r = obj.r || this.r || undefined;
-    this.s = obj.s || this.s || undefined;
+    this.r = new BitcoreBN(obj.r || this.r || undefined);
+    this.s = new BitcoreBN(obj.s || this.s || undefined);
 
     // public key recovery parameter in range [0, 3]
     this.i = typeof obj.i !== 'undefined' ? obj.i : this.i;
@@ -196,10 +206,10 @@ export class Signature {
       val = val - 4;
     }
     const b1 = Buffer.from([val]);
-    const b2 = this.r.toBitcoreBuffer({
+    const b2 = new BitcoreBN(this.r).toBuffer({
       size: 32
     });
-    const b3 = this.s.toBitcoreBuffer({
+    const b3 = new BitcoreBN(this.s).toBuffer({
       size: 32
     });
     return Buffer.concat([b1, b2, b3]);

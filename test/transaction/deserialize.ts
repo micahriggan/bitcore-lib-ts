@@ -1,31 +1,33 @@
 'use strict';
 
-var Transaction = require('../../lib/transaction');
+import { Transaction } from '../../src/transaction/transaction';
+const vectors_valid = require('../data/bitcoind/tx_valid.json');
+const vectors_invalid = require('../data/bitcoind/tx_invalid.json');
 
-var vectors_valid = require('../data/bitcoind/tx_valid.json');
-var vectors_invalid = require('../data/bitcoind/tx_invalid.json');
-
-describe('Transaction deserialization', function() {
-
-  describe('valid transaction test case', function() {
-    var index = 0;
-    vectors_valid.forEach(function(vector) {
-      it('vector #' + index, function() {
+describe('Transaction deserialization', () => {
+  describe('valid transaction test case', () => {
+    let index = 0;
+    vectors_valid.forEach((vector) => {
+      it('vector #' + index, () => {
         if (vector.length > 1) {
-          var hexa = vector[1];
-          Transaction(hexa).serialize(true).should.equal(hexa);
+          const hexa = vector[1];
+          new Transaction(hexa)
+            .serialize(true)
+            .should.equal(hexa);
           index++;
         }
       });
     });
   });
-  describe('invalid transaction test case', function() {
-    var index = 0;
-    vectors_invalid.forEach(function(vector) {
-      it('invalid vector #' + index, function() {
+  describe('invalid transaction test case', () => {
+    let index = 0;
+    vectors_invalid.forEach((vector) => {
+      it('invalid vector #' + index, () => {
         if (vector.length > 1) {
-          var hexa = vector[1];
-          Transaction(hexa).serialize(true).should.equal(hexa);
+          const hexa = vector[1];
+          new Transaction(hexa)
+            .serialize(true)
+            .should.equal(hexa);
           index++;
         }
       });

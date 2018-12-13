@@ -1,19 +1,18 @@
-'use strict';
-
+interface Recepient {
+  address: string;
+  satoshis: number;
+}
+import { Signature } from '../crypto/signature';
 import * as _ from 'lodash';
 import $ from '../util/preconditions';
 import { ERROR_TYPES, BitcoreError } from '../errors';
 import { JSUtil, BufferUtil } from '../util';
 import { BufferWriter, BufferReader } from '../encoding';
-import { BitcoreBN, Signature, Hash } from '../crypto';
+import { BitcoreBN, Hash } from '../crypto';
 import { Address } from '../address';
 import {
-  sighash,
-  Sighash,
   Output,
   Input,
-  SighashWitness,
-  UnspentOutput,
   TransactionSignature,
   MultiSigInput,
   MultiSigScriptHashInput,
@@ -23,6 +22,9 @@ import {
 import { Script } from '../script';
 import { PrivateKey } from '../privatekey';
 import { PublicKey } from '../publickey';
+import { Sighash } from './sighash';
+import { SighashWitness } from './sighashwitness';
+import { UnspentOutput } from './unspentoutput';
 
 const compare = Buffer.compare || require('buffer-compare');
 
@@ -36,15 +38,16 @@ export declare namespace Transaction {
     | PublicKeyInput
     | MultiSigScriptHashInput
     | MultiSigInput;
+
   export interface TransactionObj {
-    changeScript: string;
-    changeIndex: number;
-    inputs: Array<Transaction.TxInput>;
-    outputs: Array<Output>;
+    changeScript?: string;
+    changeIndex?: number;
+    inputs: Array<Transaction.TxInput | Input.InputObj>;
+    outputs: Array<Output | Output.OutputObj>;
     nLockTime: number;
     version: number;
     hash: string;
-    fee: number;
+    fee?: number;
   }
 }
 /**
@@ -54,7 +57,12 @@ export declare namespace Transaction {
  * @constructor
  */
 export class Transaction {
-  public inputs: Array<Input>;
+  public static Input = Input;
+  public static Output = Output;
+  public static Signature = TransactionSignature;
+  public static SighashWitness = SighashWitness;
+  public static Sighash = Sighash;
+  public inputs: Array<Transaction.TxInput>;
   public outputs: Array<Output>;
   public nLockTime: number;
   public version: number;
@@ -66,7 +74,7 @@ export class Transaction {
   public _changeIndex: number;
   public _feePerKb: number;
 
-  constructor(serialized?: Transaction | string | Transaction.TransactionObj) {
+  constructor(serialized?: Transaction | string | Transaction.TransactionObj | Buffer) {
     if (!(this instanceof Transaction)) {
       return new Transaction(serialized);
     }
@@ -185,7 +193,18 @@ export class Transaction {
    * * `disableMoreOutputThanInput`: disable checking if the transaction spends more bitcoins than the sum of the input amounts
    * @return {string}
    */
-  public serialize(unsafe) {
+  public serialize(
+    unsafe?:
+      | boolean
+      | Partial<{
+          disableAll: boolean;
+          disableSmallFees: boolean;
+          disableLargeFees: boolean;
+          disableIsFullySigned: boolean;
+          disableDustOutputs: boolean;
+          disableMoreOutputThanInput: boolean;
+        }>
+  ) {
     if (true === unsafe || (unsafe && unsafe.disableAll)) {
       return this.uncheckedSerialize();
     } else {
@@ -432,7 +451,7 @@ export class Transaction {
     this.outputs.forEach(output => {
       outputs.push(output.toObject());
     });
-    const obj: Partial<Transaction.TransactionObj> = {
+    const obj: Transaction.TransactionObj = {
       hash: this.hash,
       version: this.version,
       inputs,
@@ -444,6 +463,8 @@ export class Transaction {
     };
     return obj;
   }
+
+  public toJSON = this.toObject;
 
   public fromObject(arg) {
     /* jshint maxstatements: 20 */
@@ -496,6 +517,7 @@ export class Transaction {
     this._checkConsistency(arg);
     return this;
   }
+  public fromJSON = this.fromObject;
 
   public _checkConsistency(arg) {
     if (!_.isUndefined(this._changeIndex)) {
@@ -650,8 +672,15 @@ export class Transaction {
    * @param {number=} threshold
    * @param {boolean=} nestedWitness - Indicates that the utxo is nested witness p2sh
    */
-  public from(utxo, pubkeys, threshold, nestedWitness = false) {
-    if (_.isArray(utxo)) {
+  public from(
+    utxo:
+      | UnspentOutput.UnspentOutputObj
+      | Array<UnspentOutput.UnspentOutputObj>,
+    pubkeys?: Array<PublicKey>,
+    threshold?: number,
+    nestedWitness = false
+  ) {
+    if ((utxo as Array<UnspentOutput.UnspentOutputObj>) && _.isArray(utxo)) {
       _.each(utxo, utx => {
         this.from(utx, pubkeys, threshold);
       });
@@ -659,6 +688,7 @@ export class Transaction {
     }
     const exists = _.some(this.inputs, input => {
       // TODO: Maybe prevTxId should be a string? Or defined as read only property?
+      utxo = utxo as UnspentOutput.UnspentOutputObj;
       return (
         input.prevTxId.toString('hex') === utxo.txId &&
         input.outputIndex === utxo.outputIndex
@@ -670,17 +700,17 @@ export class Transaction {
     if (pubkeys && threshold) {
       this._fromMultisigUtxo(utxo, pubkeys, threshold, nestedWitness);
     } else {
-      this._fromNonP2SH(utxo);
+      this._fromNonP2SH(utxo as UnspentOutput.UnspentOutputObj);
     }
     return this;
   }
 
-  public _fromNonP2SH(utxo) {
+  public _fromNonP2SH(utxo: UnspentOutput | UnspentOutput.UnspentOutputObj) {
     let clazz;
-    utxo = new UnspentOutput(utxo);
-    if (utxo.script.isPublicKeyHashOut()) {
+    const newutxo = new UnspentOutput(utxo);
+    if (newutxo.script.isPublicKeyHashOut()) {
       clazz = PublicKeyHashInput;
-    } else if (utxo.script.isPublicKeyOut()) {
+    } else if (newutxo.script.isPublicKeyOut()) {
       clazz = PublicKeyInput;
     } else {
       clazz = Input;
@@ -688,11 +718,11 @@ export class Transaction {
     this.addInput(
       new clazz({
         output: new Output({
-          script: utxo.script,
-          satoshis: utxo.satoshis
+          script: newutxo.script,
+          satoshis: newutxo.satoshis
         }),
-        prevTxId: utxo.txId,
-        outputIndex: utxo.outputIndex,
+        prevTxId: newutxo.txId,
+        outputIndex: newutxo.outputIndex,
         script: Script.empty()
       })
     );
@@ -741,7 +771,7 @@ export class Transaction {
    * @param {number} satoshis
    * @return Transaction this, for chaining
    */
-  public addInput(input: Input, outputScript?: Script, satoshis?: number) {
+  public addInput(input: Input, outputScript?: Script | string, satoshis?: number) {
     $.checkArgumentType(input, Input, 'input');
     if (
       !input.output &&
@@ -868,7 +898,7 @@ export class Transaction {
    * @param {number} amount in satoshis
    * @return {Transaction} this, for chaining
    */
-  public to(address, amount) {
+  public to(address: string | Address | Array<Recepient>, amount?: number) {
     if (_.isArray(address)) {
       _.each(address, to => {
         this.to(to.address, to.satoshis);
@@ -1165,7 +1195,7 @@ export class Transaction {
     return this;
   }
 
-  public removeInput(txId, outputIndex) {
+  public removeInput(txId, outputIndex = txId) {
     let index;
     if (!outputIndex && _.isNumber(txId)) {
       index = txId;
@@ -1201,7 +1231,7 @@ export class Transaction {
    * @param {number} sigtype
    * @return {Transaction} this, for chaining
    */
-  public sign(privateKey, sigtype) {
+  public sign(privateKey, sigtype = Signature.SIGHASH_ALL) {
     $.checkState(
       this.hasAllUtxoInfo(),
       'Not all utxo information is available to sign the transaction.'
@@ -1218,7 +1248,7 @@ export class Transaction {
     return this;
   }
 
-  public getSignatures(privKey, sigtype) {
+  public getSignatures(privKey, sigtype = Signature.SIGHASH_ALL) {
     privKey = new PrivateKey(privKey);
     sigtype = sigtype || Signature.SIGHASH_ALL;
     const results = [];
@@ -1279,7 +1309,7 @@ export class Transaction {
     );
   }
 
-  public isValidSignature(signature: TransactionSignature) {
+  public isValidSignature(signature: Partial<TransactionSignature>) {
     if (this.inputs[signature.inputIndex].isValidSignature) {
       throw new BitcoreError(
         ERROR_TYPES.Transaction.errors.UnableToVerifySignature,
@@ -1294,7 +1324,7 @@ export class Transaction {
    * @returns {bool} whether the signature is valid for this transaction input
    */
   public verifySignature(
-    sig: Signature,
+    sig: TransactionSignature,
     pubkey: PublicKey,
     nin: number,
     subscript,
