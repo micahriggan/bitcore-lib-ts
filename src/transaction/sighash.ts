@@ -4,7 +4,8 @@ import { Buffer } from 'buffer';
 import { Script } from '../script';
 import { Transaction, Input, Output } from '.';
 import { BufferWriter, BufferReader } from '../encoding';
-import { Signature, Hash, ECDSA, BitcoreBN } from '../crypto';
+import { Hash, ECDSA, BitcoreBN } from '../crypto';
+import { Signature } from '../crypto/signature';
 
 const SIGHASH_SINGLE_BUG =
   '0000000000000000000000000000000000000000000000000000000000000001';

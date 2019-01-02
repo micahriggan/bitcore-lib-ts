@@ -34,16 +34,13 @@ export class PublicKeyHashInput extends Input {
     transaction: Transaction,
     privateKey: PrivateKey,
     index: number,
-    sigtype: number,
-    hashData: Buffer
+    sigtype: number = Signature.SIGHASH_ALL,
+    hashData: Buffer = Hash.sha256ripemd160(privateKey.publicKey.toBuffer())
   ): Array<TransactionSignature> {
     $.checkState(
       this.output instanceof Output,
       'Output property must be an Output'
     );
-    hashData =
-      hashData || Hash.sha256ripemd160(privateKey.publicKey.toBuffer());
-    sigtype = sigtype || Signature.SIGHASH_ALL;
 
     if (BufferUtil.equals(hashData, this.output.script.getPublicKeyHash())) {
       return [

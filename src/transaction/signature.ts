@@ -7,7 +7,7 @@ import { Signature } from '../crypto/signature';
 
 export declare namespace TransactionSignature {
   export interface TransactionSignatureObj {
-    publicKey: string;
+    publicKey: string | PublicKey;
     prevTxId: Buffer | string;
     outputIndex: number;
     inputIndex: number;

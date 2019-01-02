@@ -1,7 +1,9 @@
 'use strict';
 
+import * as _ from 'lodash';
 import { BitcoreLib } from '../../../src';
 import { BitcoreError } from '../../../src/errors';
+import { expect, should } from 'chai';
 
 const errors = BitcoreLib.errors;
 const PrivateKey = BitcoreLib.PrivateKey;
@@ -74,8 +76,8 @@ describe('Transaction.Input', () => {
 
   describe('instantiation', () => {
     it('works without new', () => {
-      const input = Input();
-      should.exist(input);
+      const input = new Input();
+      should().exist(input);
     });
     it('fails with no script info', () => {
       expect(() => {
@@ -86,7 +88,7 @@ describe('Transaction.Input', () => {
     it('fromObject should work', () => {
       const jsonData = JSON.parse(coinbaseJSON);
       const input = Input.fromObject(jsonData);
-      should.exist(input);
+      should().exist(input);
       input.prevTxId.toString('hex').should.equal(jsonData.prevTxId);
       input.outputIndex.should.equal(jsonData.outputIndex);
     });
@@ -94,7 +96,7 @@ describe('Transaction.Input', () => {
       const input = Input.fromObject(JSON.parse(coinbaseJSON));
       const obj = input.toObject();
       Input.fromObject(obj).should.deep.equal(input);
-      obj.script = 42;
+      obj.script = 42 as any;
       Input.fromObject
         .bind(null, obj)
         .should.throw('Invalid argument type: script');

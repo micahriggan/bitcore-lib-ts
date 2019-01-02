@@ -1,3 +1,4 @@
+import { Hash } from '../../crypto/hash';
 import $ from '../../util/preconditions';
 import { Input } from './input';
 import { BufferUtil } from '../../util/buffer';
@@ -29,8 +30,8 @@ export class PublicKeyInput extends Input {
     transaction: Transaction,
     privateKey: PrivateKey,
     index: number,
-    sigtype: number,
-    hashData: Buffer
+    sigtype: number = Signature.SIGHASH_ALL,
+    hashData: Buffer = Hash.sha256ripemd160(privateKey.publicKey.toBuffer())
   ): Array<TransactionSignature> {
     $.checkState(
       this.output instanceof Output,

@@ -19,3 +19,4 @@ export * from './bn';
 export * from './ecdsa';
 export * from './random';
 export * from './point';
+export * from './signature';

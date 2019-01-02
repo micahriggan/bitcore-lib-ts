@@ -1,13 +1,11 @@
-'use strict';
-/* jshint unused: false */
-
+import * as _ from 'lodash';
+import { MultiSigScriptHashInput } from '../../../src/transaction/input/multisigscripthash';
 import { BitcoreLib } from '../../../src';
 const Transaction = BitcoreLib.Transaction;
 const PrivateKey = BitcoreLib.PrivateKey;
 const Address = BitcoreLib.Address;
 const Script = BitcoreLib.Script;
 const Signature = BitcoreLib.crypto.Signature;
-const MultiSigScriptHashInput = BitcoreLib.Transaction.Input.MultiSigScriptHash;
 
 describe('MultiSigScriptHashInput', () => {
   const privateKey1 = new PrivateKey(
@@ -35,7 +33,7 @@ describe('MultiSigScriptHashInput', () => {
     const transaction = new Transaction()
       .from(output, [public1, public2, public3], 2)
       .to(address, 1000000);
-    const input = transaction.inputs[0];
+    const input = transaction.inputs[0] as MultiSigScriptHashInput;
 
     input.countSignatures().should.equal(0);
 
@@ -53,9 +51,9 @@ describe('MultiSigScriptHashInput', () => {
     const transaction = new Transaction()
       .from(output, [public1, public2, public3], 2)
       .to(address, 1000000);
-    const input = transaction.inputs[0];
+    const input = transaction.inputs[0] as MultiSigScriptHashInput;
 
-    _.every(input.publicKeysWithoutSignature(), (publicKeyMissing) => {
+    _.every(input.publicKeysWithoutSignature(), publicKeyMissing => {
       const serialized = publicKeyMissing.toString();
       return (
         serialized === public1.toString() ||
@@ -64,7 +62,7 @@ describe('MultiSigScriptHashInput', () => {
       );
     }).should.equal(true);
     transaction.sign(privateKey1);
-    _.every(input.publicKeysWithoutSignature(), (publicKeyMissing) => {
+    _.every(input.publicKeysWithoutSignature(), publicKeyMissing => {
       const serialized = publicKeyMissing.toString();
       return (
         serialized === public2.toString() || serialized === public3.toString()
@@ -132,7 +130,7 @@ describe('MultiSigScriptHashInput', () => {
     const transaction = new Transaction()
       .from(utxo, [public1, public2, public3], 2, true)
       .to(address, 1000000);
-    const input = transaction.inputs[0];
+    const input = transaction.inputs[0] as MultiSigScriptHashInput;
     const scriptCode = input.getScriptCode();
     scriptCode
       .toString('hex')

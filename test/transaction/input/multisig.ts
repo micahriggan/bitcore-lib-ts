@@ -1,13 +1,15 @@
 'use strict';
 /* jshint unused: false */
 
+import * as _ from 'lodash';
 import { BitcoreLib } from '../../../src';
+import { MultiSigInput } from '../../../src/transaction/input/multisig';
+import { should, expect } from 'chai';
 const Transaction = BitcoreLib.Transaction;
 const PrivateKey = BitcoreLib.PrivateKey;
 const Address = BitcoreLib.Address;
 const Script = BitcoreLib.Script;
 const Signature = BitcoreLib.crypto.Signature;
-const MultiSigInput = BitcoreLib.Transaction.Input.MultiSig;
 
 describe('MultiSigInput', () => {
   const privateKey1 = new PrivateKey(
@@ -74,21 +76,27 @@ describe('MultiSigInput', () => {
       .to(address, 1000000);
     const input = transaction.inputs[0];
 
-    _.every(input.publicKeysWithoutSignature(), publicKeyMissing => {
-      const serialized = publicKeyMissing.toString();
-      return (
-        serialized === public1.toString() ||
-        serialized === public2.toString() ||
-        serialized === public3.toString()
-      );
-    }).should.equal(true);
+    _.every(
+      input.asMultiSig().publicKeysWithoutSignature(),
+      publicKeyMissing => {
+        const serialized = publicKeyMissing.toString();
+        return (
+          serialized === public1.toString() ||
+          serialized === public2.toString() ||
+          serialized === public3.toString()
+        );
+      }
+    ).should.equal(true);
     transaction.sign(privateKey1);
-    _.every(input.publicKeysWithoutSignature(), publicKeyMissing => {
-      const serialized = publicKeyMissing.toString();
-      return (
-        serialized === public2.toString() || serialized === public3.toString()
-      );
-    }).should.equal(true);
+    _.every(
+      input.asMultiSig().publicKeysWithoutSignature(),
+      publicKeyMissing => {
+        const serialized = publicKeyMissing.toString();
+        return (
+          serialized === public2.toString() || serialized === public3.toString()
+        );
+      }
+    ).should.equal(true);
   });
   it('can clear all signatures', () => {
     const transaction = new Transaction()
@@ -122,7 +130,7 @@ describe('MultiSigInput', () => {
       .from(output, [public1, public2, public3], 2)
       .to(address, 1000000)
       .sign(privateKey1);
-    const input = transaction.inputs[0];
+    const input = transaction.inputs[0] as MultiSigInput;
     const roundtrip = new MultiSigInput(input.toObject());
     roundtrip.toObject().should.deep.equal(input.toObject());
   });
@@ -141,7 +149,7 @@ describe('MultiSigInput', () => {
 
     const inputObj = transaction.inputs[0].toObject();
     inputObj.output = output;
-    transaction.inputs[0] = new Transaction.Input(inputObj);
+    transaction.inputs = [new MultiSigInput(inputObj)];
 
     inputObj.signatures = MultiSigInput.normalizeSignatures(
       transaction,
@@ -158,16 +166,26 @@ describe('MultiSigInput', () => {
       [public1, public2, public3],
       2
     );
-
     transaction.inputs[0].signatures[0].publicKey.should.deep.equal(public1);
     transaction.inputs[0].signatures[1].publicKey.should.deep.equal(public2);
-    should.equal(transaction.inputs[0].signatures[2], undefined);
-    transaction.inputs[0]
-      .isValidSignature(transaction, transaction.inputs[0].signatures[0])
-      .should.be.true();
-    transaction.inputs[0]
-      .isValidSignature(transaction, transaction.inputs[0].signatures[1])
-      .should.be.true();
+    should().equal(
+      (transaction.inputs[0] as MultiSigInput).signatures[2],
+      undefined
+    );
+    should().equal(
+      transaction.inputs[0].isValidSignature(
+        transaction,
+        transaction.inputs[0].signatures[0]
+      ),
+      true
+    );
+    should().equal(
+      transaction.inputs[0].isValidSignature(
+        transaction,
+        transaction.inputs[0].signatures[1]
+      ),
+      true
+    );
   });
   it('can parse list of signature buffers, from TX signed with key 3 and 1', () => {
     const transaction = new Transaction(
@@ -176,7 +194,7 @@ describe('MultiSigInput', () => {
 
     const inputObj = transaction.inputs[0].toObject();
     inputObj.output = output;
-    transaction.inputs[0] = new Transaction.Input(inputObj);
+    transaction.inputs[0] = new MultiSigInput(inputObj);
 
     inputObj.signatures = MultiSigInput.normalizeSignatures(
       transaction,
@@ -195,13 +213,21 @@ describe('MultiSigInput', () => {
     );
 
     transaction.inputs[0].signatures[0].publicKey.should.deep.equal(public1);
-    should.equal(transaction.inputs[0].signatures[1], undefined);
+    should().equal(transaction.inputs[0].signatures[1], undefined);
     transaction.inputs[0].signatures[2].publicKey.should.deep.equal(public3);
-    transaction.inputs[0]
-      .isValidSignature(transaction, transaction.inputs[0].signatures[0])
-      .should.be.true();
-    transaction.inputs[0]
-      .isValidSignature(transaction, transaction.inputs[0].signatures[2])
-      .should.be.true();
+    should().equal(
+      transaction.inputs[0].isValidSignature(
+        transaction,
+        transaction.inputs[0].signatures[0]
+      ),
+      true
+    );
+    should().equal(
+      transaction.inputs[0].isValidSignature(
+        transaction,
+        transaction.inputs[0].signatures[2]
+      ),
+      true
+    );
   });
 });

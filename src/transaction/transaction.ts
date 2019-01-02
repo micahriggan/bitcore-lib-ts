@@ -74,7 +74,9 @@ export class Transaction {
   public _changeIndex: number;
   public _feePerKb: number;
 
-  constructor(serialized?: Transaction | string | Transaction.TransactionObj | Buffer) {
+  constructor(
+    serialized?: Transaction | string | Transaction.TransactionObj | Buffer
+  ) {
     if (!(this instanceof Transaction)) {
       return new Transaction(serialized);
     }
@@ -771,7 +773,11 @@ export class Transaction {
    * @param {number} satoshis
    * @return Transaction this, for chaining
    */
-  public addInput(input: Input, outputScript?: Script | string, satoshis?: number) {
+  public addInput(
+    input: Input,
+    outputScript?: Script | string,
+    satoshis?: number
+  ) {
     $.checkArgumentType(input, Input, 'input');
     if (
       !input.output &&

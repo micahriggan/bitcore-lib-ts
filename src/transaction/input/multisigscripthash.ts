@@ -18,6 +18,7 @@ import { PublicKey } from '../../publickey';
 import { Transaction } from '../transaction';
 import { PrivateKey } from '../../privatekey';
 import { JSUtil } from '../../util/js';
+import { Hash } from '../../crypto/hash';
 
 /**
  * @constructor
@@ -37,9 +38,9 @@ export class MultiSigScriptHashInput extends Input {
 
   constructor(
     input: MultiSigScriptHashInput | Input.InputObj,
-    pubkeys: Array<PublicKey>,
-    threshold: number,
-    signatures: Array<Signature | Signature.PostSignature>,
+    pubkeys?: Array<PublicKey>,
+    threshold?: number,
+    signatures?: Array<Signature | Signature.PostSignature>,
     nestedWitness?: boolean
   ) {
     super();
@@ -142,14 +143,13 @@ export class MultiSigScriptHashInput extends Input {
     transaction: Transaction,
     privateKey: PrivateKey,
     index: number,
-    sigtype: number,
-    hashData: Buffer
+    sigtype: number = Signature.SIGHASH_ALL,
+    hashData: Buffer = Hash.sha256ripemd160(privateKey.publicKey.toBuffer())
   ): Array<TransactionSignature> {
     $.checkState(
       this.output instanceof Output,
       'output property must be an Output'
     );
-    sigtype = sigtype || Signature.SIGHASH_ALL;
 
     const results = [];
     _.each(this.publicKeys, publicKey => {

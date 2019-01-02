@@ -4,6 +4,7 @@
 import * as _ from 'lodash';
 
 import { BitcoreLib } from '../../../src';
+import { should, expect } from 'chai';
 const Transaction = BitcoreLib.Transaction;
 const PrivateKey = BitcoreLib.PrivateKey;
 const Address = BitcoreLib.Address;

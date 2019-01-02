@@ -42,7 +42,7 @@ export class PrivateKey {
   public bn: BitcoreBN;
   public _pubkey: PublicKey;
 
-  constructor(data?: PrivateKey | PrivateKey.PrivateKeyObj | string, network?: Network) {
+  constructor(data?: PrivateKey | PrivateKey.PrivateKeyObj | BitcoreBN | string, network?: Network) {
     if (!(this instanceof PrivateKey)) {
       return new PrivateKey(data, network);
     }
@@ -389,9 +389,9 @@ export class PrivateKey {
    *
    * @returns {Address} An address generated from the private key
    */
-  public toAddress(network) {
+  public toAddress(network = this.network) {
     const pubkey = this.toPublicKey();
-    return Address.fromPublicKey(pubkey, network || this.network);
+    return Address.fromPublicKey(pubkey, network);
   }
 
   /**

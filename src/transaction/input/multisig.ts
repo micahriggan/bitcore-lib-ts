@@ -10,7 +10,15 @@ import { PublicKey } from '../../publickey';
 import { BufferUtil } from '../../util/buffer';
 import { TransactionSignature } from '../signature';
 import { PrivateKey } from '../../privatekey';
+import { Hash } from '../../crypto/hash';
 
+export namespace MultiSigInput {
+  export interface MultiSigInputObj {
+    publicKeys: Array<PublicKey>;
+    threshold: number;
+    signatures: Array<Signature | Signature.PostSignature>;
+  }
+}
 /**
  * @constructor
  */
@@ -26,14 +34,19 @@ export class MultiSigInput extends Input {
   public signatures: Array<TransactionSignature>;
   public publicKeyIndex = {};
 
-  constructor(input, pubkeys, threshold, signatures) {
+  constructor(
+    input: MultiSigInput | MultiSigInput.MultiSigInputObj,
+    pubkeys?: Array<PublicKey>,
+    threshold?: number,
+    signatures?: Array<Signature | Signature.PostSignature>
+  ) {
     super();
     Input.apply(this, arguments);
     pubkeys = pubkeys || input.publicKeys;
     threshold = threshold || input.threshold;
     signatures = signatures || input.signatures;
-    this.publicKeys = _.sortBy(pubkeys, (publicKey) => {
-      return publicKey.toString('hex');
+    this.publicKeys = _.sortBy(pubkeys, publicKey => {
+      return publicKey.toString();
     });
     $.checkState(
       Script.buildMultisigOut(this.publicKeys, threshold).equals(
@@ -55,7 +68,7 @@ export class MultiSigInput extends Input {
   public toObject() {
     const obj = Input.prototype.toObject.apply(this, arguments);
     obj.threshold = this.threshold;
-    obj.publicKeys = _.map(this.publicKeys, (publicKey) => {
+    obj.publicKeys = _.map(this.publicKeys, publicKey => {
       return publicKey.toString();
     });
     obj.signatures = this._serializeSignatures();
@@ -63,7 +76,7 @@ export class MultiSigInput extends Input {
   }
 
   public _deserializeSignatures(signatures) {
-    return _.map(signatures, (signature) => {
+    return _.map(signatures, signature => {
       if (!signature) {
         return undefined;
       }
@@ -72,7 +85,7 @@ export class MultiSigInput extends Input {
   }
 
   public _serializeSignatures() {
-    return _.map(this.signatures, (signature) => {
+    return _.map(this.signatures, signature => {
       if (!signature) {
         return undefined;
       }
@@ -84,17 +97,16 @@ export class MultiSigInput extends Input {
     transaction: Transaction,
     privateKey: PrivateKey,
     index: number,
-    sigtype: number,
-    hashData: Buffer
+    sigtype: number = Signature.SIGHASH_ALL,
+    hashData: Buffer = Hash.sha256ripemd160(privateKey.publicKey.toBuffer())
   ): Array<TransactionSignature> {
     $.checkState(
       this.output instanceof Output,
       'output property should be an Output'
     );
-    sigtype = sigtype || Signature.SIGHASH_ALL;
 
     const results = [];
-    _.each(this.publicKeys, (publicKey) => {
+    _.each(this.publicKeys, publicKey => {
       if (publicKey.toString() === privateKey.publicKey.toString()) {
         results.push(
           new TransactionSignature({
@@ -154,10 +166,10 @@ export class MultiSigInput extends Input {
 
   public _createSignatures() {
     return _.map(
-      _.filter(this.signatures, (signature) => {
+      _.filter(this.signatures, signature => {
         return !_.isUndefined(signature);
       }),
-      (signature) => {
+      signature => {
         return BufferUtil.concat([
           signature.signature.toDER(),
           BufferUtil.integerAsSingleByteBuffer(signature.sigtype)
@@ -190,7 +202,7 @@ export class MultiSigInput extends Input {
   }
 
   public publicKeysWithoutSignature() {
-    return _.filter(this.publicKeys, (publicKey) => {
+    return _.filter(this.publicKeys, publicKey => {
       return !this.signatures[this.publicKeyIndex[publicKey.toString()]];
     });
   }
@@ -226,9 +238,9 @@ export class MultiSigInput extends Input {
     signatures,
     publicKeys
   ) {
-    return publicKeys.map((pubKey) => {
+    return publicKeys.map(pubKey => {
       let signatureMatch = null;
-      signatures = signatures.filter((signatureBuffer) => {
+      signatures = signatures.filter(signatureBuffer => {
         if (signatureMatch) {
           return true;
         }

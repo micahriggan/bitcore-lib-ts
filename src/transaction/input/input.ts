@@ -16,6 +16,7 @@ import { PublicKey } from '../../publickey';
 import { Signature } from '../../crypto/signature';
 import { MultiSigScriptHashInput } from './multisigscripthash';
 import { MultiSigInput } from './multisig';
+import { PublicKeyInput } from './publickey';
 
 const MAXINT = 0xffffffff; // Math.pow(2, 32) - 1;
 const DEFAULT_RBF_SEQNUMBER = MAXINT - 2;
@@ -55,6 +56,7 @@ export class Input {
   public prevTxId: Buffer;
   public outputIndex: number;
   public sequenceNumber: number;
+  public signatures = [];
 
   constructor(
     input?: Input.InputObj,
@@ -196,7 +198,8 @@ export class Input {
    */
   /*
    *public getSignatures(): Array<TransactionSignature> {
-   *  throw new errors.AbstractMethodInvoked(
+   *  throw new BitcoreError(
+   *    ERROR_TYPES.AbstractMethodInvoked,
    *    'Trying to sign unsupported output type (only P2PKH and P2SH multisig inputs are supported)' +
    *      ' for input: ' +
    *      JSON.stringify(this)
@@ -219,11 +222,14 @@ export class Input {
   }
 
   /*
-   *public isFullySigned() {
-   *  throw new errors.AbstractMethodInvoked('Input#isFullySigned');
-   *}
-   */
-
+ *  public isFullySigned() {
+ *    throw new BitcoreError(
+ *      ERROR_TYPES.AbstractMethodInvoked,
+ *      'Input#isFullySigned'
+ *    );
+ *  }
+ *
+ */
   public isFinal() {
     return this.sequenceNumber !== 4294967295;
   }
@@ -281,5 +287,29 @@ export class Input {
 
   public _estimateSize() {
     return this.toBufferWriter().toBuffer().length;
+  }
+
+  public asMultiSig() {
+    return (this as any) as MultiSigInput;
+  }
+
+  public asMultiSigScriptHash() {
+    return (this as any) as MultiSigScriptHashInput;
+  }
+
+  public asPublicKeyInput() {
+    return (this as any) as PublicKeyInput;
+  }
+
+  public asPublicKeyHashInput() {
+    return (this as any) as PublicKeyHashInput;
+  }
+
+  public countMissingSignatures() {
+    return 0;
+  }
+
+  public countSignatures() {
+    return this.signatures.length;
   }
 }
