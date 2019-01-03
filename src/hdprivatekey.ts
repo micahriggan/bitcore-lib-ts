@@ -15,17 +15,22 @@ const BITS_TO_BYTES = 1 / 8;
 const MAXIMUM_ENTROPY_BITS = 512;
 
 export namespace HDPrivateKey {
-  export interface HDPrivateKeyObj {
-    network: Network;
+  export type DataType =
+    | HDPrivateKeyObj<Buffer | number | string>
+    | Buffer
+    | string
+    | HDPrivateKey;
+  export interface HDPrivateKeyObj<T> {
+    network: Network | string | number;
     depth: number;
-    fingerPrint: Buffer;
-    parentFingerPrint: Buffer;
-    childIndex: Buffer;
-    chainCode: string;
-    privateKey: string;
-    checksum: Buffer;
-    xprivkey: Buffer;
-    version: Buffer;
+    fingerPrint?: T;
+    parentFingerPrint: T;
+    childIndex: T;
+    chainCode: T;
+    privateKey?: T;
+    checksum?: T;
+    xprivkey?: T;
+    version?: T;
   }
 }
 /**
@@ -79,7 +84,7 @@ export class HDPrivateKey {
 
   public publicKey: PublicKey;
   public _hdPublicKey: HDPublicKey;
-  public _buffers: HDPrivateKey.HDPrivateKeyObj;
+  public _buffers: HDPrivateKey.HDPrivateKeyObj<Buffer>;
   public network: Network;
   public depth: number;
   public fingerPrint: Buffer;
@@ -91,7 +96,7 @@ export class HDPrivateKey {
   public xprivkey: Buffer;
   public version: Buffer;
 
-  constructor(arg) {
+  constructor(arg?: HDPrivateKey.DataType) {
     /* jshint maxcomplexity: 10 */
     if (arg instanceof HDPrivateKey) {
       return arg;
@@ -103,7 +108,12 @@ export class HDPrivateKey {
       return this._generateRandomly();
     }
 
-    if (Network.get(arg)) {
+    if (
+      (typeof arg === 'string' ||
+        typeof arg === 'number' ||
+        arg instanceof Network) &&
+      Network.get(arg)
+    ) {
       return this._generateRandomly(arg);
     } else if (_.isString(arg) || BufferUtil.isBuffer(arg)) {
       if (HDPrivateKey.isValidSerialized(arg)) {
@@ -216,7 +226,7 @@ export class HDPrivateKey {
    * @param {string|number} arg
    * @param {boolean?} hardened
    */
-  public derive(arg, hardened) {
+  public derive(arg: string | number, hardened = false) {
     return this.deriveNonCompliantChild(arg, hardened);
   }
 
@@ -376,7 +386,10 @@ export class HDPrivateKey {
    *     network provided matches the network serialized.
    * @return {boolean}
    */
-  public static isValidSerialized(data, network?: Network) {
+  public static isValidSerialized(
+    data: HDPrivateKey.DataType,
+    network?: Network | string
+  ) {
     return !HDPrivateKey.getSerializedError(data, network);
   }
 
@@ -389,7 +402,10 @@ export class HDPrivateKey {
    *     network provided matches the network serialized.
    * @return {errors.InvalidArgument|null}
    */
-  public static getSerializedError(data, network?: Network) {
+  public static getSerializedError(
+    data: HDPrivateKey.DataType,
+    network?: Network | string
+  ) {
     /* jshint maxcomplexity: 10 */
     if (!(_.isString(data) || BufferUtil.isBuffer(data))) {
       return new BitcoreError(
@@ -508,7 +524,7 @@ export class HDPrivateKey {
     return this._buildFromBuffers(buffers);
   }
 
-  public _generateRandomly(network?: Network) {
+  public _generateRandomly(network: string | Network = Network.defaultNetwork) {
     return HDPrivateKey.fromSeed(Random.getRandomBuffer(64), network);
   }
 
@@ -519,7 +535,10 @@ export class HDPrivateKey {
    * @param {*} network
    * @return HDPrivateKey
    */
-  public static fromSeed(hexa, network) {
+  public static fromSeed(
+    hexa,
+    network: string | Network | number = Network.defaultNetwork
+  ) {
     /* jshint maxcomplexity: 8 */
     if (JSUtil.isHexaString(hexa)) {
       hexa = BufferUtil.hexToBuffer(hexa);
@@ -542,7 +561,7 @@ export class HDPrivateKey {
     const hash = Hash.sha512hmac(hexa, new Buffer('Bitcoin seed'));
 
     return new HDPrivateKey({
-      network: Network.get(network) || Network.defaultNetwork,
+      network: Network.get(network),
       depth: 0,
       parentFingerPrint: 0,
       childIndex: 0,
@@ -719,6 +738,8 @@ export class HDPrivateKey {
       xprivkey: this.xprivkey
     };
   }
+
+  public toJSON = this.toObject;
 
   /**
    * Build a HDPrivateKey from a buffer

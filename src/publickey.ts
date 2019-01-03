@@ -246,7 +246,7 @@ export class PublicKey {
    * @param {bool=} strict - if set to false, will loosen some conditions
    * @returns {PublicKey} A new valid instance of PublicKey
    */
-  public static fromDER(buf, strict) {
+  public static fromDER(buf, strict = true) {
     $.checkArgument(
       PublicKey._isBuffer(buf),
       'Must be a hex buffer of DER encoded public key'
@@ -283,8 +283,8 @@ export class PublicKey {
    * @param {String=} encoding - The type of string encoding
    * @returns {PublicKey} A new valid instance of PublicKey
    */
-  public static fromString(str, encoding) {
-    const buf = Buffer.from(str, encoding || 'hex');
+  public static fromString(str, encoding = 'hex') {
+    const buf = Buffer.from(str, encoding);
     const info = PublicKey._transformDER(buf);
     return new PublicKey(info.point, {
       compressed: info.compressed
@@ -386,7 +386,7 @@ export class PublicKey {
    * @param {String|Network=} network - Which network should the address be for
    * @returns {Address} An address generated from the public key
    */
-  public toAddress(network?: Network) {
+  public toAddress(network?: Network | string) {
     return Address.fromPublicKey(this, network || this.network);
   }
 

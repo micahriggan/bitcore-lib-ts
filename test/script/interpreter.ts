@@ -2,7 +2,9 @@
 
 import * as _ from 'lodash';
 import * as sinon from 'sinon';
+import { should, expect } from 'chai';
 import { BitcoreLib } from '../../src';
+import { UnspentOutput } from '../../src/transaction/unspentoutput';
 const Interpreter = BitcoreLib.Script.Interpreter;
 const Transaction = BitcoreLib.Transaction;
 const PrivateKey = BitcoreLib.PrivateKey;
@@ -17,7 +19,7 @@ const tx_valid = require('../data/bitcoind/tx_valid');
 const tx_invalid = require('../data/bitcoind/tx_invalid');
 
 // the script string format used in bitcoind data tests
-Script.fromBitcoindString = str => {
+const fromBitcoindString = str => {
   const bw = new BufferWriter();
   const tokens = str.split(' ');
   for (const token of tokens) {
@@ -320,40 +322,46 @@ describe('Interpreter', () => {
     it('should verify these trivial scripts', () => {
       let verified;
       const si = new Interpreter();
-      verified = si.verify(new Script('OP_1'), Script('OP_1'));
-      verified.should.equal(true);
-      verified = new Interpreter().verify(new Script('OP_1'), Script('OP_0'));
-      verified.should.equal(false);
-      verified = new Interpreter().verify(new Script('OP_0'), Script('OP_1'));
+      verified = si.verify(new Script('OP_1'), new Script('OP_1'));
       verified.should.equal(true);
       verified = new Interpreter().verify(
-        Script('OP_CODESEPARATOR'),
-        Script('OP_1')
+        new Script('OP_1'),
+        new Script('OP_0')
+      );
+      verified.should.equal(false);
+      verified = new Interpreter().verify(
+        new Script('OP_0'),
+        new Script('OP_1')
       );
       verified.should.equal(true);
-      verified = Interpreter().verify(
-        Script(''),
-        Script('OP_DEPTH OP_0 OP_EQUAL')
+      verified = new Interpreter().verify(
+        new Script('OP_CODESEPARATOR'),
+        new Script('OP_1')
       );
       verified.should.equal(true);
-      verified = Interpreter().verify(
-        Script('OP_1 OP_2'),
-        Script('OP_2 OP_EQUALVERIFY OP_1 OP_EQUAL')
+      verified = new Interpreter().verify(
+        new Script(''),
+        new Script('OP_DEPTH OP_0 OP_EQUAL')
       );
       verified.should.equal(true);
-      verified = Interpreter().verify(
-        Script('9 0x000000000000000010'),
-        Script('')
+      verified = new Interpreter().verify(
+        new Script('OP_1 OP_2'),
+        new Script('OP_2 OP_EQUALVERIFY OP_1 OP_EQUAL')
       );
       verified.should.equal(true);
-      verified = Interpreter().verify(
-        Script('OP_1'),
-        Script('OP_15 OP_ADD OP_16 OP_EQUAL')
+      verified = new Interpreter().verify(
+        new Script('9 0x000000000000000010'),
+        new Script('')
       );
       verified.should.equal(true);
-      verified = Interpreter().verify(
-        Script('OP_0'),
-        Script('OP_IF OP_VER OP_ELSE OP_1 OP_ENDIF')
+      verified = new Interpreter().verify(
+        new Script('OP_1'),
+        new Script('OP_15 OP_ADD OP_16 OP_EQUAL')
+      );
+      verified.should.equal(true);
+      verified = new Interpreter().verify(
+        new Script('OP_0'),
+        new Script('OP_IF OP_VER OP_ELSE OP_1 OP_ENDIF')
       );
       verified.should.equal(true);
     });
@@ -387,7 +395,7 @@ describe('Interpreter', () => {
       const scriptSig = Script.buildPublicKeyHashIn(publicKey, signature);
       const flags =
         Interpreter.SCRIPT_VERIFY_P2SH | Interpreter.SCRIPT_VERIFY_STRICTENC;
-      const verified = Interpreter().verify(
+      const verified = new Interpreter().verify(
         scriptSig,
         scriptPubkey,
         tx,
@@ -441,8 +449,8 @@ describe('Interpreter', () => {
   };
 
   const testFixture = (vector, expected) => {
-    const scriptSig = Script.fromBitcoindString(vector[0]);
-    const scriptPubkey = Script.fromBitcoindString(vector[1]);
+    const scriptSig = fromBitcoindString(vector[0]);
+    const scriptPubkey = fromBitcoindString(vector[1]);
     const flags = getFlags(vector[2]);
 
     const hashbuf = new Buffer(32);
@@ -454,7 +462,7 @@ describe('Interpreter', () => {
           '0000000000000000000000000000000000000000000000000000000000000000',
         outputIndex: 0xffffffff,
         sequenceNumber: 0xffffffff,
-        script: Script('OP_0 OP_0')
+        script: new Script('OP_0 OP_0')
       })
     );
     credtx.addOutput(
@@ -538,9 +546,7 @@ describe('Interpreter', () => {
               if (txoutnum === -1) {
                 txoutnum = 0xffffffff; // bitcoind casts -1 to an unsigned int
               }
-              map[txid + ':' + txoutnum] = Script.fromBitcoindString(
-                scriptPubKeyStr
-              );
+              map[txid + ':' + txoutnum] = fromBitcoindString(scriptPubKeyStr);
             });
 
             const tx = new Transaction(txhex);
@@ -553,7 +559,7 @@ describe('Interpreter', () => {
               const txidhex = txin.prevTxId.toString('hex');
               const txoutnum = txin.outputIndex;
               const scriptPubkey = map[txidhex + ':' + txoutnum];
-              should.exist(scriptPubkey);
+              should().exist(scriptPubkey);
               (scriptSig !== undefined).should.equal(true);
               const interp = new Interpreter();
               const verified = interp.verify(

@@ -62,3 +62,4 @@ export * from './transaction';
 export * from './crypto';
 export * from './networks';
 export * from './encoding';
+export * from './script';

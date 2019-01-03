@@ -1,6 +1,7 @@
 'use strict';
 
 import { BitcoreLib } from '../src';
+import { should, expect } from 'chai';
 import * as _ from 'lodash';
 import assert from 'assert';
 import * as Buffer from 'buffer';
@@ -56,7 +57,7 @@ describe('HDPublicKey interface', () => {
     });
 
     it('allows to call the argument with no "new" keyword', () => {
-      HDPublicKey(xpubkey).xpubkey.should.equal(
+      new HDPublicKey(xpubkey).xpubkey.should.equal(
         new HDPublicKey(xpubkey).xpubkey
       );
     });
@@ -68,7 +69,7 @@ describe('HDPublicKey interface', () => {
     it('should not be able to change read-only properties', () => {
       const publicKey = new HDPublicKey(xprivkey);
       expect(() => {
-        publicKey.fingerPrint = 'notafingerprint';
+        publicKey.fingerPrint = 'notafingerprint' as any;
       }).to.throw(TypeError);
     });
 
@@ -221,7 +222,7 @@ describe('HDPublicKey interface', () => {
 
     it("doesn't allow object arguments for derivation", () => {
       expectFail(() => {
-        return new HDPublicKey(xpubkey).derive({});
+        return new HDPublicKey(xpubkey).derive({} as any);
       }, hdErrors.errors.InvalidDerivationArgument);
     });
 

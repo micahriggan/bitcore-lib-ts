@@ -1044,7 +1044,7 @@ export class Script {
    * @param {Signature|Buffer} signature - a Signature object, or the signature in DER canonical encoding
    * @param {number=} sigtype - the type of the signature (defaults to SIGHASH_ALL)
    */
-  public static buildPublicKeyHashIn(publicKey, signature, sigtype) {
+  public static buildPublicKeyHashIn(publicKey, signature, sigtype = Signature.SIGHASH_ALL) {
     $.checkArgument(
       signature instanceof Signature || BufferUtil.isBuffer(signature)
     );

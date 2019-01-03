@@ -11,8 +11,8 @@ declare class EcPoint {
   public isInfinity(): boolean;
   public mul(num: BitcoreBN): EcPoint;
   public pointFromX(x: number, isOdd: boolean): EcPoint;
-  public y: number;
-  public x: number;                    
+  public y: BN;
+  public x: BN;                    
   public dblp(k: number):EcPoint;
   public encode(encoding: string, compressed: boolean): BN
   public encodeCompressed(compressed: boolean): BN

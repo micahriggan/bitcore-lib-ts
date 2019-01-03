@@ -11,7 +11,7 @@ import { BitcoreError } from '../errors';
 
 export namespace UnspentOutput {
   export interface UnspentOutputObj {
-    address?: string;
+    address?: string | Address;
     txId?: string;
     vout?: number;
     value?: number;

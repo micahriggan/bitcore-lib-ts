@@ -1,5 +1,6 @@
 'use strict';
 import * as _ from 'lodash';
+import { expect, should } from 'chai';
 import assert from 'assert';
 import { BitcoreLib } from '../src';
 import * as Buffer from 'buffer';
@@ -48,19 +49,19 @@ describe('HDPrivate key interface', () => {
   };
 
   it('should make a new private key from random', () => {
-    should.exist(new HDPrivateKey().xprivkey);
+    should().exist(new HDPrivateKey().xprivkey);
   });
 
   it('should make a new private key from random for testnet', () => {
     const key = new HDPrivateKey('testnet');
-    should.exist(key.xprivkey);
+    should().exist(key.xprivkey);
     key.network.name.should.equal('testnet');
   });
 
   it('should not be able to change read-only properties', () => {
     const hdkey = new HDPrivateKey();
     expect(() => {
-      hdkey.fingerPrint = 'notafingerprint';
+      hdkey.fingerPrint = 'notafingerprint' as any;
     }).to.throw(TypeError);
   });
 
@@ -87,12 +88,12 @@ describe('HDPrivate key interface', () => {
       expectFailBuilding(1, hdErrors.errors.UnrecognizedArgument);
     });
     it('allows no-new calling', () => {
-      HDPrivateKey(xprivkey)
+      new HDPrivateKey(xprivkey)
         .toString()
         .should.equal(xprivkey);
     });
     it('allows the use of a copy constructor', () => {
-      HDPrivateKey(HDPrivateKey(xprivkey)).xprivkey.should.equal(xprivkey);
+      new HDPrivateKey(new HDPrivateKey(xprivkey)).xprivkey.should.equal(xprivkey);
     });
   });
 
@@ -111,14 +112,14 @@ describe('HDPrivate key interface', () => {
 
     it('cache for xpubkey works', () => {
       const privateKey = new HDPrivateKey(xprivkey);
-      should.not.exist(privateKey._hdPublicKey);
+      should().not.exist(privateKey._hdPublicKey);
       privateKey.xpubkey.should.equal(privateKey.xpubkey);
-      should.exist(privateKey._hdPublicKey);
+      should().exist(privateKey._hdPublicKey);
     });
   });
 
   it('inspect() displays correctly', () => {
-    HDPrivateKey(xprivkey)
+    new HDPrivateKey(xprivkey)
       .inspect()
       .should.equal('<HDPrivateKey: ' + xprivkey + '>');
   });
@@ -144,7 +145,7 @@ describe('HDPrivate key interface', () => {
 
   it('returns InvalidArgument if invalid data is given to getSerializedError', () => {
     expect(
-      HDPrivateKey.getSerializedError(1) ===
+      HDPrivateKey.getSerializedError(1 as any) ===
         new BitcoreError(hdErrors.errors.UnrecognizedArgument)
     ).to.equal(true);
   });
@@ -177,7 +178,7 @@ describe('HDPrivate key interface', () => {
 
   describe('on creation from seed', () => {
     it('converts correctly from an hexa string', () => {
-      should.exist(
+      should().exist(
         HDPrivateKey.fromSeed('01234567890abcdef01234567890abcdef').xprivkey
       );
     });

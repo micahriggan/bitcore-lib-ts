@@ -16,17 +16,18 @@ import { BitcoreError } from './errors';
 
 const hdErrors = ERROR_TYPES.HDPublicKey.errors;
 export namespace HDPublicKey {
-  export interface HDPublicKeyObj {
-    network: Network;
-    depth: number;
-    fingerPrint: Buffer;
-    parentFingerPrint: Buffer;
-    childIndex: Buffer;
-    chainCode: number;
-    publicKey: string;
-    version: Buffer;
-    checksum: Buffer;
-    xpubkey: Buffer;
+  export type DataType = HDPublicKey.HDPublicKeyObj<string | number | Buffer> | Buffer | string | HDPublicKey 
+  export interface HDPublicKeyObj<T> {
+    network: Network | string;
+    depth: T;
+    fingerPrint?: T;
+    parentFingerPrint: T;
+    childIndex: T;
+    chainCode: T;
+    publicKey: string | PublicKey;
+    version?: T;
+    checksum?: T;
+    xpubkey?: T;
   }
 }
 /**
@@ -38,7 +39,7 @@ export namespace HDPublicKey {
  * @param {Object|string|Buffer} arg
  */
 export class HDPublicKey {
-  public _buffers: HDPublicKey.HDPublicKeyObj;
+  public _buffers: HDPublicKey.HDPublicKeyObj<Buffer>;
   public network: Network;
   public depth: number;
   public fingerPrint: Buffer;
@@ -49,7 +50,7 @@ export class HDPublicKey {
   public checksum: number;
   public xpubkey: Buffer;
 
-  constructor(arg) {
+  constructor(arg: HDPublicKey.DataType) {
     /* jshint maxcomplexity: 12 */
     /* jshint maxstatements: 20 */
     if (arg instanceof HDPublicKey) {
@@ -134,7 +135,7 @@ export class HDPublicKey {
    *
    * @param {string|number} arg
    */
-  public derive(arg, hardened) {
+  public derive(arg: string | number, hardened = false) {
     return this.deriveChild(arg, hardened);
   }
 
@@ -235,7 +236,7 @@ export class HDPublicKey {
    *     network provided matches the network serialized.
    * @return {boolean}
    */
-  public static isValidSerialized(data, network) {
+  public static isValidSerialized(data, network?: Network | string) {
     return _.isNull(HDPublicKey.getSerializedError(data, network));
   }
 
@@ -248,7 +249,7 @@ export class HDPublicKey {
    *     network provided matches the network serialized.
    * @return {errors|null}
    */
-  public static getSerializedError(data, network?: Network) {
+  public static getSerializedError(data, network?: Network | string) {
     /* jshint maxcomplexity: 10 */
     /* jshint maxstatements: 20 */
     if (!(_.isString(data) || BufferUtil.isBuffer(data))) {
@@ -530,6 +531,8 @@ export class HDPublicKey {
       xpubkey: this.xpubkey
     };
   }
+
+  public toJSON = this.toObject;
 
   /**
    * Create a HDPublicKey from a buffer argument

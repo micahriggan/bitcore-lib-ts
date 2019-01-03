@@ -1,6 +1,6 @@
 'use strict';
 
-import * as chai from 'chai';
+import { should, expect } from 'chai';
 import { BitcoreLib } from '../src';
 
 const BN = BitcoreLib.crypto.BN;
@@ -28,23 +28,23 @@ describe('PrivateKey', () => {
 
   it('should create a new random private key', () => {
     const a = new PrivateKey();
-    should.exist(a);
-    should.exist(a.bn);
-    const b = PrivateKey();
-    should.exist(b);
-    should.exist(b.bn);
+    should().exist(a);
+    should().exist(a.bn);
+    const b = new PrivateKey();
+    should().exist(b);
+    should().exist(b.bn);
   });
 
   it('should create a privatekey from hexa string', () => {
     const a = new PrivateKey(hex2);
-    should.exist(a);
-    should.exist(a.bn);
+    should().exist(a);
+    should().exist(a.bn);
   });
 
   it('should create a new random testnet private key with only one argument', () => {
     const a = new PrivateKey(Networks.testnet);
-    should.exist(a);
-    should.exist(a.bn);
+    should().exist(a);
+    should().exist(a.bn);
   });
 
   it('should create a private key from a custom network WIF string', () => {
@@ -64,31 +64,31 @@ describe('PrivateKey', () => {
     Networks.addNetwork(nmc);
     const nmcNet = Networks.get('namecoin');
     const a = new PrivateKey(wifNamecoin, nmcNet);
-    should.exist(a);
-    should.exist(a.bn);
+    should().exist(a);
+    should().exist(a.bn);
     Networks.removeNetwork(nmcNet);
   });
 
   it('should create a new random testnet private key with empty data', () => {
     const a = new PrivateKey(null, Networks.testnet);
-    should.exist(a);
-    should.exist(a.bn);
+    should().exist(a);
+    should().exist(a.bn);
   });
 
   it('should create a private key from WIF string', () => {
     const a = new PrivateKey(
       'L3T1s1TYP9oyhHpXgkyLoJFGniEgkv2Jhi138d7R2yJ9F4QdDU2m'
     );
-    should.exist(a);
-    should.exist(a.bn);
+    should().exist(a);
+    should().exist(a.bn);
   });
 
   it('should create a private key from WIF buffer', () => {
     const a = new PrivateKey(
       Base58Check.decode('L3T1s1TYP9oyhHpXgkyLoJFGniEgkv2Jhi138d7R2yJ9F4QdDU2m')
     );
-    should.exist(a);
-    should.exist(a.bn);
+    should().exist(a);
+    should().exist(a.bn);
   });
 
   describe('bitcoind compliance', () => {
@@ -180,7 +180,7 @@ describe('PrivateKey', () => {
 
     it('should not be able to instantiate because of unrecognized data', () => {
       expect(() => {
-        return new PrivateKey(new Error());
+        return new PrivateKey((new Error() as any));
       }).to.throw('First argument is an unrecognized data type.');
     });
 
@@ -247,7 +247,7 @@ describe('PrivateKey', () => {
 
     it('fails on invalid argument', () => {
       expect(() => {
-        return PrivateKey.fromJSON('¹');
+        return PrivateKey.fromString('¹');
       }).to.throw();
     });
 

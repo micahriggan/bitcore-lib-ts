@@ -682,7 +682,7 @@ export class Transaction {
     threshold?: number,
     nestedWitness = false
   ) {
-    if ((utxo as Array<UnspentOutput.UnspentOutputObj>) && _.isArray(utxo)) {
+    if (utxo instanceof Array && _.isArray(utxo)) {
       _.each(utxo, utx => {
         this.from(utx, pubkeys, threshold);
       });

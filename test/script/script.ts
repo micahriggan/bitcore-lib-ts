@@ -1,10 +1,11 @@
-const should = require('chai').should();
+import { should, expect } from 'chai';
 import { Script } from '../../src/script';
 import { PublicKey } from '../../src/publickey';
 import { Address } from '../../src/address';
 import { Opcode, OP_CODES } from '../../src/opcode';
 import { Network } from '../../src/networks';
 import { BufferUtil } from '../../src/util/buffer';
+import * as bitcore from '../../src';
 
 describe('Script', () => {
   it('should make a new script', () => {
@@ -1120,8 +1121,8 @@ describe('Script', () => {
 
   describe('#buildWitnessMultisigOutFromScript', () => {
     it('it will build nested witness scriptSig', () => {
-      const redeemScript = bitcore.Script();
-      const redeemHash = bitcore.crypto.Hash.sha256(redeemScript.toBuffer());
+      const redeemScript = new bitcore.Script();
+      const redeemHash = bitcore.Hash.sha256(redeemScript.toBuffer());
       const s = Script.buildWitnessMultisigOutFromScript(redeemScript);
       const buf = s.toBuffer();
       buf[0].should.equal(0);
@@ -1136,7 +1137,7 @@ describe('Script', () => {
     it('should create script from livenet address', () => {
       const address = Address.fromString('1NaTVwXDDUJaXDQajoa9MqHhz4uTxtgK14');
       const s = Script.buildPublicKeyHashOut(address);
-      should.exist(s);
+      should().exist(s);
       s.toString().should.equal(
         'OP_DUP OP_HASH160 20 0xecae7d092947b7ee4998e254aa48900d26d2ce1d OP_EQUALVERIFY OP_CHECKSIG'
       );
@@ -1148,7 +1149,7 @@ describe('Script', () => {
     it('should create script from testnet address', () => {
       const address = Address.fromString('mxRN6AQJaDi5R6KmvMaEmZGe3n5ScV9u33');
       const s = Script.buildPublicKeyHashOut(address);
-      should.exist(s);
+      should().exist(s);
       s.toString().should.equal(
         'OP_DUP OP_HASH160 20 0xb96b816f378babb1fe585b7be7a2cd16eb99b3e4 OP_EQUALVERIFY OP_CHECKSIG'
       );
@@ -1162,12 +1163,12 @@ describe('Script', () => {
         '022df8750480ad5b26950b25c7ba79d3e37d75f640f8e5d9bcd5b150a0f85014da'
       );
       const s = Script.buildPublicKeyHashOut(pubkey);
-      should.exist(s);
+      should().exist(s);
       s.toString().should.equal(
         'OP_DUP OP_HASH160 20 0x9674af7395592ec5d91573aa8d6557de55f60147 OP_EQUALVERIFY OP_CHECKSIG'
       );
       s.isPublicKeyHashOut().should.equal(true);
-      should.exist(s._network);
+      should().exist(s._network);
       s._network.should.equal(pubkey.network);
     });
   });
@@ -1177,7 +1178,7 @@ describe('Script', () => {
         '022df8750480ad5b26950b25c7ba79d3e37d75f640f8e5d9bcd5b150a0f85014da'
       );
       const s = Script.buildPublicKeyOut(pubkey);
-      should.exist(s);
+      should().exist(s);
       s.toString().should.equal(
         '33 0x022df8750480ad5b26950b25c7ba79d3e37d75f640f8e5d9bcd5b150a0f85014da OP_CHECKSIG'
       );
@@ -1187,35 +1188,35 @@ describe('Script', () => {
   describe('#buildDataOut', () => {
     it('should create script from no data', () => {
       const s = Script.buildDataOut();
-      should.exist(s);
+      should().exist(s);
       s.toString().should.equal('OP_RETURN');
       s.isDataOut().should.equal(true);
     });
     it('should create script from empty data', () => {
       const data = new Buffer('');
       const s = Script.buildDataOut(data);
-      should.exist(s);
+      should().exist(s);
       s.toString().should.equal('OP_RETURN');
       s.isDataOut().should.equal(true);
     });
     it('should create script from some data', () => {
       const data = new Buffer('bacacafe0102030405', 'hex');
       const s = Script.buildDataOut(data);
-      should.exist(s);
+      should().exist(s);
       s.toString().should.equal('OP_RETURN 9 0xbacacafe0102030405');
       s.isDataOut().should.equal(true);
     });
     it('should create script from string', () => {
       const data = 'hello world!!!';
       const s = Script.buildDataOut(data);
-      should.exist(s);
+      should().exist(s);
       s.toString().should.equal('OP_RETURN 14 0x68656c6c6f20776f726c64212121');
       s.isDataOut().should.equal(true);
     });
     it('should create script from a hex string', () => {
       const hexString = 'abcdef0123456789';
       const s = Script.buildDataOut(hexString, 'hex');
-      should.exist(s);
+      should().exist(s);
       s.toString().should.equal('OP_RETURN 8 0xabcdef0123456789');
       s.isDataOut().should.equal(true);
     });
@@ -1226,7 +1227,7 @@ describe('Script', () => {
         'OP_DUP OP_HASH160 20 0x06c06f6d931d7bfba2b5bd5ad0d19a8f257af3e3 OP_EQUALVERIFY OP_CHECKSIG'
       );
       const s = Script.buildScriptHashOut(inner);
-      should.exist(s);
+      should().exist(s);
       s.toString().should.equal(
         'OP_HASH160 20 0x45ea3f9133e7b1cef30ba606f8433f993e41e159 OP_EQUAL'
       );
@@ -1238,14 +1239,14 @@ describe('Script', () => {
         new Address('1FSMWkjVPAxzUNjbxT52p3mVKC971rfW3S')
       );
       const s2 = Script.buildScriptHashOut(s1);
-      should.exist(s1._network);
+      should().exist(s1._network);
       s1._network.should.equal(s2._network);
     });
 
     it('inherits network property form an address', () => {
       const address = new Address('34Nn91aTGaULqWsZiunrBPHzFBDrZ3B8XS');
       const script = Script.buildScriptHashOut(address);
-      should.exist(script._network);
+      should().exist(script._network);
       script._network.should.equal(address.network);
     });
   });
@@ -1381,16 +1382,16 @@ describe('Script', () => {
     const pubkey = new PublicKey(
       '027ffeb8c7795d529ee9cd96512d472cefe398a0597623438ac5d066a64af50072'
     );
-    const liveAddress = pubkey.toAddress(Networks.livenet);
+    const liveAddress = pubkey.toAddress(Network.livenet);
     const testAddress = pubkey.toAddress(Network.testnet);
 
     it('priorize the network argument', () => {
       const script = new Script(liveAddress);
       script
-        .toAddress(Networks.testnet)
+        .toAddress(Network.testnet)
         .toString()
         .should.equal(testAddress.toString());
-      script.toAddress(Networks.testnet).network.should.equal(Networks.testnet);
+      script.toAddress(Network.testnet).network.should.equal(Network.testnet);
     });
     it('use the inherited network', () => {
       let script = new Script(liveAddress);
@@ -1409,7 +1410,7 @@ describe('Script', () => {
         'OP_DUP OP_HASH160 20 ' +
           '0x06c06f6d931d7bfba2b5bd5ad0d19a8f257af3e3 OP_EQUALVERIFY OP_CHECKSIG'
       );
-      script.toAddress().network.should.equal(Networks.defaultNetwork);
+      script.toAddress().network.should.equal(Network.defaultNetwork);
     });
     it('for a P2PKH address', () => {
       const stringAddress = '1NaTVwXDDUJaXDQajoa9MqHhz4uTxtgK14';
@@ -1430,7 +1431,7 @@ describe('Script', () => {
         .should.equal(stringAddress);
     });
     it('fails if content is not recognized', () => {
-      new Script().toAddress(Networks.livenet).should.equal(false);
+      new Script().toAddress(Network.livenet).should.equal(false);
     });
 
     it('works for p2pkh output', () => {
@@ -1546,7 +1547,7 @@ describe('Script', () => {
     });
     it('should handle P2SH-multisig-in scripts from utility', () => {
       // create a well-formed signature, does not need to match pubkeys
-      const signature = bitcore.crypto.Signature.fromString('30060201FF0201FF');
+      const signature = bitcore.Signature.fromString('30060201FF0201FF');
       const signatures = [signature.toBuffer()];
       const p2sh = Script.buildP2SHMultisigIn(pubKeyHexes, 1, signatures, {});
       p2sh.getSignatureOperationsCount(true).should.equal(0);

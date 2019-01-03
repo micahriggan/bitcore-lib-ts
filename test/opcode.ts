@@ -1,37 +1,26 @@
 'use strict';
 
 import * as _ from 'lodash';
+import { should, expect } from 'chai';
 import { BitcoreLib } from '../src';
 const Opcode = BitcoreLib.Opcode;
 
 describe('Opcode', () => {
   it('should create a new Opcode', () => {
     const opcode = new Opcode(5);
-    should.exist(opcode);
+    should().exist(opcode);
   });
 
   it('should convert to a string with this handy syntax', () => {
-    Opcode(0)
-      .toString()
-      .should.equal('OP_0');
-    Opcode(96)
-      .toString()
-      .should.equal('OP_16');
-    Opcode(97)
-      .toString()
-      .should.equal('OP_NOP');
+    new Opcode(0).toString().should.equal('OP_0');
+    new Opcode(96).toString().should.equal('OP_16');
+    new Opcode(97).toString().should.equal('OP_NOP');
   });
 
   it('should convert to a number with this handy syntax', () => {
-    Opcode('OP_0')
-      .toNumber()
-      .should.equal(0);
-    Opcode('OP_16')
-      .toNumber()
-      .should.equal(96);
-    Opcode('OP_NOP')
-      .toNumber()
-      .should.equal(97);
+    new Opcode('OP_0').toNumber().should.equal(0);
+    new Opcode('OP_16').toNumber().should.equal(96);
+    new Opcode('OP_NOP').toNumber().should.equal(97);
   });
 
   describe('#fromNumber', () => {
@@ -45,11 +34,11 @@ describe('Opcode', () => {
 
   describe('#set', () => {
     it('should work for object', () => {
-      Opcode(42).num.should.equal(42);
+      new Opcode(42).num.should.equal(42);
     });
     it('should fail for empty-object', () => {
       expect(() => {
-        Opcode();
+        const x = new (Opcode as any)();
       }).to.throw(TypeError);
     });
   });
@@ -95,7 +84,7 @@ describe('Opcode', () => {
 
     it('should not work for non-opcode', () => {
       expect(() => {
-        Opcode('OP_NOTACODE').toString();
+        new Opcode('OP_NOTACODE').toString();
       }).to.throw('Opcode does not have a string representation');
     });
   });
@@ -108,28 +97,28 @@ describe('Opcode', () => {
 
   describe('@reverseMap', () => {
     it('should exist and have op 185', () => {
-      should.exist(Opcode.reverseMap);
+      should().exist(Opcode.reverseMap);
       Opcode.reverseMap[185].should.equal('OP_NOP10');
     });
   });
   const smallints = [
-    Opcode('OP_0'),
-    Opcode('OP_1'),
-    Opcode('OP_2'),
-    Opcode('OP_3'),
-    Opcode('OP_4'),
-    Opcode('OP_5'),
-    Opcode('OP_6'),
-    Opcode('OP_7'),
-    Opcode('OP_8'),
-    Opcode('OP_9'),
-    Opcode('OP_10'),
-    Opcode('OP_11'),
-    Opcode('OP_12'),
-    Opcode('OP_13'),
-    Opcode('OP_14'),
-    Opcode('OP_15'),
-    Opcode('OP_16')
+    new Opcode('OP_0'),
+    new Opcode('OP_1'),
+    new Opcode('OP_2'),
+    new Opcode('OP_3'),
+    new Opcode('OP_4'),
+    new Opcode('OP_5'),
+    new Opcode('OP_6'),
+    new Opcode('OP_7'),
+    new Opcode('OP_8'),
+    new Opcode('OP_9'),
+    new Opcode('OP_10'),
+    new Opcode('OP_11'),
+    new Opcode('OP_12'),
+    new Opcode('OP_13'),
+    new Opcode('OP_14'),
+    new Opcode('OP_15'),
+    new Opcode('OP_16')
   ];
 
   describe('@smallInt', () => {
@@ -165,10 +154,10 @@ describe('Opcode', () => {
     }
 
     it('should work for non-small ints', () => {
-      Opcode.isSmallIntOp(Opcode('OP_RETURN')).should.equal(false);
-      Opcode.isSmallIntOp(Opcode('OP_CHECKSIG')).should.equal(false);
-      Opcode.isSmallIntOp(Opcode('OP_IF')).should.equal(false);
-      Opcode.isSmallIntOp(Opcode('OP_NOP')).should.equal(false);
+      Opcode.isSmallIntOp(new Opcode('OP_RETURN')).should.equal(false);
+      Opcode.isSmallIntOp(new Opcode('OP_CHECKSIG')).should.equal(false);
+      Opcode.isSmallIntOp(new Opcode('OP_IF')).should.equal(false);
+      Opcode.isSmallIntOp(new Opcode('OP_NOP')).should.equal(false);
     });
   });
 

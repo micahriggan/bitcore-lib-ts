@@ -11,6 +11,12 @@ declare namespace PrivateKey {
     network: Network;
     bn: BitcoreBN;
   }
+  export type DataType =
+    | PrivateKey
+    | PrivateKey.PrivateKeyObj
+    | BitcoreBN
+    | Buffer
+    | string;
 }
 
 /**
@@ -42,7 +48,10 @@ export class PrivateKey {
   public bn: BitcoreBN;
   public _pubkey: PublicKey;
 
-  constructor(data?: PrivateKey | PrivateKey.PrivateKeyObj | BitcoreBN | string, network?: Network) {
+  constructor(
+    data?: PrivateKey.DataType,
+    network?: Network | string
+  ) {
     if (!(this instanceof PrivateKey)) {
       return new PrivateKey(data, network);
     }
@@ -212,7 +221,7 @@ export class PrivateKey {
    * @param {Network} network
    * @return {PrivateKey}
    */
-  public static fromBuffer(arg, network) {
+  public static fromBuffer(arg?: PrivateKey.DataType, network?: string | Network) {
     return new PrivateKey(arg, network);
   }
 
@@ -267,7 +276,7 @@ export class PrivateKey {
    * @param {string=} network - Either "livenet" or "testnet"
    * @returns {PrivateKey} A new valid instance of PrivateKey
    */
-  public static fromRandom(network) {
+  public static fromRandom(network?: Network | string) {
     const bn = PrivateKey._getRandomBN();
     return new PrivateKey(bn, network);
   }
@@ -280,7 +289,10 @@ export class PrivateKey {
    * @returns {null|Error} An error if exists
    */
 
-  public static getValidationError(data, network) {
+  public static getValidationError(
+    data: PrivateKey.DataType,
+    network?: string | Network
+  ) {
     let error;
     try {
       const key = new PrivateKey(data, network);
@@ -297,7 +309,7 @@ export class PrivateKey {
    * @param {string=} network - Either "livenet" or "testnet"
    * @returns {Boolean} If the private key is would be valid
    */
-  public static isValid(data, network?: Network) {
+  public static isValid(data?: PrivateKey.DataType, network?: Network) {
     if (!data) {
       return false;
     }

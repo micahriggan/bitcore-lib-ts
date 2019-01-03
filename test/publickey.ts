@@ -1,6 +1,7 @@
 'use strict';
 
 import { BitcoreLib } from '../src';
+import { expect, should } from 'chai';
 const Point = BitcoreLib.crypto.Point;
 const BN = BitcoreLib.crypto.BN;
 const PublicKey = BitcoreLib.PublicKey;
@@ -19,7 +20,7 @@ describe('PublicKey', () => {
   describe('validating errors on creation', () => {
     it('errors if data is missing', () => {
       (() => {
-        return new PublicKey();
+        return new (PublicKey as any)();
       }).should.throw(
         'First argument is required, please include public key data.'
       );
@@ -116,7 +117,7 @@ describe('PublicKey', () => {
       const pk = new PublicKey(
         '041ff0fe0f7b15ffaa85ff9f4744d539139c252a49710fb053bb9f2b933173ff9a7baad41d04514751e6851f5304fd243751703bed21b914f6be218c0fa354a341'
       );
-      should.exist(pk.point);
+      should().exist(pk.point);
       pk.point
         .getX()
         .toString(16)
@@ -132,7 +133,7 @@ describe('PublicKey', () => {
           'hex'
         )
       );
-      should.exist(pk.point);
+      should().exist(pk.point);
       pk.point
         .getX()
         .toString(16)
@@ -147,10 +148,10 @@ describe('PublicKey', () => {
         '3b402dfc89712cfe50963e670a0598e6b152b3cd94735001cdac6794975d3afd'
       );
       const a = new PublicKey(p);
-      should.exist(a.point);
+      should().exist(a.point);
       a.point.toString().should.equal(p.toString());
       const c = new PublicKey(p);
-      should.exist(c.point);
+      should().exist(c.point);
       c.point.toString().should.equal(p.toString());
     });
   });
@@ -158,7 +159,7 @@ describe('PublicKey', () => {
   describe('#getValidationError', () => {
     it('should recieve an invalid point error', () => {
       const error = PublicKey.getValidationError(invalidPoint);
-      should.exist(error);
+      should().exist(error);
       error.message.should.equal('Point does not lie on the curve');
     });
 
@@ -189,7 +190,7 @@ describe('PublicKey', () => {
         '3b402dfc89712cfe50963e670a0598e6b152b3cd94735001cdac6794975d3afd'
       );
       const b = PublicKey.fromPoint(p);
-      should.exist(b.point);
+      should().exist(b.point);
       b.point.toString().should.equal(p.toString());
     });
 
@@ -221,7 +222,7 @@ describe('PublicKey', () => {
 
     it('fails if invalid JSON is provided', () => {
       expect(() => {
-        return PublicKey._transformJSON('¹');
+        return PublicKey.fromString('¹');
       }).to.throw();
     });
 
@@ -236,7 +237,7 @@ describe('PublicKey', () => {
 
   describe('#fromPrivateKey', () => {
     it('should make a public key from a privkey', () => {
-      should.exist(PublicKey.fromPrivateKey(PrivateKey.fromRandom()));
+      should().exist(PublicKey.fromPrivateKey(PrivateKey.fromRandom()));
     });
 
     it('should error because not an instance of privkey', () => {

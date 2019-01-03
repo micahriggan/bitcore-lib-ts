@@ -79,7 +79,10 @@ export class Network {
    * @param {string|Array} keys - if set, only check if the magic number associated with this name matches
    * @return Network
    */
-  public static get(arg, keys?: Array<string> | string) {
+  public static get(
+    arg: string | number | Network,
+    keys?: Array<string> | string
+  ) {
     if (~networks.indexOf(arg)) {
       return arg;
     }
@@ -94,7 +97,7 @@ export class Network {
       }
       return undefined;
     }
-    return networkMaps[arg];
+    return networkMaps[arg.toString()];
   }
 
   /**
