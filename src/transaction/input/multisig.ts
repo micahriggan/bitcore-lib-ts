@@ -1,7 +1,7 @@
 import $ from '../../util/preconditions';
 import * as _ from 'lodash';
 import { Transaction } from '../transaction';
-import { Input } from './input';
+import { InputTypes } from './input';
 import { Output } from '../output';
 import { Script } from '../../script';
 import { Signature } from '../../crypto/signature';

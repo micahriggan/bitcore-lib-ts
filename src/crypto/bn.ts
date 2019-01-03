@@ -22,7 +22,7 @@ export class BitcoreBN extends BN {
     return new BitcoreBN(n);
   }
 
-  public static fromString(str: string, base: number) {
+  public static fromString(str: string, base: number = 10) {
     $.checkArgument(_.isString(str));
     return new BitcoreBN(str, base);
   }
@@ -143,7 +143,7 @@ export class BitcoreBN extends BN {
    * 4 bytes. We copy that behavior here. A third argument, `size`, is provided to
    * extend the hard limit of 4 bytes, as some usages require more than 4 bytes.
    */
-  public static fromScriptNumBuffer(buf, fRequireMinimal, size = 4) {
+  public static fromScriptNumBuffer(buf, fRequireMinimal = false, size = 4) {
     const DEFAULT_SIZE = 4;
     const nMaxNumSize = size || DEFAULT_SIZE;
     $.checkArgument(

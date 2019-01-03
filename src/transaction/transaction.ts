@@ -1,3 +1,4 @@
+import { Input } from './input/input';
 interface Recepient {
   address: string;
   satoshis: number;
@@ -12,7 +13,7 @@ import { BitcoreBN, Hash } from '../crypto';
 import { Address } from '../address';
 import {
   Output,
-  Input,
+  InputTypes,
   TransactionSignature,
   MultiSigInput,
   MultiSigScriptHashInput,
@@ -42,7 +43,7 @@ export declare namespace Transaction {
   export interface TransactionObj {
     changeScript?: string;
     changeIndex?: number;
-    inputs: Array<Transaction.TxInput | Input.InputObj>;
+    inputs: Array<Transaction.TxInput | InputTypes.InputObj>;
     outputs: Array<Output | Output.OutputObj>;
     nLockTime: number;
     version: number;
@@ -356,7 +357,7 @@ export class Transaction {
 
   public hasWitnesses() {
     for (const input of this.inputs) {
-      if (input.hasWitnesses()) {
+      if ( input.hasWitnesses()) {
         return true;
       }
     }

@@ -3,6 +3,7 @@
 /* jshint maxstatements: 30 */
 
 import { BitcoreLib } from '../src';
+import { should, expect } from 'chai';
 const PublicKey = BitcoreLib.PublicKey;
 const Address = BitcoreLib.Address;
 const Script = BitcoreLib.Script;
@@ -23,7 +24,7 @@ describe('Address', () => {
 
   it("can't build without data", () => {
     (() => {
-      return new Address();
+      return new (Address as any)();
     }).should.throw('First argument is required, please include address data.');
   });
 
@@ -35,7 +36,7 @@ describe('Address', () => {
 
   it('should throw an error because of bad type param', () => {
     (() => {
-      return new Address(PKHLivenet[0], 'livenet', 'pubkey');
+      return new Address(PKHLivenet[0], 'livenet', 'pubkey' as 'pubkeyhash');
     }).should.throw('Third argument must be "pubkeyhash" or "scripthash"');
   });
 
@@ -125,7 +126,7 @@ describe('Address', () => {
         '37BahqRsFrAd3qLiNNwLNV3AWMRD7itxTo',
         'testnet'
       );
-      should.exist(error);
+      should().exist(error);
     });
 
     it('isValid returns true on a valid address', () => {
@@ -147,35 +148,35 @@ describe('Address', () => {
     it('validates correctly the P2PKH test vector', () => {
       for (const PHK of PKHLivenet) {
         const error = Address.getValidationError(PHK);
-        should.not.exist(error);
+        should().not.exist(error);
       }
     });
 
     it('validates correctly the P2SH test vector', () => {
       for (const P2SH of P2SHLivenet) {
         const error = Address.getValidationError(P2SH);
-        should.not.exist(error);
+        should().not.exist(error);
       }
     });
 
     it('validates correctly the P2SH testnet test vector', () => {
       for (const P2SH of P2SHTestnet) {
         const error = Address.getValidationError(P2SH, 'testnet');
-        should.not.exist(error);
+        should().not.exist(error);
       }
     });
 
     it('rejects correctly the P2PKH livenet test vector with "testnet" parameter', () => {
       for (const PKH of PKHLivenet) {
         const error = Address.getValidationError(PKH, 'testnet');
-        should.exist(error);
+        should().exist(error);
       }
     });
 
     it('validates correctly the P2PKH livenet test vector with "livenet" parameter', () => {
       for (const PKH of PKHLivenet) {
         const error = Address.getValidationError(PKH, 'livenet');
-        should.not.exist(error);
+        should().not.exist(error);
       }
     });
 
@@ -186,7 +187,7 @@ describe('Address', () => {
           'livenet',
           'pubkeyhash'
         );
-        should.exist(error);
+        should().exist(error);
         error.message.should.equal('Checksum mismatch');
       }
     });
@@ -200,7 +201,7 @@ describe('Address', () => {
           'testnet',
           'pubkeyhash'
         );
-        should.exist(error);
+        should().exist(error);
         error.message.should.equal('Address has mismatched network type.');
       }
       for (i = 0; i < PKHTestnet.length; i++) {
@@ -209,7 +210,7 @@ describe('Address', () => {
           'livenet',
           'pubkeyhash'
         );
-        should.exist(error);
+        should().exist(error);
         error.message.should.equal('Address has mismatched network type.');
       }
     });
@@ -217,7 +218,7 @@ describe('Address', () => {
     it('should not validate on a type mismatch', () => {
       for (const PKH of PKHLivenet) {
         const error = Address.getValidationError(PKH, 'livenet', 'scripthash');
-        should.exist(error);
+        should().exist(error);
         error.message.should.equal('Address has mismatched type.');
       }
     });
@@ -229,7 +230,7 @@ describe('Address', () => {
           'livenet',
           'pubkeyhash'
         );
-        should.exist(error);
+        should().exist(error);
         error.message.should.equal('Non-base58 character');
       }
     });
@@ -237,7 +238,7 @@ describe('Address', () => {
     it('testnet addresses are validated correctly', () => {
       for (const PKH of PKHTestnet) {
         const error = Address.getValidationError(PKH, 'testnet');
-        should.not.exist(error);
+        should().not.exist(error);
       }
     });
 
@@ -245,7 +246,7 @@ describe('Address', () => {
       const ws =
         '  \r \t    \n 1A6ut1tWnUq1SEQLMr4ttDh24wcbJ5o9TT \t \n            \r';
       const error = Address.getValidationError(ws);
-      should.not.exist(error);
+      should().not.exist(error);
       Address.fromString(ws)
         .toString()
         .should.equal('1A6ut1tWnUq1SEQLMr4ttDh24wcbJ5o9TT');
@@ -294,25 +295,25 @@ describe('Address', () => {
 
     it('should error because of unrecognized data format', () => {
       (() => {
-        return new Address(new Error());
+        return new Address(new Error() as any);
       }).should.throw(new BitcoreError(ErrorTypes.InvalidArgument));
     });
 
     it('should error because of incorrect format for pubkey hash', () => {
       (() => {
-        return new Address.fromPublicKeyHash('notahash');
+        return Address.fromPublicKeyHash('notahash' as any);
       }).should.throw('Address supplied is not a buffer.');
     });
 
     it('should error because of incorrect format for script hash', () => {
       (() => {
-        return new Address.fromScriptHash('notascript');
+        return Address.fromScriptHash('notascript' as any);
       }).should.throw('Address supplied is not a buffer.');
     });
 
     it('should error because of incorrect type for transform buffer', () => {
       (() => {
-        return Address._transformBuffer('notabuffer');
+        return Address._transformBuffer('notabuffer' as any);
       }).should.throw('Address supplied is not a buffer.');
     });
 
@@ -330,13 +331,13 @@ describe('Address', () => {
 
     it('should error because of incorrect type for script transform', () => {
       (() => {
-        return Address._transformScript(new Buffer(20));
+        return Address._transformScript(new Buffer(20) as any);
       }).should.throw('Invalid Argument: script must be a Script instance');
     });
 
     it('should error because of incorrect type for string transform', () => {
       (() => {
-        return Address._transformString(new Buffer(20));
+        return Address._transformString(new Buffer(20) as any, 0 as any, 0 as any);
       }).should.throw('data parameter supplied is not a string.');
     });
 
@@ -452,14 +453,14 @@ describe('Address', () => {
       it('returns the same address if the script is a pay to public key hash out', () => {
         const address = '16JXnhxjJUhxfyx4y6H4sFcxrgt8kQ8ewX';
         const script = Script.buildPublicKeyHashOut(new Address(address));
-        Address(script, Networks.livenet)
+        new Address(script, Networks.livenet)
           .toString()
           .should.equal(address);
       });
       it('returns the same address if the script is a pay to script hash out', () => {
         const address = '3BYmEwgV2vANrmfRymr1mFnHXgLjD6gAWm';
         const script = Script.buildScriptHashOut(new Address(address));
-        Address(script, Networks.livenet)
+        new Address(script, Networks.livenet)
           .toString()
           .should.equal(address);
       });
@@ -566,7 +567,7 @@ describe('Address', () => {
 
   it("throws an error if it couldn't instantiate", () => {
     expect(() => {
-      return new Address(1);
+      return new Address(1 as any);
     }).to.throw(TypeError);
   });
   it('can roundtrip from/to a object', () => {
@@ -577,7 +578,7 @@ describe('Address', () => {
   it('will use the default network for an object', () => {
     const obj = {
       hash: '19a7d869032368fd1f1e26e5e73a4ad0e474960e',
-      type: 'scripthash'
+      type: 'scripthash' as 'scripthash'
     };
     const address = new Address(obj);
     address.network.should.equal(Networks.defaultNetwork);

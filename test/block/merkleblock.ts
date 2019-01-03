@@ -43,23 +43,23 @@ describe('MerkleBlock', () => {
   describe('#fromObject', () => {
     it('should set these known values', () => {
       const block = MerkleBlock.fromObject(JSON.parse(blockJSON));
-      should.exist(block.header);
-      should.exist(block.numTransactions);
-      should.exist(block.hashes);
-      should.exist(block.flags);
+      should().exist(block.header);
+      should().exist(block.numTransactions);
+      should().exist(block.hashes);
+      should().exist(block.flags);
     });
 
     it('should set these known values', () => {
       const block = new MerkleBlock(JSON.parse(blockJSON));
-      should.exist(block.header);
-      should.exist(block.numTransactions);
-      should.exist(block.hashes);
-      should.exist(block.flags);
+      should().exist(block.header);
+      should().exist(block.numTransactions);
+      should().exist(block.hashes);
+      should().exist(block.flags);
     });
 
     it('accepts an object as argument', () => {
       const block = new MerkleBlock(blockbuf);
-      should.exist(MerkleBlock.fromObject(block.toObject()));
+      should().exist(MerkleBlock.fromObject(block.toObject()));
     });
   });
 
@@ -67,14 +67,14 @@ describe('MerkleBlock', () => {
     it('should recover these known values', () => {
       const block = new MerkleBlock(JSON.parse(blockJSON));
       const b = JSON.parse(JSON.stringify(block));
-      should.exist(block.header);
-      should.exist(block.numTransactions);
-      should.exist(block.hashes);
-      should.exist(block.flags);
-      should.exist(b.header);
-      should.exist(b.numTransactions);
-      should.exist(b.hashes);
-      should.exist(b.flags);
+      should().exist(block.header);
+      should().exist(block.numTransactions);
+      should().exist(block.hashes);
+      should().exist(block.flags);
+      should().exist(b.header);
+      should().exist(b.numTransactions);
+      should().exist(b.hashes);
+      should().exist(b.flags);
     });
   });
 

@@ -1,6 +1,6 @@
 'use strict';
 
-import * as chai from 'chai';
+import { should } from 'chai';
 import { Buffer } from 'buffer';
 import { BitcoreLib } from '../../src';
 const Base58 = BitcoreLib.encoding.Base58;
@@ -11,7 +11,7 @@ describe('Base58', () => {
 
   it('should make an instance with "new"', () => {
     const b58 = new Base58();
-    should.exist(b58);
+    should().exist(b58);
   });
 
   it('validates characters with no false negatives', () => {
@@ -21,7 +21,7 @@ describe('Base58', () => {
   });
   it('validates characters from buffer', () => {
     Base58.validCharacters(
-      new buffer.Buffer(
+      new Buffer(
         '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
       )
     ).should.equal(true);
@@ -33,7 +33,7 @@ describe('Base58', () => {
 
   it('should make an instance without "new"', () => {
     const b58 = new Base58();
-    should.exist(b58);
+    should().exist(b58);
   });
 
   it('should allow this handy syntax', () => {
@@ -47,7 +47,7 @@ describe('Base58', () => {
   describe('#set', () => {
     it('should set a blank buffer', () => {
       new Base58().set({
-        buf: new buffer.Buffer([])
+        buf: new Buffer([])
       });
     });
   });
@@ -80,7 +80,7 @@ describe('Base58', () => {
 
   describe('#fromBuffer', () => {
     it('should not fail', () => {
-      should.exist(new Base58().fromBuffer(buf));
+      should().exist(new Base58().fromBuffer(buf));
     });
 
     it('should set buffer', () => {

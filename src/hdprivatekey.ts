@@ -259,7 +259,7 @@ export class HDPrivateKey {
    * @param {string|number} arg
    * @param {boolean?} hardened
    */
-  public deriveChild(arg, hardened) {
+  public deriveChild(arg: string | number, hardened = false) {
     if (_.isNumber(arg)) {
       return this._deriveWithNumber(arg, hardened);
     } else if (_.isString(arg)) {
@@ -288,7 +288,7 @@ export class HDPrivateKey {
    * @param {string|number} arg
    * @param {boolean?} hardened
    */
-  public deriveNonCompliantChild(arg, hardened) {
+  public deriveNonCompliantChild(arg, hardened = false) {
     if (_.isNumber(arg)) {
       return this._deriveWithNumber(arg, hardened, true);
     } else if (_.isString(arg)) {

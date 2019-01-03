@@ -1,6 +1,7 @@
 'use strict';
 
 import { BitcoreLib } from '../../src';
+import { should } from 'chai';
 const BufferWriter = BitcoreLib.encoding.BufferWriter;
 const BufferReader = BitcoreLib.encoding.BufferReader;
 const BN = BitcoreLib.crypto.BN;
@@ -8,7 +9,7 @@ const BN = BitcoreLib.crypto.BN;
 describe('BufferWriter', () => {
   it('should create a new buffer writer', () => {
     const bw = new BufferWriter();
-    should.exist(bw);
+    should().exist(bw);
   });
 
   describe('#set', () => {

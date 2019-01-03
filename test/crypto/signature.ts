@@ -1,6 +1,7 @@
 'use strict';
 
 import * as _ from 'lodash';
+import { should } from 'chai';
 import { BitcoreLib } from '../../src';
 const BN = BitcoreLib.crypto.BN;
 const Signature = BitcoreLib.crypto.Signature;
@@ -13,29 +14,29 @@ const sig_noncanonical = require('../data/bitcoind/sig_noncanonical');
 describe('Signature', () => {
   it('should make a blank signature', () => {
     const sig = new Signature();
-    should.exist(sig);
+    should().exist(sig);
   });
 
   it('should work with conveniently setting r, s', () => {
     const r = new BN(0);
     const s = new BN(0);
     const sig = new Signature(r, s);
-    should.exist(sig);
+    should().exist(sig);
     sig.r.toString().should.equal(r.toString());
     sig.s.toString().should.equal(s.toString());
   });
 
   describe('#set', () => {
     it('should set compressed', () => {
-      should.exist(
-        Signature().set({
+      should().exist(
+        new Signature().set({
           compressed: true
         })
       );
     });
 
     it('should set nhashtype', () => {
-      const sig = Signature().set({
+      const sig = new Signature().set({
         nhashtype: Signature.SIGHASH_ALL
       });
       sig.nhashtype.should.equal(Signature.SIGHASH_ALL);
@@ -293,7 +294,7 @@ describe('Signature', () => {
         '304502203e4516da7253cf068effec6b95c41221c0cf3a8e6ccb8cbf1725b562e9afde2c022100ab1e3da73d67e32045a20e0b999e049978ea8d6ee5480d485fcf2ce0d03b2ef051';
       const sig = Buffer.from(sighex, 'hex');
       const parsed = Signature.parseDER(sig, false);
-      should.exist(parsed);
+      should().exist(parsed);
     });
   });
 
@@ -309,7 +310,7 @@ describe('Signature', () => {
         r,
         s
       });
-      const der = sig.toDER(r, s);
+      const der = sig.toDER();
       der
         .toString('hex')
         .should.equal(
@@ -366,7 +367,7 @@ describe('Signature', () => {
             'should be ' + (expected ? '' : 'in') + 'valid for fixture #' + i,
             () => {
               const sighex = vector;
-              const interp = Interpreter();
+              const interp = new Interpreter();
               interp.flags =
                 Interpreter.SCRIPT_VERIFY_DERSIG |
                 Interpreter.SCRIPT_VERIFY_STRICTENC;
@@ -449,7 +450,7 @@ describe('Signature', () => {
         [(Signature.SIGHASH_ANYONECANPAY | Signature.SIGHASH_ALL) - 1, false]
       ];
       _.each(testCases, (testCase) => {
-        sig.nhashtype = testCase[0];
+        sig.nhashtype = Number(testCase[0]);
         sig.hasDefinedHashtype().should.equal(testCase[1]);
       });
     });

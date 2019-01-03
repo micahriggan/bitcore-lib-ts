@@ -1,24 +1,25 @@
-'use strict';
-import * as chai from 'chai';
+import { should } from 'chai';
 import { BitcoreLib } from '../../src';
 import { ECDSA } from '../../src/crypto/ecdsa';
 import { Hash } from '../../src/crypto/hash';
 import { Signature } from '../../src/crypto/signature';
 import { BitcoreBN } from '../../src/crypto/bn';
 import { Point } from '../../src/crypto/point';
+import { PrivateKey } from '../../src/privatekey';
+import { PublicKey } from '../../src/publickey';
 
 const vectors = require('../data/ecdsa');
 
 describe('ECDSA', () => {
   it('instantiation', () => {
     const ec = new ECDSA();
-    should.exist(ecdsa);
+    should().exist(ecdsa);
   });
 
   const ecdsa = new ECDSA();
   ecdsa.hashbuf = Hash.sha256(new Buffer('test data'));
   ecdsa.privkey = new PrivateKey(
-    BN.fromBuffer(
+    BitcoreBN.fromBuffer(
       new Buffer(
         'fee0a1f7afebf9d2a5a80c0c98a31c709681cce195cbcd06342b517970c0be1e',
         'hex'
@@ -29,7 +30,7 @@ describe('ECDSA', () => {
 
   describe('#set', () => {
     it('sets hashbuf', () => {
-      should.exist(
+      should().exist(
         new ECDSA().set({
           hashbuf: ecdsa.hashbuf
         }).hashbuf
@@ -42,21 +43,23 @@ describe('ECDSA', () => {
       ecdsa.randomK();
       ecdsa.sign();
       ecdsa.calci();
-      should.exist(ecdsa.sig.i);
+      should().exist(ecdsa.sig.i);
     });
 
     it('calulates this known i', () => {
       const hashbuf = Hash.sha256(new Buffer('some data'));
-      const r = new BN(
+      const r = new BitcoreBN(
         '71706645040721865894779025947914615666559616020894583599959600180037551395766',
         10
       );
-      const s = new BN(
+      const s = new BitcoreBN(
         '109412465507152403114191008482955798903072313614214706891149785278625167723646',
         10
       );
       const ec = new ECDSA({
-        privkey: new PrivateKey(BN.fromBuffer(Hash.sha256(new Buffer('test')))),
+        privkey: new PrivateKey(
+          BitcoreBN.fromBuffer(Hash.sha256(new Buffer('test')))
+        ),
         hashbuf,
         sig: new Signature({
           r,
@@ -73,8 +76,8 @@ describe('ECDSA', () => {
     it('round trip with fromString', () => {
       const str = ecdsa.toString();
       const ecdsa2 = ECDSA.fromString(str);
-      should.exist(ecdsa2.hashbuf);
-      should.exist(ecdsa2.privkey);
+      should().exist(ecdsa2.hashbuf);
+      should().exist(ecdsa2.privkey);
     });
   });
 
@@ -90,9 +93,9 @@ describe('ECDSA', () => {
     it('should generate a random k that is (almost always) greater than this relatively small number', () => {
       ecdsa.randomK();
       const k1 = ecdsa.k;
-      const k2 = new BN(Math.pow(2, 32))
-        .mul(new BN(Math.pow(2, 32)))
-        .mul(new BN(Math.pow(2, 32)));
+      const k2 = new BitcoreBN(Math.pow(2, 32))
+        .mul(new BitcoreBN(Math.pow(2, 32)))
+        .mul(new BitcoreBN(Math.pow(2, 32)));
       k2.gt(k1).should.equal(false);
     });
   });
@@ -138,7 +141,7 @@ describe('ECDSA', () => {
           'Everything should be made as simple as possible, but not simpler.'
         )
       );
-      ec.privkey = new PrivateKey(new BN(1));
+      ec.privkey = new PrivateKey(new BitcoreBN(1));
       ec.privkey2pubkey();
       ec.deterministicK();
       ec.k
@@ -163,7 +166,7 @@ describe('ECDSA', () => {
 
   describe('#toPublicKey', () => {
     it('should calculate the correct public key', () => {
-      ecdsa.k = new BN(
+      ecdsa.k = new BitcoreBN(
         '114860389168127852803919605627759231199925249596762615988727970217268189974335',
         10
       );
@@ -174,7 +177,7 @@ describe('ECDSA', () => {
     });
 
     it('should calculate the correct public key for this signature with low s', () => {
-      ecdsa.k = new BN(
+      ecdsa.k = new BitcoreBN(
         '114860389168127852803919605627759231199925249596762615988727970217268189974335',
         10
       );
@@ -188,7 +191,7 @@ describe('ECDSA', () => {
     });
 
     it('should calculate the correct public key for this signature with high s', () => {
-      ecdsa.k = new BN(
+      ecdsa.k = new BitcoreBN(
         '114860389168127852803919605627759231199925249596762615988727970217268189974335',
         10
       );
@@ -221,8 +224,8 @@ describe('ECDSA', () => {
       );
       ecdsa.pubkey = pk;
       ecdsa.sig = new Signature();
-      ecdsa.sig.r = new BN(0);
-      ecdsa.sig.s = new BN(0);
+      ecdsa.sig.r = new BitcoreBN(0);
+      ecdsa.sig.s = new BitcoreBN(0);
       ecdsa.sigError().should.equal('r and s not in range');
     });
 
@@ -231,7 +234,7 @@ describe('ECDSA', () => {
         '3046022100e9915e6236695f093a4128ac2a956c40' +
           'ed971531de2f4f41ba05fac7e2bd019c02210094e6a4a769cc7f2a8ab3db696c7cd8d56bcdbfff860a8c81de4bc6a798b90827'
       );
-      ecdsa.sig.r = new BitcoreBN(ecdsa.sig.r.add(new BN(1)));
+      ecdsa.sig.r = new BitcoreBN(ecdsa.sig.r.add(new BitcoreBN(1)));
       ecdsa.sigError().should.equal('Invalid signature');
     });
   });
@@ -300,7 +303,7 @@ describe('ECDSA', () => {
       });
       it('should produce a signature, and be different when called twice', () => {
         ecdsa.signRandomK();
-        should.exist(ecdsa.sig);
+        should().exist(ecdsa.sig);
         const ecdsa2 = new ECDSA(ecdsa);
         ecdsa2.signRandomK();
         ecdsa.sig.toString().should.not.equal(ecdsa2.sig.toString());
@@ -347,12 +350,14 @@ describe('ECDSA', () => {
       vectors.valid.forEach((obj, i) => {
         it('should validate valid vector ' + i, () => {
           const ec = new ECDSA().set({
-            privkey: new PrivateKey(BN.fromBuffer(new Buffer(obj.d, 'hex'))),
-            k: BN.fromBuffer(new Buffer(obj.k, 'hex')),
+            privkey: new PrivateKey(
+              BitcoreBN.fromBuffer(new Buffer(obj.d, 'hex'))
+            ),
+            k: BitcoreBN.fromBuffer(new Buffer(obj.k, 'hex')),
             hashbuf: Hash.sha256(new Buffer(obj.message)),
             sig: new Signature().set({
-              r: new BN(obj.signature.r),
-              s: new BN(obj.signature.s),
+              r: new BitcoreBN(obj.signature.r),
+              s: new BitcoreBN(obj.signature.s),
               i: obj.i
             })
           });
@@ -377,8 +382,8 @@ describe('ECDSA', () => {
             const ec = new ECDSA().set({
               pubkey: PublicKey.fromPoint(Point.fromX(true, 1)),
               sig: new Signature(
-                new BN(obj.signature.r),
-                new BN(obj.signature.s)
+                new BitcoreBN(obj.signature.r),
+                new BitcoreBN(obj.signature.s)
               ),
               hashbuf: Hash.sha256(new Buffer(obj.message))
             });
@@ -390,8 +395,8 @@ describe('ECDSA', () => {
       vectors.deterministicK.forEach((obj, i) => {
         it('should validate deterministicK vector ' + i, () => {
           const hashbuf = Hash.sha256(new Buffer(obj.message));
-          const privkey = PrivateKey(
-            BN.fromBuffer(new Buffer(obj.privkey, 'hex')),
+          const privkey = new PrivateKey(
+            BitcoreBN.fromBuffer(new Buffer(obj.privkey, 'hex')),
             'mainnet'
           );
           const ec = new ECDSA({

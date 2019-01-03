@@ -1,6 +1,6 @@
 'use strict';
 
-import * as chai from 'chai';
+import { should } from 'chai';
 import { BitcoreLib } from '../../src';
 const Point = BitcoreLib.crypto.Point;
 const BN = BitcoreLib.crypto.BN;
@@ -18,12 +18,12 @@ describe('Point', () => {
 
   it('should create a point', () => {
     const p = new Point(valid.x, valid.y);
-    should.exist(p);
+    should().exist(p);
   });
 
   it('should create a point when called with "new"', () => {
     const p = new Point(valid.x, valid.y);
-    should.exist(p);
+    should().exist(p);
   });
 
   describe('#getX', () => {
@@ -146,7 +146,7 @@ describe('Point', () => {
   describe('#validate', () => {
     it('should describe this point as valid', () => {
       const p = new Point(valid.x, valid.y);
-      should.exist(p.validate());
+      should().exist(p.validate());
     });
 
     it('should describe this point as invalid because of zero y', () => {

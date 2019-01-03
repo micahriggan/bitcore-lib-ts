@@ -1,7 +1,7 @@
 import $ from '../../util/preconditions';
 import { BufferUtil } from '../../util/buffer';
 import { Hash } from '../../crypto/hash';
-import { Input } from './input';
+import { InputTypes } from './input';
 import { Output } from '../output';
 import { sighash, Sighash } from '../sighash';
 import { Script } from '../../script';

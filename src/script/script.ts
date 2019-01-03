@@ -23,7 +23,7 @@ import { Interpreter } from './interpreter';
  */
 export interface InfoType {
   hashBuffer: Buffer;
-  type: string;
+  type: 'scripthash' | 'pubkeyhash';
   network: Network;
 }
 export declare namespace Script {
@@ -1044,7 +1044,11 @@ export class Script {
    * @param {Signature|Buffer} signature - a Signature object, or the signature in DER canonical encoding
    * @param {number=} sigtype - the type of the signature (defaults to SIGHASH_ALL)
    */
-  public static buildPublicKeyHashIn(publicKey, signature, sigtype = Signature.SIGHASH_ALL) {
+  public static buildPublicKeyHashIn(
+    publicKey,
+    signature,
+    sigtype = Signature.SIGHASH_ALL
+  ) {
     $.checkArgument(
       signature instanceof Signature || BufferUtil.isBuffer(signature)
     );
@@ -1117,17 +1121,21 @@ export class Script {
    * @private
    */
   public _getOutputAddressInfo() {
-    const info: Partial<Address.AddressObj> = {};
     if (this.isScriptHashOut()) {
-      info.hashBuffer = this.getData();
-      info.type = Address.PayToScriptHash;
+      return {
+        hashBuffer: this.getData(),
+        type: Address.PayToScriptHash,
+        network: Network.defaultNetwork
+      };
     } else if (this.isPublicKeyHashOut()) {
-      info.hashBuffer = this.getData();
-      info.type = Address.PayToPublicKeyHash;
+      return {
+        hashBuffer: this.getData(),
+        type: Address.PayToPublicKeyHash,
+        network: Network.defaultNetwork
+      };
     } else {
       return false;
     }
-    return info;
   }
 
   /**
@@ -1136,7 +1144,8 @@ export class Script {
    * @private
    */
   public _getInputAddressInfo() {
-    const info: Partial<Address.AddressObj> = {};
+    const info: Address.AddressObj = {};
+    info.network = Network.defaultNetwork;
     if (this.isPublicKeyHashIn()) {
       // hash the publickey found in the scriptSig
       info.hashBuffer = Hash.sha256ripemd160(this.chunks[1].buf);

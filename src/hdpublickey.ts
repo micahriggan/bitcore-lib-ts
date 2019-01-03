@@ -16,15 +16,15 @@ import { BitcoreError } from './errors';
 
 const hdErrors = ERROR_TYPES.HDPublicKey.errors;
 export namespace HDPublicKey {
-  export type DataType = HDPublicKey.HDPublicKeyObj<string | number | Buffer> | Buffer | string | HDPublicKey 
+  export type DataType = HDPublicKey.HDPublicKeyObj<string | Buffer | number> | Buffer | string | HDPublicKey 
   export interface HDPublicKeyObj<T> {
     network: Network | string;
-    depth: T;
+    depth: number;
     fingerPrint?: T;
     parentFingerPrint: T;
     childIndex: T;
     chainCode: T;
-    publicKey: string | PublicKey;
+    publicKey: string | PublicKey | Buffer;
     version?: T;
     checksum?: T;
     xpubkey?: T;

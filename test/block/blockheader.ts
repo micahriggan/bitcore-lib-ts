@@ -1,9 +1,9 @@
 import { BitcoreLib } from '../../src';
 const BitcoreBN = BitcoreLib.crypto.BN;
 const BufferReader = BitcoreLib.encoding.BufferReader;
-const BufferWriter = bitcore.encoding.BufferWriter;
+const BufferWriter = BitcoreLib.encoding.BufferWriter;
 
-const BlockHeader = bitcore.BlockHeader;
+const BlockHeader = BitcoreLib.BlockHeader;
 const fs = require('fs');
 const should = require('chai').should();
 
@@ -36,7 +36,7 @@ describe('BlockHeader', () => {
   const bhbuf = new Buffer(bhhex, 'hex');
 
   it('should make a new blockheader', () => {
-    BlockHeader(bhbuf)
+    new BlockHeader(bhbuf)
       .toBuffer()
       .toString('hex')
       .should.equal(bhhex);
@@ -44,7 +44,7 @@ describe('BlockHeader', () => {
 
   it('should not make an empty block', () => {
     (() => {
-      BlockHeader();
+      const x = new (BlockHeader as any)();
     }).should.throw('Unrecognized argument for BlockHeader');
   });
 
@@ -58,12 +58,12 @@ describe('BlockHeader', () => {
         bits,
         nonce
       });
-      should.exist(header.version);
-      should.exist(header.prevHash);
-      should.exist(header.merkleRoot);
-      should.exist(header.time);
-      should.exist(header.bits);
-      should.exist(header.nonce);
+      should().exist(header.version);
+      should().exist(header.prevHash);
+      should().exist(header.merkleRoot);
+      should().exist(header.time);
+      should().exist(header.bits);
+      should().exist(header.nonce);
     });
 
     it("will throw an error if the argument object hash property doesn't match", () => {
@@ -104,24 +104,24 @@ describe('BlockHeader', () => {
         bits,
         nonce
       });
-      should.exist(header.version);
-      should.exist(header.prevHash);
-      should.exist(header.merkleRoot);
-      should.exist(header.time);
-      should.exist(header.bits);
-      should.exist(header.nonce);
+      should().exist(header.version);
+      should().exist(header.prevHash);
+      should().exist(header.merkleRoot);
+      should().exist(header.time);
+      should().exist(header.bits);
+      should().exist(header.nonce);
     });
   });
 
   describe('#toJSON', () => {
     it('should set all the variables', () => {
       const json = bh.toJSON();
-      should.exist(json.version);
-      should.exist(json.prevHash);
-      should.exist(json.merkleRoot);
-      should.exist(json.time);
-      should.exist(json.bits);
-      should.exist(json.nonce);
+      should().exist(json.version);
+      should().exist(json.prevHash);
+      should().exist(json.merkleRoot);
+      should().exist(json.time);
+      should().exist(json.bits);
+      should().exist(json.nonce);
     });
   });
 
@@ -137,12 +137,12 @@ describe('BlockHeader', () => {
       });
 
       const json = new BlockHeader(JSON.parse(jsonString));
-      should.exist(json.version);
-      should.exist(json.prevHash);
-      should.exist(json.merkleRoot);
-      should.exist(json.time);
-      should.exist(json.bits);
-      should.exist(json.nonce);
+      should().exist(json.version);
+      should().exist(json.prevHash);
+      should().exist(json.merkleRoot);
+      should().exist(json.time);
+      should().exist(json.bits);
+      should().exist(json.nonce);
     });
   });
 
@@ -221,7 +221,7 @@ describe('BlockHeader', () => {
     const x = BlockHeader.fromRawBlock(dataRawBlockBuffer);
 
     it('should validate timpstamp as true', () => {
-      const valid = x.validTimestamp(x);
+      const valid = x.validTimestamp();
       valid.should.equal(true);
     });
 
@@ -230,7 +230,7 @@ describe('BlockHeader', () => {
         Math.round(new Date().getTime() / 1000) +
         BlockHeader.Constants.MAX_TIME_OFFSET +
         100;
-      const valid = x.validTimestamp(x);
+      const valid = x.validTimestamp();
       valid.should.equal(false);
     });
   });
@@ -238,7 +238,7 @@ describe('BlockHeader', () => {
   describe('#validProofOfWork', () => {
     it('should validate proof-of-work as true', () => {
       const x = BlockHeader.fromRawBlock(dataRawBlockBuffer);
-      const valid = x.validProofOfWork(x);
+      const valid = x.validProofOfWork();
       valid.should.equal(true);
     });
 
@@ -246,7 +246,7 @@ describe('BlockHeader', () => {
       const x = BlockHeader.fromRawBlock(dataRawBlockBuffer);
       const backupNonce = x.nonce;
       x.nonce = 0;
-      const valid = x.validProofOfWork(x);
+      const valid = x.validProofOfWork();
       valid.should.equal(false);
       x.nonce = backupNonce;
     });

@@ -133,7 +133,7 @@ export function sign(
   scriptCode: Buffer,
   satoshisBuffer: Buffer
 ) {
-  const hashbuf = sighash(
+  const hashbuf = sighashwitness(
     transaction,
     sighashType,
     inputIndex,
@@ -169,7 +169,7 @@ export function verify(
   $.checkArgument(
     !_.isUndefined(signature) && !_.isUndefined(signature.nhashtype)
   );
-  const hashbuf = sighash(
+  const hashbuf = sighashwitness(
     transaction,
     signature.nhashtype,
     inputIndex,

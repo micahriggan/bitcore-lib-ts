@@ -3,7 +3,7 @@
 /* jshint maxparams:5 */
 
 import * as _ from 'lodash';
-import { Input } from './input';
+import { InputTypes } from './input';
 import { Output } from '../output';
 import $ from '../../util/preconditions';
 
@@ -37,7 +37,7 @@ export class MultiSigScriptHashInput extends Input {
   public publicKeyIndex = {};
 
   constructor(
-    input: MultiSigScriptHashInput | Input.InputObj,
+    input: MultiSigScriptHashInput | InputTypes.InputObj,
     pubkeys?: Array<PublicKey>,
     threshold?: number,
     signatures?: Array<Signature | Signature.PostSignature>,

@@ -209,6 +209,7 @@ export class BlockHeader {
       nonce: this.nonce
     };
   }
+  public toJSON = this.toObject;
 
   /**
    * @returns {Buffer} - A Buffer of the BlockHeader

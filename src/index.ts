@@ -16,9 +16,11 @@ import { Opcode } from './opcode';
 import { PrivateKey } from './privatekey';
 import { PublicKey } from './publickey';
 import { Unit } from './unit';
+import { BlockHeader } from './block/blockheader';
 export const BitcoreLib = {
   Address,
   Block,
+  BlockHeader,
   crypto: Crypto,
   encoding: Encoding,
   errors: BitcoreError,

@@ -1,9 +1,8 @@
 'use strict';
 
 import { BitcoreLib } from '../src';
-import { expect } from 'chai';
+import { should, expect } from 'chai';
 const Networks = BitcoreLib.Network;
-const should = chai.should();
 const URI = BitcoreLib.URI;
 
 describe('URI', () => {
@@ -229,13 +228,13 @@ describe('URI', () => {
         'message=Donation%20for%20project%20xyz&label=myLabel&other=xD'
     );
 
-    should.exist(uri.message);
+    should().exist(uri.message);
     uri.message.should.equal('Donation for project xyz');
 
-    should.exist(uri.label);
+    should().exist(uri.label);
     uri.label.should.equal('myLabel');
 
-    should.exist(uri.extras.other);
+    should().exist(uri.extras.other);
     uri.extras.other.should.equal('xD');
   });
 

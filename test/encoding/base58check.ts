@@ -1,5 +1,5 @@
 'use strict';
-import * as chai from 'chai';
+import { should } from 'chai';
 import { Buffer } from 'buffer';
 import { BitcoreLib } from '../../src';
 
@@ -12,7 +12,7 @@ describe('Base58Check', () => {
 
   it('should make an instance with "new"', () => {
     const b58 = new Base58Check();
-    should.exist(b58);
+    should().exist(b58);
   });
 
   it('can validate a serialized string', () => {
@@ -24,7 +24,7 @@ describe('Base58Check', () => {
 
   it('should make an instance without "new"', () => {
     const b58 = new Base58Check();
-    should.exist(b58);
+    should().exist(b58);
   });
 
   it('should allow this handy syntax', () => {
@@ -37,7 +37,7 @@ describe('Base58Check', () => {
 
   describe('#set', () => {
     it('should set a buf', () => {
-      should.exist(new Base58Check().set({ buf }).buf);
+      should().exist(new Base58Check().set({ buf }).buf);
     });
   });
 
@@ -84,7 +84,7 @@ describe('Base58Check', () => {
 
   describe('#fromBuffer', () => {
     it('should not fail', () => {
-      should.exist(new Base58Check().fromBuffer(buf));
+      should().exist(new Base58Check().fromBuffer(buf));
     });
 
     it('should set buffer', () => {

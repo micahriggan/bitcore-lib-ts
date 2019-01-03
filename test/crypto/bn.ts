@@ -5,7 +5,7 @@ import { BitcoreLib } from '../../src';
 
 const should = chai.should();
 
-describe('BN', () => {
+describe('BitcoreBN', () => {
   it('should create a bn', () => {
     const bn = new BitcoreBN(50);
     should.exist(bn);
@@ -66,7 +66,7 @@ describe('BN', () => {
     [0, 1, 10, 256, 1000, 65536, 65537, -1, -1000, -65536, -65537].forEach(
       n => {
         it('rountrips correctly for ' + n, () => {
-          BN.fromScriptNumBuffer(new BitcoreBN(n).toScriptNumBuffer())
+          BitcoreBN.fromScriptNumBuffer(new BitcoreBN(n).toScriptNumBuffer())
             .toNumber()
             .should.equal(n);
         });
@@ -75,13 +75,13 @@ describe('BN', () => {
   });
 
   describe('#fromString', () => {
-    it('should make BN from a string', () => {
-      BN.fromString('5')
+    it('should make BitcoreBN from a string', () => {
+      BitcoreBN.fromString('5')
         .toString()
         .should.equal('5');
     });
     it('should work with hex string', () => {
-      BN.fromString(
+      BitcoreBN.fromString(
         '7fffff0000000000000000000000000000000000000000000000000000000000',
         16
       )
@@ -100,21 +100,21 @@ describe('BN', () => {
 
   describe('@fromBuffer', () => {
     it('should work with big endian', () => {
-      const bn = BN.fromBuffer(new Buffer('0001', 'hex'), {
+      const bn = BitcoreBN.fromBuffer(new Buffer('0001', 'hex'), {
         endian: 'big'
       });
       bn.toString().should.equal('1');
     });
 
     it('should work with big endian 256', () => {
-      const bn = BN.fromBuffer(new Buffer('0100', 'hex'), {
+      const bn = BitcoreBN.fromBuffer(new Buffer('0100', 'hex'), {
         endian: 'big'
       });
       bn.toString().should.equal('256');
     });
 
     it('should work with little endian if we specify the size', () => {
-      const bn = BN.fromBuffer(new Buffer('0100', 'hex'), {
+      const bn = BitcoreBN.fromBuffer(new Buffer('0100', 'hex'), {
         size: 2,
         endian: 'little'
       });

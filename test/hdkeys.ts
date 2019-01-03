@@ -2,10 +2,11 @@
 
 import * as _ from 'lodash';
 import sinon from 'sinon';
+import { expect, should } from 'chai';
 import { BitcoreLib } from '../src';
-const Networks = bitcore.Network;
-const HDPrivateKey = bitcore.HDPrivateKey;
-const HDPublicKey = bitcore.HDPublicKey;
+const Networks = BitcoreLib.Network;
+const HDPrivateKey = BitcoreLib.HDPrivateKey;
+const HDPublicKey = BitcoreLib.HDPublicKey;
 
 describe('HDKeys building with static methods', () => {
   const classes = [HDPublicKey, HDPrivateKey];
@@ -65,7 +66,7 @@ describe('BIP32 compliance', () => {
   });
 
   it('should get the extended public key from the extended private key for test vector 1', () => {
-    HDPrivateKey(vector1_m_private).xpubkey.should.equal(vector1_m_public);
+    new HDPrivateKey(vector1_m_private).xpubkey.should.equal(vector1_m_public);
   });
 
   it("should get m/0' ext. private key from test vector 1", () => {
@@ -74,25 +75,25 @@ describe('BIP32 compliance', () => {
   });
 
   it("should get m/0' ext. public key from test vector 1", () => {
-    HDPrivateKey(vector1_m_private)
+    new HDPrivateKey(vector1_m_private)
       .derive("m/0'")
       .xpubkey.should.equal(vector1_m0h_public);
   });
 
   it("should get m/0'/1 ext. private key from test vector 1", () => {
-    HDPrivateKey(vector1_m_private)
+    new HDPrivateKey(vector1_m_private)
       .derive("m/0'/1")
       .xprivkey.should.equal(vector1_m0h1_private);
   });
 
   it("should get m/0'/1 ext. public key from test vector 1", () => {
-    HDPrivateKey(vector1_m_private)
+    new HDPrivateKey(vector1_m_private)
       .derive("m/0'/1")
       .xpubkey.should.equal(vector1_m0h1_public);
   });
 
   it("should get m/0'/1 ext. public key from m/0' public key from test vector 1", () => {
-    const derivedPublic = HDPrivateKey(vector1_m_private)
+    const derivedPublic = new HDPrivateKey(vector1_m_private)
       .derive("m/0'")
       .hdPublicKey.derive('m/1');
     derivedPublic.xpubkey.should.equal(vector1_m0h1_public);
@@ -105,43 +106,43 @@ describe('BIP32 compliance', () => {
   });
 
   it("should get m/0'/1/2' ext. public key from test vector 1", () => {
-    HDPrivateKey(vector1_m_private)
+    new HDPrivateKey(vector1_m_private)
       .derive("m/0'/1/2'")
       .xpubkey.should.equal(vector1_m0h12h_public);
   });
 
   it("should get m/0'/1/2'/2 ext. private key from test vector 1", () => {
-    HDPrivateKey(vector1_m_private)
+    new HDPrivateKey(vector1_m_private)
       .derive("m/0'/1/2'/2")
       .xprivkey.should.equal(vector1_m0h12h2_private);
   });
 
   it("should get m/0'/1/2'/2 ext. public key from m/0'/1/2' public key from test vector 1", () => {
-    const derived = HDPrivateKey(vector1_m_private).derive("m/0'/1/2'")
+    const derived = new HDPrivateKey(vector1_m_private).derive("m/0'/1/2'")
       .hdPublicKey;
     derived.derive('m/2').xpubkey.should.equal(vector1_m0h12h2_public);
   });
 
   it("should get m/0'/1/2h/2 ext. public key from test vector 1", () => {
-    HDPrivateKey(vector1_m_private)
+    new HDPrivateKey(vector1_m_private)
       .derive("m/0'/1/2'/2")
       .xpubkey.should.equal(vector1_m0h12h2_public);
   });
 
   it("should get m/0'/1/2h/2/1000000000 ext. private key from test vector 1", () => {
-    HDPrivateKey(vector1_m_private)
+    new HDPrivateKey(vector1_m_private)
       .derive("m/0'/1/2'/2/1000000000")
       .xprivkey.should.equal(vector1_m0h12h21000000000_private);
   });
 
   it("should get m/0'/1/2h/2/1000000000 ext. public key from test vector 1", () => {
-    HDPrivateKey(vector1_m_private)
+    new HDPrivateKey(vector1_m_private)
       .derive("m/0'/1/2'/2/1000000000")
       .xpubkey.should.equal(vector1_m0h12h21000000000_public);
   });
 
   it("should get m/0'/1/2'/2/1000000000 ext. public key from m/0'/1/2'/2 public key from test vector 1", () => {
-    const derived = HDPrivateKey(vector1_m_private).derive("m/0'/1/2'/2")
+    const derived = new HDPrivateKey(vector1_m_private).derive("m/0'/1/2'/2")
       .hdPublicKey;
     derived
       .derive('m/1000000000')
@@ -149,91 +150,94 @@ describe('BIP32 compliance', () => {
   });
 
   it('should initialize test vector 2 from the extended public key', () => {
-    HDPublicKey(vector2_m_public).xpubkey.should.equal(vector2_m_public);
+    new HDPublicKey(vector2_m_public).xpubkey.should.equal(vector2_m_public);
   });
 
   it('should initialize test vector 2 from the extended private key', () => {
-    HDPrivateKey(vector2_m_private).xprivkey.should.equal(vector2_m_private);
+    new HDPrivateKey(vector2_m_private).xprivkey.should.equal(
+      vector2_m_private
+    );
   });
 
   it('should get the extended public key from the extended private key for test vector 2', () => {
-    HDPrivateKey(vector2_m_private).xpubkey.should.equal(vector2_m_public);
+    new HDPrivateKey(vector2_m_private).xpubkey.should.equal(vector2_m_public);
   });
 
   it('should get m/0 ext. private key from test vector 2', () => {
-    HDPrivateKey(vector2_m_private)
+    new HDPrivateKey(vector2_m_private)
       .derive(0)
       .xprivkey.should.equal(vector2_m0_private);
   });
 
   it('should get m/0 ext. public key from test vector 2', () => {
-    HDPrivateKey(vector2_m_private)
+    new HDPrivateKey(vector2_m_private)
       .derive(0)
       .xpubkey.should.equal(vector2_m0_public);
   });
 
   it('should get m/0 ext. public key from m public key from test vector 2', () => {
-    HDPrivateKey(vector2_m_private)
-      .hdPublicKey.derive(0)
+    new HDPrivateKey(vector2_m_private).hdPublicKey
+      .derive(0)
       .xpubkey.should.equal(vector2_m0_public);
   });
 
   it('should get m/0/2147483647h ext. private key from test vector 2', () => {
-    HDPrivateKey(vector2_m_private)
+    new HDPrivateKey(vector2_m_private)
       .derive("m/0/2147483647'")
       .xprivkey.should.equal(vector2_m02147483647h_private);
   });
 
   it('should get m/0/2147483647h ext. public key from test vector 2', () => {
-    HDPrivateKey(vector2_m_private)
+    new HDPrivateKey(vector2_m_private)
       .derive("m/0/2147483647'")
       .xpubkey.should.equal(vector2_m02147483647h_public);
   });
 
   it('should get m/0/2147483647h/1 ext. private key from test vector 2', () => {
-    HDPrivateKey(vector2_m_private)
+    new HDPrivateKey(vector2_m_private)
       .derive("m/0/2147483647'/1")
       .xprivkey.should.equal(vector2_m02147483647h1_private);
   });
 
   it('should get m/0/2147483647h/1 ext. public key from test vector 2', () => {
-    HDPrivateKey(vector2_m_private)
+    new HDPrivateKey(vector2_m_private)
       .derive("m/0/2147483647'/1")
       .xpubkey.should.equal(vector2_m02147483647h1_public);
   });
 
   it('should get m/0/2147483647h/1 ext. public key from m/0/2147483647h public key from test vector 2', () => {
-    const derived = HDPrivateKey(vector2_m_private).derive("m/0/2147483647'")
-      .hdPublicKey;
+    const derived = new HDPrivateKey(vector2_m_private).derive(
+      "m/0/2147483647'"
+    ).hdPublicKey;
     derived.derive(1).xpubkey.should.equal(vector2_m02147483647h1_public);
   });
 
   it('should get m/0/2147483647h/1/2147483646h ext. private key from test vector 2', () => {
-    HDPrivateKey(vector2_m_private)
+    new HDPrivateKey(vector2_m_private)
       .derive("m/0/2147483647'/1/2147483646'")
       .xprivkey.should.equal(vector2_m02147483647h12147483646h_private);
   });
 
   it('should get m/0/2147483647h/1/2147483646h ext. public key from test vector 2', () => {
-    HDPrivateKey(vector2_m_private)
+    new HDPrivateKey(vector2_m_private)
       .derive("m/0/2147483647'/1/2147483646'")
       .xpubkey.should.equal(vector2_m02147483647h12147483646h_public);
   });
 
   it('should get m/0/2147483647h/1/2147483646h/2 ext. private key from test vector 2', () => {
-    HDPrivateKey(vector2_m_private)
+    new HDPrivateKey(vector2_m_private)
       .derive("m/0/2147483647'/1/2147483646'/2")
       .xprivkey.should.equal(vector2_m02147483647h12147483646h2_private);
   });
 
   it('should get m/0/2147483647h/1/2147483646h/2 ext. public key from test vector 2', () => {
-    HDPrivateKey(vector2_m_private)
+    new HDPrivateKey(vector2_m_private)
       .derive("m/0/2147483647'/1/2147483646'/2")
       .xpubkey.should.equal(vector2_m02147483647h12147483646h2_public);
   });
 
   it('should get m/0/2147483647h/1/2147483646h/2 ext. public key from m/0/2147483647h/2147483646h public key from test vector 2', () => {
-    const derivedPublic = HDPrivateKey(vector2_m_private).derive(
+    const derivedPublic = new HDPrivateKey(vector2_m_private).derive(
       "m/0/2147483647'/1/2147483646'"
     ).hdPublicKey;
     derivedPublic
@@ -337,10 +341,10 @@ describe('BIP32 compliance', () => {
         '39816057bba9d952fe87fe998b7fd4d690a1bb58c2ff69141469e4d1dffb4b91',
         'hex'
       );
-      const unstubbed = bitcore.crypto.BN.prototype.toBuffer;
+      const unstubbed = BitcoreLib.crypto.BN.prototype.toBuffer;
       let count = 0;
       const stub = sandbox.replace(
-        bitcore.crypto.BN.prototype,
+        BitcoreLib.crypto.BN.prototype,
         'toBuffer',
         args => {
           // On the fourth call to the function give back an invalid private key
@@ -353,7 +357,7 @@ describe('BIP32 compliance', () => {
           return ret;
         }
       );
-      sandbox.spy(bitcore.PrivateKey, 'isValid');
+      sandbox.spy(BitcoreLib.PrivateKey, 'isValid');
       const key = HDPrivateKey.fromObject({
         network: 'testnet',
         depth: 0,
@@ -368,7 +372,9 @@ describe('BIP32 compliance', () => {
         .should.equal(
           'b15bce3608d607ee3a49069197732c656bca942ee59f3e29b4d56914c1de6825'
         );
-      bitcore.PrivateKey.isValid.callCount.should.equal(2);
+      (BitcoreLib.PrivateKey.isValid as sinon.SinonSpy).callCount.should.equal(
+        2
+      );
     });
     it('will handle edge case that a derive public key is invalid', () => {
       const publicKeyBuffer = new Buffer(
@@ -387,14 +393,14 @@ describe('BIP32 compliance', () => {
         chainCode: chainCodeBuffer,
         publicKey: publicKeyBuffer
       });
-      const unstubbed = bitcore.PublicKey.fromPoint;
-      bitcore.PublicKey.fromPoint = () => {
-        bitcore.PublicKey.fromPoint = unstubbed;
+      const unstubbed = BitcoreLib.PublicKey.fromPoint;
+      BitcoreLib.PublicKey.fromPoint = () => {
+        BitcoreLib.PublicKey.fromPoint = unstubbed;
         throw new Error('Point cannot be equal to Infinity');
       };
       sandbox.spy(key, '_deriveWithNumber');
       const derived = key.derive('m/44');
-      key._deriveWithNumber.callCount.should.equal(2);
+      (key._deriveWithNumber as sinon.SinonSpy).callCount.should.equal(2);
       key.publicKey
         .toString()
         .should.equal(

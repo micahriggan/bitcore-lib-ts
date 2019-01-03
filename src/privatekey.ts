@@ -115,9 +115,9 @@ export class PrivateKey {
       (data as PrivateKey.PrivateKeyObj).network
     ) {
       info = PrivateKey._transformObject(data);
-    } else if (!network && Network.get(data)) {
+    } else if (!network && Network.get(data.toString())) {
       info.bn = PrivateKey._getRandomBN();
-      info.network = Network.get(data);
+      info.network = Network.get(data.toString());
     } else if (typeof data === 'string') {
       if (JSUtil.isHexa(data)) {
         info.bn = new BitcoreBN(Buffer.from(data, 'hex'));

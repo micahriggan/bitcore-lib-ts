@@ -1,8 +1,8 @@
-import { PublicKeyHashInput } from './publickeyhash';
-import { ERROR_TYPES } from '../../errors/spec';
 import * as _ from 'lodash';
 import BN from 'bn.js';
 import $ from '../../util/preconditions';
+import { PublicKeyHashInput } from './publickeyhash';
+import { ERROR_TYPES } from '../../errors/spec';
 import { BitcoreError } from '../../errors';
 import { BufferWriter } from '../../encoding';
 import { Buffer } from 'buffer';
@@ -23,7 +23,7 @@ const DEFAULT_RBF_SEQNUMBER = MAXINT - 2;
 const DEFAULT_SEQNUMBER = MAXINT;
 const DEFAULT_LOCKTIME_SEQNUMBER = MAXINT - 1;
 
-export namespace Input {
+export namespace InputTypes {
   export interface InputObj {
     prevTxId?: string | Buffer;
     txidbuf?: Buffer;
@@ -59,7 +59,7 @@ export class Input {
   public signatures = [];
 
   constructor(
-    input?: Input.InputObj,
+    input?: InputTypes.InputObj,
     pubkeys?: Array<PublicKey>,
     threshold?: number,
     signatures?: Array<Signature>,
@@ -90,7 +90,7 @@ export class Input {
     return input._fromObject(obj);
   }
 
-  public _fromObject(params: Input.InputObj) {
+  public _fromObject(params: InputTypes.InputObj) {
     const prevTxId =
       typeof params.prevTxId === 'string' && JSUtil.isHexa(params.prevTxId)
         ? new Buffer(params.prevTxId, 'hex')
@@ -120,7 +120,7 @@ export class Input {
   }
 
   public toObject() {
-    const obj: Input.InputObj = {
+    const obj: InputTypes.InputObj = {
       prevTxId: this.prevTxId.toString('hex'),
       outputIndex: this.outputIndex,
       sequenceNumber: this.sequenceNumber,

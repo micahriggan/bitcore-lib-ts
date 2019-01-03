@@ -13,7 +13,7 @@ export namespace ECDSA {
   export interface ECDSAObj {
     hashbuf: string | Buffer;
     endian: string; // the endianness of hashbuf
-    privkey: string;
+    privkey: string | PrivateKey;
     pubkey: string;
     sig: string | Signature;
     k: string;

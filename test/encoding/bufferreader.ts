@@ -1,6 +1,6 @@
 'use strict';
 
-import * as chai from 'chai';
+import { should, expect } from 'chai';
 import { BitcoreLib } from '../../src';
 const BufferWriter = BitcoreLib.encoding.BufferWriter;
 const BufferReader = BitcoreLib.encoding.BufferReader;
@@ -9,27 +9,27 @@ const BN = BitcoreLib.crypto.BN;
 describe('BufferReader', () => {
   it('should make a new BufferReader', () => {
     let br = new BufferReader();
-    should.exist(br);
+    should().exist(br);
     br = new BufferReader();
-    should.exist(br);
+    should().exist(br);
   });
 
   it('should create a new bufferreader with a buffer', () => {
     const buf = new Buffer(0);
     const br = new BufferReader(buf);
-    should.exist(br);
+    should().exist(br);
     Buffer.isBuffer(br.buf).should.equal(true);
   });
   it('should fail for invalid object', () => {
     const fail = () => {
-      return new BufferReader(5);
+      return new BufferReader(5 as any);
     };
     fail.should.throw('Unrecognized argument for BufferReader');
   });
 
   describe('#set', () => {
     it('should set pos', () => {
-      should.exist(
+      should().exist(
         new BufferReader().set({
           pos: 1
         }).pos

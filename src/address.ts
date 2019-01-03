@@ -12,15 +12,17 @@ import { Script } from './script';
 export declare namespace Address {
   export type AddressData =
     | string
+    | Array<string>
     | Buffer
     | Uint8Array
     | PublicKey
+    | Array<PublicKey>
     | Script
-    | Partial<AddressObj>;
+    | AddressObj;
   export interface AddressObj {
-    hashBuffer: Buffer;
-    network: Network;
-    type: string;
+    hashBuffer?: Buffer;
+    network?: Network | string;
+    type?: 'pubkeyhash' | 'scripthash';
   }
 }
 /**
@@ -53,14 +55,14 @@ export declare namespace Address {
  *
  * @param {*} data - The encoded data in various formats
  * @param {Network|String|number=} network - The network: 'livenet' or 'testnet'
- * @param {string=} type - The type of address: 'script' or 'pubkey'
+ * @param {string=} type - The type of address: 'scripthash' or 'pubkeyhash'
  * @returns {Address} A new valid and frozen instance of an Address
  * @constructor
  */
 export class Address {
   /** @static */
-  public static PayToPublicKeyHash = 'pubkeyhash';
-  public static PayToScriptHash = 'scripthash';
+  public static PayToPublicKeyHash = 'pubkeyhash' as 'pubkeyhash';
+  public static PayToScriptHash = 'scripthash' as 'scripthash';
 
   public type: 'pubkeyhash' | 'scripthash';
   public network: Network;
@@ -69,7 +71,7 @@ export class Address {
   constructor(
     data: Address.AddressData | Address,
     network?: Network | number | string,
-    type?: string
+    type?: 'scripthash' | 'pubkeyhash'
   ) {
     /* jshint maxcomplexity: 12 */
     /* jshint maxstatements: 20 */
@@ -109,15 +111,15 @@ export class Address {
     const info = this._classifyArguments(data, network, type);
 
     // set defaults if not set
-    info.network =
+    this.network =
       info.network || Network.get(network) || Network.defaultNetwork;
-    info.type = info.type || type || Address.PayToPublicKeyHash;
+    this.type = info.type || type || Address.PayToPublicKeyHash;
   }
   /**
    * Internal function used to split different kinds of arguments of the constructor
    * @param {*} data - The encoded data in various formats
    * @param {Network|String|number=} network - The network: 'livenet' or 'testnet'
-   * @param {string=} type - The type of address: 'script' or 'pubkey'
+   * @param {string=} type - The type of address: 'scripthash' or 'pubkeyhash'
    * @returns {Object} An "info" object with "type", "network", and "hashBuffer"
    */
   public _classifyArguments(data, network, type) {
@@ -127,7 +129,7 @@ export class Address {
       (data instanceof Buffer || data instanceof Uint8Array) &&
       data.length === 20
     ) {
-      return Address._transformHash(data);
+      return Address._transformHash(data, type);
     } else if (
       (data instanceof Buffer || data instanceof Uint8Array) &&
       data.length === 21
@@ -151,7 +153,10 @@ export class Address {
    * @returns {Object} An object with keys: hashBuffer
    * @private
    */
-  public static _transformHash = hash => {
+  public static _transformHash = (
+    hash: Buffer | Uint8Array,
+    type = Address.PayToPublicKeyHash
+  ) => {
     const info = {};
     if (!(hash instanceof Buffer) && !(hash instanceof Uint8Array)) {
       throw new TypeError('Address supplied is not a buffer.');
@@ -159,7 +164,7 @@ export class Address {
     if (hash.length !== 20) {
       throw new TypeError('Address hashbuffers must be exactly 20 bytes.');
     }
-    return { hashBuffer: hash };
+    return { hashBuffer: hash, network: Network.defaultNetwork, type };
   };
 
   /**
@@ -218,7 +223,11 @@ export class Address {
    * @returns {Object} An object with keys: hashBuffer, network and type
    * @private
    */
-  public static _transformBuffer(buffer, network, type) {
+  public static _transformBuffer(
+    buffer,
+    network?: Network | string,
+    type?: 'pubkeyhash' | 'scripthash'
+  ) {
     /* jshint maxcomplexity: 9 */
     if (!(buffer instanceof Buffer) && !(buffer instanceof Uint8Array)) {
       throw new TypeError('Address supplied is not a buffer.');
@@ -266,7 +275,8 @@ export class Address {
     }
     const info = {
       hashBuffer: Hash.sha256ripemd160(pubkey.toBuffer()),
-      type: Address.PayToPublicKeyHash
+      type: Address.PayToPublicKeyHash,
+      network: Network.defaultNetwork
     };
     return info;
   }
@@ -278,12 +288,12 @@ export class Address {
    * @returns {Object} An object with keys: hashBuffer, type
    * @private
    */
-  public static _transformScript(script, network) {
+  public static _transformScript(script: Script, network?: string | Network) {
     $.checkArgument(
       script instanceof Script,
       'script must be a Script instance'
     );
-    const info = script.getAddressInfo(network);
+    const info = script.getAddressInfo();
     if (!info) {
       throw new BitcoreError(
         ERROR_TYPES.Script.errors.CantDeriveAddress,
@@ -309,7 +319,7 @@ export class Address {
   public static createMultisig(
     publicKeys,
     threshold: number,
-    network: string | Network,
+    network: string | Network = Network.defaultNetwork, 
     nestedWitness = false
   ) {
     network = network || publicKeys[0].network || Network.defaultNetwork;
@@ -332,7 +342,11 @@ export class Address {
    * @returns {Object} An object with keys: hashBuffer, network and type
    * @private
    */
-  public static _transformString(data, network, type) {
+  public static _transformString(
+    data,
+    network: Network | string,
+    type: 'pubkeyhash' | 'scripthash'
+  ) {
     if (typeof data !== 'string') {
       throw new TypeError('data parameter supplied is not a string.');
     }
@@ -349,7 +363,7 @@ export class Address {
    * @param {String|Network} network - either a Network instance, 'livenet', or 'testnet'
    * @returns {Address} A new valid and frozen instance of an Address
    */
-  public static fromPublicKey(data, network) {
+  public static fromPublicKey(data: PublicKey, network?: string | Network) {
     const info = Address._transformPublicKey(data);
     network = network || Network.defaultNetwork;
     return new Address(info.hashBuffer, network, info.type);
@@ -362,7 +376,7 @@ export class Address {
    * @param {String|Network} network - either a Network instance, 'livenet', or 'testnet'
    * @returns {Address} A new valid and frozen instance of an Address
    */
-  public static fromPublicKeyHash(hash, network) {
+  public static fromPublicKeyHash(hash: Buffer, network?: Network | string) {
     const info = Address._transformHash(hash);
     return new Address(info.hashBuffer, network, Address.PayToPublicKeyHash);
   }
@@ -374,7 +388,7 @@ export class Address {
    * @param {String|Network} network - either a Network instance, 'livenet', or 'testnet'
    * @returns {Address} A new valid and frozen instance of an Address
    */
-  public static fromScriptHash(hash, network) {
+  public static fromScriptHash(hash: Buffer, network?: Network | string) {
     $.checkArgument(hash, 'hash parameter is required');
     const info = Address._transformHash(hash);
     return new Address(info.hashBuffer, network, Address.PayToScriptHash);
@@ -417,7 +431,7 @@ export class Address {
    * @param {String|Network} network - either a Network instance, 'livenet', or 'testnet'
    * @returns {Address} A new valid and frozen instance of an Address
    */
-  public static fromScript(script, network) {
+  public static fromScript(script: Script, network: string | Network) {
     $.checkArgument(
       script instanceof Script,
       'script must be a Script instance'
@@ -431,10 +445,14 @@ export class Address {
    *
    * @param {Buffer} buffer - An instance of buffer of the address
    * @param {String|Network=} network - either a Network instance, 'livenet', or 'testnet'
-   * @param {string=} type - The type of address: 'script' or 'pubkey'
+   * @param {string=} type - The type of address: 'scripthash' or 'pubkeyhash'
    * @returns {Address} A new valid and frozen instance of an Address
    */
-  public static fromBuffer(buffer, network, type) {
+  public static fromBuffer(
+    buffer: Buffer,
+    network?: Network | string,
+    type?: 'scripthash' | 'pubkeyhash'
+  ) {
     const info = Address._transformBuffer(buffer, network, type);
     return new Address(info.hashBuffer, info.network, info.type);
   }
@@ -444,13 +462,13 @@ export class Address {
    *
    * @param {string} str - An string of the bitcoin address
    * @param {String|Network=} network - either a Network instance, 'livenet', or 'testnet'
-   * @param {string=} type - The type of address: 'script' or 'pubkey'
+   * @param {string=} type - The type of address: 'scripthash' or 'pubkeyhash'
    * @returns {Address} A new valid and frozen instance of an Address
    */
   public static fromString(
     str: string,
     network?: Network | string,
-    type?: string
+    type?: 'scripthash' | 'pubkeyhash'
   ) {
     const info = Address._transformString(str, network, type);
     return new Address(info.hashBuffer, info.network, info.type);
@@ -482,13 +500,13 @@ export class Address {
    *
    * @param {string} data - The encoded data
    * @param {String|Network} network - either a Network instance, 'livenet', or 'testnet'
-   * @param {string} type - The type of address: 'script' or 'pubkey'
+   * @param {string} type - The type of address: 'scripthash' or 'pubkeyhash'
    * @returns {null|Error} The corresponding error message
    */
   public static getValidationError(
     data: string,
-    network: string | Network,
-    type: string
+    network?: string | Network,
+    type?: 'scripthash' | 'pubkeyhash'
   ) {
     let error;
     try {
@@ -510,10 +528,14 @@ export class Address {
    *
    * @param {string} data - The encoded data
    * @param {String|Network} network - either a Network instance, 'livenet', or 'testnet'
-   * @param {string} type - The type of address: 'script' or 'pubkey'
+   * @param {string} type - The type of address: 'scripthash' or 'pubkeyhash'
    * @returns {boolean} The corresponding error message
    */
-  public static isValid(data, network?: Network, type?: 'script' | 'pubkey') {
+  public static isValid(
+    data,
+    network?: Network | string,
+    type?: 'scripthash' | 'pubkeyhash'
+  ) {
     return !Address.getValidationError(data, network, type);
   }
 

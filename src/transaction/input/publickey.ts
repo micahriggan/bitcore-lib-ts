@@ -1,6 +1,6 @@
 import { Hash } from '../../crypto/hash';
 import $ from '../../util/preconditions';
-import { Input } from './input';
+import { InputTypes } from './input';
 import { BufferUtil } from '../../util/buffer';
 import { Output } from '../output';
 import { sighash, Sighash } from '../sighash';

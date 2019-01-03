@@ -2,7 +2,7 @@ import $ from '../util/preconditions';
 import * as _ from 'lodash';
 import { Buffer } from 'buffer';
 import { Script } from '../script';
-import { Transaction, Input, Output } from '.';
+import { Transaction, InputTypes, Output } from '.';
 import { BufferWriter, BufferReader } from '../encoding';
 import { Hash, ECDSA, BitcoreBN } from '../crypto';
 import { Signature } from '../crypto/signature';
@@ -30,6 +30,7 @@ export function sighash(transaction, sighashType, inputNumber, subscript) {
   let i;
   // Copy transaction
   const txcopy = Transaction.shallowCopy(transaction);
+  const blankInputs = new Array<Input>();
 
   // Copy script
   subscript = new Script(subscript);
@@ -37,12 +38,14 @@ export function sighash(transaction, sighashType, inputNumber, subscript) {
 
   for (i = 0; i < txcopy.inputs.length; i++) {
     // Blank signatures for other inputs
-    txcopy.inputs[i] = new Input(txcopy.inputs[i]).setScript(Script.empty());
+    blankInputs.push(new Input(txcopy.inputs[i]).setScript(Script.empty()));
   }
 
-  txcopy.inputs[inputNumber] = new Input(txcopy.inputs[inputNumber]).setScript(
+  blankInputs[inputNumber] = new Input(txcopy.inputs[inputNumber]).setScript(
     subscript
   );
+
+  Object.assign(txcopy.inputs, blankInputs);
 
   if (
     (sighashType & 31) === Signature.SIGHASH_NONE ||

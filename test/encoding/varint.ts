@@ -1,6 +1,7 @@
 'use strict';
 
 import { BitcoreLib } from '../../src';
+import { should } from 'chai';
 const BN = BitcoreLib.crypto.BN;
 const BufferReader = BitcoreLib.encoding.BufferReader;
 const BufferWriter = BitcoreLib.encoding.BufferWriter;
@@ -10,10 +11,10 @@ describe('Varint', () => {
   it('should make a new varint', () => {
     const buf = new Buffer('00', 'hex');
     let varint = new Varint(buf);
-    should.exist(varint);
+    should().exist(varint);
     varint.buf.toString('hex').should.equal('00');
     varint = new Varint(buf);
-    should.exist(varint);
+    should().exist(varint);
     varint.buf.toString('hex').should.equal('00');
 
     // various ways to use the constructor
